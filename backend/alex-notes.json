@@ -1,0 +1,10 @@
+Sample /moreDetails backend response
+{
+    "financeStatus": true,
+    "reviewStatus": false, 
+    "financeData": [
+        "financeDataPlaceholder1": 5,
+        "financeDataPlaceholder2": 6
+    ],
+    "reviewData": []
+}
