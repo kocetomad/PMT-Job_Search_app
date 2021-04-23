@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -29,11 +30,26 @@ class JobsFragment : Fragment() {
         }
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // is null safe because the activity may not have an action bar defined.
+        (activity as AppCompatActivity).supportActionBar?.elevation = 0F // to remove the drop shadow from the action bar
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         val jobsView: View = inflater.inflate(R.layout.activity_jobs_list, container, false)
+
+        // val backdropView = findViewById<LinearLayout>(R.id.backdropView)
+        // val backdropSheetBehavior = BottomSheetBehavior.from(backdropView)
+
+        /* to toggle the backdrop state use either
+        backdropSheetBehavior.state == BottomSheetBehavior.STATE_COLLAPSED
+        or backdropSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED */
+
         // Inflate the layout for this fragment
         return jobsView
     }
