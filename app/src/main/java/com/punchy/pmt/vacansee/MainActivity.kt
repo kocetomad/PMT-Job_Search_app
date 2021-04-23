@@ -9,11 +9,5 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        val startBackdropButton = findViewById<Button>(R.id.startBackdropButton)
-        startBackdropButton.setOnClickListener {
-            val intent = Intent(this, JobsList::class.java)
-            startActivity(intent)
-        }
     }
 }
