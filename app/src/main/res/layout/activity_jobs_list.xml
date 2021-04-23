@@ -15,9 +15,8 @@
             android:id="@+id/getJobsButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:backgroundTint="?attr/colorOnPrimary"
-            android:text="get Jobs"
-            android:textColor="?attr/colorOnPrimary" />
+            android:backgroundTint="?attr/colorPrimaryVariant"
+            android:text="get Jobs" />
 
     </LinearLayout>
 
