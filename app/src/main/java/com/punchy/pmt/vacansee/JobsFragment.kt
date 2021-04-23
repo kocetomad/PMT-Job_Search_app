@@ -5,7 +5,9 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -43,12 +45,10 @@ class JobsFragment : Fragment() {
     ): View? {
         val jobsView: View = inflater.inflate(R.layout.fragment_jobs, container, false)
 
-        // val backdropView = findViewById<LinearLayout>(R.id.backdropView)
-        // val backdropSheetBehavior = BottomSheetBehavior.from(backdropView)
+        val backdropView = jobsView.findViewById<LinearLayout>(R.id.backdropView)
+        val backdropSheetBehavior = BottomSheetBehavior.from(backdropView)
 
-        /* to toggle the backdrop state use either
-        backdropSheetBehavior.state == BottomSheetBehavior.STATE_COLLAPSED
-        or backdropSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED */
+        backdropSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
 
         // Inflate the layout for this fragment
         return jobsView
