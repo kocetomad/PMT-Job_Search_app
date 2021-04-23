@@ -11,12 +11,14 @@
         android:orientation="vertical"
         android:padding="14dp">
 
-        <TextView
-            android:id="@+id/textView3"
-            android:layout_width="match_parent"
+        <Button
+            android:id="@+id/getJobsButton"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="TextView"
+            android:backgroundTint="?attr/colorOnPrimary"
+            android:text="get Jobs"
             android:textColor="?attr/colorOnPrimary" />
+
     </LinearLayout>
 
     <LinearLayout
@@ -27,11 +29,11 @@
         android:background="@drawable/rounded_backdrop"
 
         android:orientation="vertical"
-        android:padding="14dp"
 
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
         app:behavior_hideable="false"
         app:behavior_peekHeight="48dp"
-
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -42,7 +44,9 @@
             android:id="@+id/textView2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Title here"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp"
+            android:text="Jobs found (x)"
             android:textStyle="bold" />
 
         <androidx.recyclerview.widget.RecyclerView
