@@ -41,7 +41,7 @@ class JobsFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val jobsView: View = inflater.inflate(R.layout.activity_jobs_list, container, false)
+        val jobsView: View = inflater.inflate(R.layout.fragment_jobs, container, false)
 
         // val backdropView = findViewById<LinearLayout>(R.id.backdropView)
         // val backdropSheetBehavior = BottomSheetBehavior.from(backdropView)
