@@ -1,5 +1,0 @@
-backend/node_modules
-backend/build
-backend/npm-debug.log
-backend/.env
-backend/.DS_Store
