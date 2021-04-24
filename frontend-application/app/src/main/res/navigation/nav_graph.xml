@@ -35,5 +35,13 @@
         <action
             android:id="@+id/action_loginFragment_to_jobsFragment"
             app:destination="@id/jobsFragment" />
+        <action
+            android:id="@+id/action_loginFragment_to_registerAccountFragment"
+            app:destination="@id/registerAccountFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/registerAccountFragment"
+        android:name="com.punchy.pmt.vacansee.RegisterAccountFragment"
+        android:label="fragment_register_account"
+        tools:layout="@layout/fragment_register_account" />
 </navigation>
