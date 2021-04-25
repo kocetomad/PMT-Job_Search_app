@@ -4,19 +4,25 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.punchy.pmt.vacansee.recycleviewer.RvAdapter
 
+
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
+var savedItems: MutableList<Int> = mutableListOf()
+var touchDown = true
+
 
 /**
  * A simple [Fragment] subclass.
@@ -50,7 +56,11 @@ class JobsFragment : Fragment() {
         val recyclerView = jobsView.findViewById<RecyclerView>(R.id.recyclerView)
 //        Initializing the type of layout, here I have used LinearLayoutManager you can try GridLayoutManager
 //        Based on your requirement to allow vertical or horizontal scroll , you can change it in  LinearLayout.VERTICAL
-        recyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
+        recyclerView.layoutManager = LinearLayoutManager(
+            context,
+            LinearLayoutManager.VERTICAL,
+            false
+        )
 //        Create an arraylist
         val dataList = ArrayList<String>()
         dataList.add("aasdas")
@@ -62,21 +72,44 @@ class JobsFragment : Fragment() {
 //        set the recyclerView to the adapter
         recyclerView.adapter = rvAdapter;
 
-        val myCallback = object : ItemTouchHelper.SimpleCallback(0,
-            ItemTouchHelper.RIGHT) {
+
+        jobsView.findViewById<RecyclerView>(R.id.recyclerView).setOnTouchListener(View.OnTouchListener { v, event ->
+            if (MotionEvent.ACTION_UP == event.action) {
+                println("Up")
+                touchDown=false
+            }
+            if (MotionEvent.ACTION_DOWN == event.action) {
+                println("Down")
+                touchDown=true
+            }
+            false // return is important...
+        })
+
+        val myCallback = object : ItemTouchHelper.SimpleCallback(
+            0,
+            ItemTouchHelper.RIGHT
+        ) {
+
             override fun onMove(
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder,
                 target: RecyclerView.ViewHolder
             ): Boolean = false
-
-            override fun onSwiped(viewHolder: RecyclerView.ViewHolder,
-                                  direction: Int) {
-
+            override fun onSwiped(
+                viewHolder: RecyclerView.ViewHolder,
+                direction: Int
+            ) {
+                println(direction)
                 // More code here
-                rvAdapter?.notifyItemRemoved(viewHolder.adapterPosition)
-
+                touchDown = false
+                rvAdapter?.notifyItemChanged(viewHolder.adapterPosition)
+                savedItems.add(viewHolder.adapterPosition)
+                Toast.makeText(context, "Job saved", Toast.LENGTH_SHORT).show()
+                return
             }
+
+
+
             override fun onChildDraw(
                 c: Canvas,
                 recyclerView: RecyclerView,
@@ -86,11 +119,20 @@ class JobsFragment : Fragment() {
                 actionState: Int,
                 isCurrentlyActive: Boolean
             ) {
-
                 // More code here
+                for(item in savedItems){
+                    if(viewHolder.adapterPosition == item){
+                        if(touchDown){
+                            touchDown = false
 
-                c.clipRect(0f, viewHolder.itemView.top.toFloat(),
-                    dX+8, viewHolder.itemView.bottom.toFloat())
+                        }
+                        return
+                    }
+                }
+                c.clipRect(
+                    15f, viewHolder.itemView.top.toFloat() + 20f,
+                    dX + 50f, viewHolder.itemView.bottom.toFloat() - 20f
+                )
 
                 c.drawColor(Color.GREEN)
                 val textMargin = 100
@@ -102,8 +144,21 @@ class JobsFragment : Fragment() {
                             + textMargin
                 )
                 trashBinIcon.draw(c)
-                super.onChildDraw(c, recyclerView, viewHolder,
-                    dX, dY, actionState, isCurrentlyActive)
+                if (dX >= 214){
+                    if(touchDown){
+                        println("limit hit")
+                        Toast.makeText(context, "Job saved", Toast.LENGTH_SHORT).show()
+                        touchDown = false
+                        rvAdapter?.notifyItemChanged(viewHolder.adapterPosition)
+                        savedItems.add(viewHolder.adapterPosition)
+                    }
+                    return
+
+                }
+                super.onChildDraw(
+                    c, recyclerView, viewHolder,
+                    dX, dY, actionState, isCurrentlyActive
+                )
             }
 
 
@@ -111,9 +166,18 @@ class JobsFragment : Fragment() {
         val myHelper = ItemTouchHelper(myCallback)
         myHelper.attachToRecyclerView(recyclerView)
 
-
-
         return jobsView
+    }
+
+    fun savedCheck(viewHolder: RvAdapter.ViewHolder){
+        for(item in savedItems){
+            if(viewHolder.adapterPosition == item){
+                if(touchDown){
+                    touchDown = false
+                }
+                //return
+            }
+        }
     }
 
     companion object {

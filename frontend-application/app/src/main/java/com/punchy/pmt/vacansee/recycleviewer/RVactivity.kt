@@ -67,8 +67,8 @@ class MainActivity : AppCompatActivity() {
 
                 // More code here
 
-                c.clipRect(0f, viewHolder.itemView.top.toFloat(),
-                    dX+8, viewHolder.itemView.bottom.toFloat())
+                c.clipRect(50f, viewHolder.itemView.top.toFloat(),
+                    dX, viewHolder.itemView.bottom.toFloat())
 
                 c.drawColor(Color.GREEN)
                 val textMargin = 100
