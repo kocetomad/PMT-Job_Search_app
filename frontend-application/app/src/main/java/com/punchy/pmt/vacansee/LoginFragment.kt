@@ -34,11 +34,17 @@ class LoginFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         val loginView: View=inflater.inflate(R.layout.fragment_login, container, false)
-        loginView.findViewById<Button>(R.id.loginButton)?.setOnClickListener(View.OnClickListener {
+
+        loginView.findViewById<Button>(R.id.loginButton)?.setOnClickListener {
             findNavController().navigate(R.id.action_loginFragment_to_jobsFragment)
-        })
+        }
+
+        loginView.findViewById<Button>(R.id.registerButton).setOnClickListener {
+            findNavController().navigate(R.id.action_loginFragment_to_registerAccountFragment)
+        }
+
         // Inflate the layout for this fragment
         return loginView
     }

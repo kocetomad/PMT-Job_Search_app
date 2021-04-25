@@ -5,3 +5,5 @@ backend/npm-debug.log
 backend/.env
 backend/.DS_Store
 
+frontend-application/.gradle
+frontend-application/.idea
