@@ -5,37 +5,27 @@ const path = require("path");
 const axios = require("axios").default;
 const fs = require("fs");
 const session = require("express-session");
-const bodyParser = require("body-parser");
-const store = new session.MemoryStore();
+const { pool } = require("./dbConfig");
+const bcrypt = require("bcrypt");
 
 // Initialisation
 const app = express();
 
-const logger = (req, res, next) => {
+// Middleware
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
+app.use((req, res, next) => {
     console.log(
         `${req.method}  -  ${req.protocol}://${req.get("host")}${
             req.originalUrl
         }`
     );
     next();
-};
-
-const printStore = (req, res, next) => {
-    console.log(store);
-    next();
-};
-
-// Middleware
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.json());
-app.use(logger);
-app.use(printStore);
+});
 app.use(
     session({
         secret: process.env.SESSION_SECRET,
-        cookie: { maxAge: 600000 }, // CHANGE ME
         saveUninitialized: false,
-        store: store,
         resave: false,
     })
 );
@@ -64,36 +54,7 @@ app.get("/api/jobs", (req, res) => {
             // let responseData = JSON.stringify(response.data);
             let responseData = response.data;
             res.send(responseData);
-
-            // // company logo scraping goes here
-            // let allDetails = [];
-            // for (let i = 0; i < 5; i++) {
-            //     // update to suit
-            //     let thisJobID = responseData["results"][i]["jobId"];
-            //     console.log(thisJobID);
-
-            //     let config2 = {
-            //         method: "get",
-            //         url: `https://www.reed.co.uk/api/1.0/jobs/${thisJobID}`,
-            //         headers: {
-            //             Authorization: process.env.REED_AUTH,
-            //         },
-            //     };
-
-            //     axios(config2)
-            //         .then(function (response) {
-            //             let thisRD = response.data;
-            //             console.log(`thisRD = ${thisRD}`);
-            //             allDetails.push({ response: response.data });
-            //             console.log(allDetails);
-            //             if (allDetails.length > 4) { // needs to be done in promise or data will be send back before array is populated
-            //                 res.send(allDetails);
-            //             }
-            //         })
-            //         .catch(function (error) {
-            //             console.log(error);
-            //         });
-            // } // end of company logo request
+            // company logo scraping functionality placeholder
         })
         .catch(function (error) {
             console.log(error);
@@ -189,26 +150,89 @@ app.get("/api/pinned", (req, res) => {
     }
 });
 
-app.post("/api/login", (req, res) => {
-    const { username, password } = req.body;
-    console.log(`username = ${username}, password = ${password}`);
-    if (username && password) {
-        if (req.session.authenticated) {
-            // TODO: regen session cookies
-            res.json(req.session); // TEMP - remove.  dont send passworks back
-        } else {
-            if (username == "test" && password == "123") {
-                // TEMP change me to db check.
-                req.session.authenticated = true;
-                req.session.user = { username, password };
-                res.json(req.session); // TEMP - remove.  dont send passworks back
-            } else {
-                res.send("wrong username / password");
-            }
-        }
+app.post("/api/register", async (req, res) => {
+    let {
+        username,
+        email,
+        password,
+        password2,
+        firstName,
+        lastName,
+        dob,
+    } = req.body;
+
+    let errors = [];
+
+    if (
+        !username ||
+        !email ||
+        !password ||
+        !password2 ||
+        !firstName ||
+        !lastName ||
+        !dob
+    ) {
+        errors.push({
+            msg: "1 or more fields left empty",
+        });
+    }
+
+    if (password.length < 6) {
+        errors.push({
+            msg: "Password should be at least 6 characters",
+        });
+    }
+
+    if (password != password2) {
+        errors.push({
+            msg: "Passwords do not match",
+        });
+    }
+
+    if (errors.length > 0) {
+        res.send(errors);
     } else {
-        // res.send("username and password required");
-        res.json(req.session); // TEMP - remove.  dont send passworks back
+        // validation passed
+        let hashedPassword = await bcrypt.hash(password, 10);
+        pool.query(
+            `SELECT * FROM user_tbl WHERE email = $1`,
+            [email],
+            (err, results) => {
+                if (err) {
+                    throw err;
+                }
+
+                if (results.rows.length > 0) {
+                    // user already registered
+                    errors.push({
+                        msg: "Email already registered",
+                    });
+                    res.send(errors);
+                } else {
+                    pool.query(
+                        `INSERT INTO user_tbl (first_name, last_name, email, dob, password_hash, username) 
+                        VALUES ($1, $2, $3, $4, $5, $6) 
+                        RETURNING username, password_hash`,
+                        [
+                            firstName,
+                            lastName,
+                            email,
+                            dob,
+                            hashedPassword,
+                            username,
+                        ],
+                        (err, results) => {
+                            if (err) {
+                                throw err;
+                            }
+                            res.send({
+                                msg: `user created, with username ${username}`,
+                            });
+                        }
+                    );
+                }
+            }
+        );
     }
 });
 
