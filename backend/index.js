@@ -4,6 +4,9 @@ const express = require("express");
 const path = require("path");
 const axios = require("axios").default;
 const fs = require("fs");
+const session = require("express-session");
+const bodyParser = require("body-parser");
+const store = new session.MemoryStore();
 
 // Initialisation
 const app = express();
@@ -17,9 +20,25 @@ const logger = (req, res, next) => {
     next();
 };
 
+const printStore = (req, res, next) => {
+    console.log(store);
+    next();
+};
+
 // Middleware
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(logger);
+app.use(printStore);
+app.use(
+    session({
+        secret: process.env.SESSION_SECRET,
+        cookie: { maxAge: 600000 }, // CHANGE ME
+        saveUninitialized: false,
+        store: store,
+        resave: false,
+    })
+);
 
 // Routes
 app.get("/", (req, res) => {
@@ -170,8 +189,41 @@ app.get("/api/pinned", (req, res) => {
     }
 });
 
-app.post("/api/postTest", (req, res) => {
-    res.send(JSON.stringify(req.body));
+app.post("/api/login", (req, res) => {
+    const { username, password } = req.body;
+    console.log(`username = ${username}, password = ${password}`);
+    if (username && password) {
+        if (req.session.authenticated) {
+            // TODO: regen session cookies
+            res.json(req.session); // TEMP - remove.  dont send passworks back
+        } else {
+            if (username == "test" && password == "123") {
+                // TEMP change me to db check.
+                req.session.authenticated = true;
+                req.session.user = { username, password };
+                res.json(req.session); // TEMP - remove.  dont send passworks back
+            } else {
+                res.send("wrong username / password");
+            }
+        }
+    } else {
+        // res.send("username and password required");
+        res.json(req.session); // TEMP - remove.  dont send passworks back
+    }
+});
+
+// temp routes for development
+app.get("/dev/resetSessions", (req, res) => {
+    req.session.authenticated = false;
+    res.send("sessions reset");
+});
+
+app.get("/dev/testSessions", (req, res) => {
+    if (req.session.authenticated) {
+        res.send("testing login only data");
+    } else {
+        res.send("error, user not logged in");
+    }
 });
 
 // Port assignment
