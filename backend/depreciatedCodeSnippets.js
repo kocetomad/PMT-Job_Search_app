@@ -21,6 +21,20 @@ app.post("/api/badLogin", (req, res) => {
     }
 });
 
+// temp routes for development
+app.get("/dev/resetSessions", (req, res) => {
+    req.session.authenticated = false;
+    res.send("sessions reset");
+});
+
+app.get("/dev/testSessions", (req, res) => {
+    if (req.session.authenticated) {
+        res.send("testing login only data");
+    } else {
+        res.send("error, user not logged in");
+    }
+});
+
 // ===============================================================================================
 
 let allDetails = [];

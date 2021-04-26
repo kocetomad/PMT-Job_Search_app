@@ -7,6 +7,10 @@ const fs = require("fs");
 const session = require("express-session");
 const { pool } = require("./dbConfig");
 const bcrypt = require("bcrypt");
+const passport = require("passport");
+const initializePassport = require("./passportConfig");
+
+initializePassport(passport);
 
 // Initialisation
 const app = express();
@@ -29,13 +33,31 @@ app.use(
         resave: false,
     })
 );
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Auth check helper functions
+const checkAuthenticated = (req, res, next) => {
+    if (req.isAuthenticated()) {
+        return res.redirect("/logoutError");
+    }
+    next();
+};
+
+const checkNotAuthenticated = (req, res, next) => {
+    if (req.isAuthenticated()) {
+        return next();
+    }
+
+    res.redirect("/loginError");
+};
 
 // Routes
-app.get("/", (req, res) => {
-    res.send(JSON.stringify({ ok: "true" }));
+app.get("/", checkNotAuthenticated, (req, res) => {
+    res.send({ ok: "true" });
 });
 
-app.get("/api/jobs", (req, res) => {
+app.get("/api/jobs", checkNotAuthenticated, (req, res) => {
     let searchTerm = req.query.search;
     let location = req.query.location;
     // TODO: santisation checks
@@ -51,7 +73,7 @@ app.get("/api/jobs", (req, res) => {
 
     axios(config)
         .then(function (response) {
-            // let responseData = JSON.stringify(response.data);
+            // let responseData = response.data;
             let responseData = response.data;
             res.send(responseData);
             // company logo scraping functionality placeholder
@@ -61,19 +83,16 @@ app.get("/api/jobs", (req, res) => {
         });
 });
 
-app.get("/api/moreDetails", (req, res) => {
-    // console.log(JSON.stringify({ financeStatus: true, financeData: financeData }));
+app.get("/api/moreDetails", checkNotAuthenticated, (req, res) => {
+    // console.log({ financeStatus: true, financeData: financeData });
     let empName = req.query.empName;
     let empID = req.query.empID;
 
     if (empName == "" || empID == "") {
-        res.send(
-            JSON.stringify({
-                ok: "false",
-                message:
-                    "request must include ?empName=employerName&empID=1234",
-            })
-        );
+        res.send({
+            ok: "false",
+            message: "request must include ?empName=employerName&empID=1234",
+        });
     }
 
     let shortName = empName.split(" ")[0]; // sometimes gives better results in request, sometimes doesn't
@@ -127,30 +146,26 @@ app.get("/api/moreDetails", (req, res) => {
         });
 });
 
-app.get("/api/pinned", (req, res) => {
+app.get("/api/pinned", checkNotAuthenticated, (req, res) => {
     let userID = req.query.user;
     if (userID) {
-        res.send(
-            JSON.stringify({
-                ok: "true",
-                pinnedPosts: [
-                    { postPlaceholder1: "blah" },
-                    { postPlaceholder2: "blah again" },
-                ],
-                queryTest: [{ userID: userID }],
-            })
-        );
+        res.send({
+            ok: "true",
+            pinnedPosts: [
+                { postPlaceholder1: "blah" },
+                { postPlaceholder2: "blah again" },
+            ],
+            queryTest: [{ userID: userID }],
+        });
     } else {
-        res.send(
-            JSON.stringify({
-                ok: "false",
-                error: "please include user_id as param ?user=",
-            })
-        );
+        res.send({
+            ok: "false",
+            error: "please include user_id as param ?user=",
+        });
     }
 });
 
-app.post("/api/register", async (req, res) => {
+app.post("/api/register", checkAuthenticated, async (req, res) => {
     let {
         username,
         email,
@@ -236,18 +251,37 @@ app.post("/api/register", async (req, res) => {
     }
 });
 
-// temp routes for development
-app.get("/dev/resetSessions", (req, res) => {
-    req.session.authenticated = false;
-    res.send("sessions reset");
+app.post(
+    "/login",
+    checkAuthenticated,
+    passport.authenticate("local", {
+        successRedirect: "/",
+    })
+);
+
+app.get("/logout", checkNotAuthenticated, (req, res) => {
+    req.logOut();
+    res.send({
+        success: true,
+        msg: "logged out",
+    });
 });
 
-app.get("/dev/testSessions", (req, res) => {
-    if (req.session.authenticated) {
-        res.send("testing login only data");
-    } else {
-        res.send("error, user not logged in");
-    }
+app.get("/loginError", checkAuthenticated, (req, res) => {
+    res.send({
+        success: false,
+        msg:
+            "you need to be logged in to access this endpoint.  please log in or make an account",
+    });
+});
+
+// this could be replaced by a more useful redirect, meaning the frontend can just call login
+app.get("/logoutError", checkNotAuthenticated, (req, res) => {
+    res.send({
+        success: false,
+        msg:
+            "you do not need to access this endpoint as you are already logged in.",
+    });
 });
 
 // Port assignment
