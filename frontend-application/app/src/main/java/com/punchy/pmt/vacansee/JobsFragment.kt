@@ -8,12 +8,13 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.punchy.pmt.vacansee.recycleviewer.RvAdapter
 
 
@@ -52,50 +53,55 @@ class JobsFragment : Fragment() {
             null
         )
 
-        val jobsView: View = inflater.inflate(R.layout.activity_jobs_list, container, false)
+        val jobsView: View = inflater.inflate(R.layout.fragment_jobs, container, false)
+
+        val backdropView = jobsView.findViewById<LinearLayout>(R.id.jobsBackdropView)
+        val bottomSheetBehavior = BottomSheetBehavior.from(backdropView)
+
+        // set bottom sheet state as expanded by default
+        bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+
         // Inflate the layout for this fragment
-        val recyclerView = jobsView.findViewById<RecyclerView>(R.id.recyclerView)
+        val jobsRecyclerView = jobsView.findViewById<RecyclerView>(R.id.jobsRecyclerView)
 //        Initializing the type of layout, here I have used LinearLayoutManager you can try GridLayoutManager
 //        Based on your requirement to allow vertical or horizontal scroll , you can change it in  LinearLayout.VERTICAL
-        recyclerView.layoutManager = LinearLayoutManager(
+        jobsRecyclerView.layoutManager = LinearLayoutManager(
             context,
             LinearLayoutManager.VERTICAL,
             false
         )
 //        Create an arraylist
         val dataList = ArrayList<String>()
-        dataList.add("aasdas")
-        dataList.add("Asdasd")
-        dataList.add("ColorSpace.Model(")
-        dataList.add("4656666665")
+        dataList.add("Job 1")
+        dataList.add("Job 2")
+        dataList.add("Job 3")
+        dataList.add("Job 4")
+
 //        pass the values to RvAdapter
-        val rvAdapter = RvAdapter(dataList,this)
+        val rvAdapter = RvAdapter(dataList, this)
+
 //        set the recyclerView to the adapter
-        recyclerView.adapter = rvAdapter;
+        jobsRecyclerView.adapter = rvAdapter;
 
-
-        jobsView.findViewById<RecyclerView>(R.id.recyclerView).setOnTouchListener(View.OnTouchListener { v, event ->
+        jobsRecyclerView.setOnTouchListener({ v, event ->
             if (MotionEvent.ACTION_UP == event.action) {
                 println("Up")
-                touchDown=false
+                touchDown = false
             }
             if (MotionEvent.ACTION_DOWN == event.action) {
                 println("Down")
-                touchDown=true
+                touchDown = true
             }
             false // return is important...
         })
 
-        val myCallback = object : ItemTouchHelper.SimpleCallback(
-            0,
-            ItemTouchHelper.RIGHT
-        ) {
-
+        val myCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
             override fun onMove(
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder,
                 target: RecyclerView.ViewHolder
             ): Boolean = false
+
             override fun onSwiped(
                 viewHolder: RecyclerView.ViewHolder,
                 direction: Int
@@ -109,8 +115,6 @@ class JobsFragment : Fragment() {
                 return
             }
 
-
-
             override fun onChildDraw(
                 c: Canvas,
                 recyclerView: RecyclerView,
@@ -121,11 +125,10 @@ class JobsFragment : Fragment() {
                 isCurrentlyActive: Boolean
             ) {
                 // More code here
-                for(item in savedItems){
-                    if(viewHolder.adapterPosition == item){
-                        if(touchDown){
+                for (item in savedItems) {
+                    if (viewHolder.adapterPosition == item) {
+                        if (touchDown) {
                             touchDown = false
-
                         }
                         return
                     }
@@ -145,8 +148,8 @@ class JobsFragment : Fragment() {
                             + textMargin
                 )
                 trashBinIcon.draw(c)
-                if (dX >= 214){
-                    if(touchDown){
+                if (dX >= 214) {
+                    if (touchDown) {
                         println("limit hit")
                         Toast.makeText(context, "Job saved", Toast.LENGTH_SHORT).show()
                         touchDown = false
@@ -165,12 +168,13 @@ class JobsFragment : Fragment() {
 
         }
         val myHelper = ItemTouchHelper(myCallback)
-        myHelper.attachToRecyclerView(recyclerView)
+        myHelper.attachToRecyclerView(jobsRecyclerView)
 
         return jobsView
     }
 
-    fun savedCheck(viewHolder: RvAdapter.ViewHolder){
+    // TODO - Petrov - this function is not used. I just commented it out just in case.
+    /*fun savedCheck(viewHolder: RvAdapter.ViewHolder){
         for(item in savedItems){
             if(viewHolder.adapterPosition == item){
                 if(touchDown){
@@ -179,7 +183,7 @@ class JobsFragment : Fragment() {
                 //return
             }
         }
-    }
+    }*/
 
     companion object {
         /**

@@ -7,21 +7,17 @@
     tools:context=".JobsFragment">
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/jobsCoordinatorLayoutRoot"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="?attr/colorPrimary">
 
         <LinearLayout
+            android:id="@+id/jobsBackgroundView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="14dp">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Jobs fragment "
-                android:textColor="?attr/colorOnPrimary" />
 
             <Button
                 android:id="@+id/getJobsButton"
@@ -33,18 +29,16 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/backdropView"
+            android:id="@+id/jobsBackdropView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
 
             android:background="@drawable/rounded_backdrop"
 
             android:orientation="vertical"
 
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"
             app:behavior_hideable="false"
-            app:behavior_peekHeight="48dp"
+            app:behavior_peekHeight="500dp"
             app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -52,16 +46,15 @@
             app:layout_constraintTop_toTopOf="parent">
 
             <TextView
-                android:id="@+id/textView2"
+                android:id="@+id/jobsBackdropTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingTop="14dp"
-                android:paddingBottom="14dp"
+                android:padding="14dp"
                 android:text="Jobs found (x)"
                 android:textStyle="bold" />
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/jobsListView"
+                android:id="@+id/jobsRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
         </LinearLayout>
