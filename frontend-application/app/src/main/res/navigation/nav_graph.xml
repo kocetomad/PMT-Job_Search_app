@@ -12,10 +12,16 @@
         tools:layout="@layout/fragment_jobs" >
         <action
             android:id="@+id/action_jobsFragment_to_profileFragment"
-            app:destination="@id/profileFragment" />
+            app:destination="@id/profileFragment"
+            app:enterAnim="@anim/fragment_fade_enter"
+            app:exitAnim="@anim/fragment_fade_exit"
+            app:popEnterAnim="@anim/fragment_fade_enter"
+            app:popExitAnim="@anim/fragment_fade_enter" />
         <action
             android:id="@+id/action_jobsFragment_to_jobDetailsFragment"
-            app:destination="@id/jobDetailsFragment" />
+            app:destination="@id/jobDetailsFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
     </fragment>
     <fragment
         android:id="@+id/profileFragment"
