@@ -23,21 +23,7 @@ app.use(logger);
 
 // Routes
 app.get("/", (req, res) => {
-    // Temp json experiments (reduce no. of api queries I send during testing)
-    let financeData = JSON.parse(fs.readFileSync("sample-finance-data.json"));
-    financeData = financeData["Time Series (Daily)"];
-    let summarisedFinanceData = [];
-    for (let i = 0; i < Object.keys(financeData).length; i++) {
-        summarisedFinanceData.push({
-            date: Object.keys(financeData)[i],
-            sharePrice: financeData["2020-11-27"]["4. close"],
-        });
-    }
-    let jsonTesting = summarisedFinanceData;
-    res.send(jsonTesting);
-    // console.log(JSON.stringify({ financeStatus: true, financeData: financeData }));
-
-    // res.send(JSON.stringify({ ok: "true" }));
+    res.send(JSON.stringify({ ok: "true" }));
 });
 
 app.get("/api/jobs", (req, res) => {
@@ -56,8 +42,39 @@ app.get("/api/jobs", (req, res) => {
 
     axios(config)
         .then(function (response) {
-            let responseData = JSON.stringify(response.data);
+            // let responseData = JSON.stringify(response.data);
+            let responseData = response.data;
             res.send(responseData);
+
+            // // company logo scraping goes here
+            // let allDetails = [];
+            // for (let i = 0; i < 5; i++) {
+            //     // update to suit
+            //     let thisJobID = responseData["results"][i]["jobId"];
+            //     console.log(thisJobID);
+
+            //     let config2 = {
+            //         method: "get",
+            //         url: `https://www.reed.co.uk/api/1.0/jobs/${thisJobID}`,
+            //         headers: {
+            //             Authorization: process.env.REED_AUTH,
+            //         },
+            //     };
+
+            //     axios(config2)
+            //         .then(function (response) {
+            //             let thisRD = response.data;
+            //             console.log(`thisRD = ${thisRD}`);
+            //             allDetails.push({ response: response.data });
+            //             console.log(allDetails);
+            //             if (allDetails.length > 4) { // needs to be done in promise or data will be send back before array is populated
+            //                 res.send(allDetails);
+            //             }
+            //         })
+            //         .catch(function (error) {
+            //             console.log(error);
+            //         });
+            // } // end of company logo request
         })
         .catch(function (error) {
             console.log(error);
@@ -65,6 +82,7 @@ app.get("/api/jobs", (req, res) => {
 });
 
 app.get("/api/moreDetails", (req, res) => {
+    // console.log(JSON.stringify({ financeStatus: true, financeData: financeData }));
     let empName = req.query.empName;
     let empID = req.query.empID;
 
@@ -73,7 +91,7 @@ app.get("/api/moreDetails", (req, res) => {
             JSON.stringify({
                 ok: "false",
                 message:
-                    "request must include ?empName=employerName&empID=5678",
+                    "request must include ?empName=employerName&empID=1234",
             })
         );
     }
@@ -102,8 +120,21 @@ app.get("/api/moreDetails", (req, res) => {
 
                 axios(config2)
                     .then(function (response) {
-                        let financeData = JSON.stringify(response.data);
-                        res.send(financeData);
+                        let financeData = response.data;
+                        financeData = financeData["Time Series (Daily)"];
+                        let summarisedFinanceData = [];
+                        for (
+                            let i = 0;
+                            i < Object.keys(financeData).length;
+                            i++
+                        ) {
+                            let thisDate = Object.keys(financeData)[i];
+                            summarisedFinanceData.push({
+                                date: thisDate,
+                                sharePrice: financeData[thisDate]["4. close"],
+                            });
+                        }
+                        res.send(summarisedFinanceData);
                     })
                     .catch(function (error) {
                         console.log(error);
