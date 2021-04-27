@@ -20,6 +20,9 @@ import com.punchy.pmt.vacansee.R
 class JobDetailsFragment : Fragment() {
     // TODO: Rename and change types of parameters
 
+    /*fun getJobDetails(jobID: Int, employerID: Int, employerName: String): MutableList<Job> {
+        // TODO - Add backend request here
+    }*/
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,9 +46,12 @@ class JobDetailsFragment : Fragment() {
         // review data stuff
         val reviewScoreText = detailedJobsView.findViewById<TextView>(R.id.reviewScore)
 
-        jobTitle.text = arguments?.getString("jobTitle")
-        jobEmployer.text = arguments?.getString("jobEmployerName")
-        jobDescription.text = arguments?.getString("jobDescription")
+        // TODO - fetch arguments (like intents)
+        val jobId = arguments?.getString("jobId")
+        val employerId = arguments?.getString("employerId")
+        val employerName = arguments?.getString("employerName")
+
+        // TODO - Bind that data to the view content (ex jobTitle.text = "stuff")
 
         return detailedJobsView
     }
