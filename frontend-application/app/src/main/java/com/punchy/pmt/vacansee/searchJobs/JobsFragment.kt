@@ -75,7 +75,7 @@ class JobsFragment : Fragment() {
             LinearLayoutManager.VERTICAL,
             false
         )
-        val gson = Gson()//Json converter
+        val gson = Gson() // JSON converter
         var jobsList = mutableListOf<Job>()
         fun sendGet() {
             val url = URL("https://56bea244b45d.ngrok.io/api/jobs?search=developer")
@@ -83,6 +83,7 @@ class JobsFragment : Fragment() {
             with(url.openConnection() as HttpsURLConnection) {
                 requestMethod = "GET"  // optional default is GET
                 println("\nSent 'GET' request to URL : $url; Response Code : $responseCode")
+
                 val parseTemplate = object : TypeToken<MutableList<Job>>() {}.type //https://bezkoder.com/kotlin-parse-json-gson/
                 inputStream.bufferedReader().use {
                     it.lines().forEach { line ->
@@ -94,10 +95,6 @@ class JobsFragment : Fragment() {
             }
         }
         sendGet()
-
-
-
-
 
 //        Create an arraylist
 //        jobsList.add(Job("Junior Software Engineer", "Berzerker Electronics", 1500f, "Job desc job desc job desc job desc"))

@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".searchJobs.JobsFragment">
+    tools:context=".searchJobs.JobsFragment"
+    android:windowSoftInputMode="adjustNothing">
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:id="@+id/jobsCoordinatorLayoutRoot"
@@ -19,12 +20,64 @@
             android:orientation="vertical"
             android:padding="14dp">
 
-            <Button
-                android:id="@+id/getJobsButton"
-                android:layout_width="wrap_content"
+            <EditText
+                android:id="@+id/searchJobs"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:backgroundTint="?attr/colorPrimaryVariant"
-                android:text="get Jobs" />
+                android:background="@drawable/rounded_search_bar"
+                android:ems="10"
+                android:inputType="textPersonName"
+                android:submitBackground="@drawable/rounded_search_bar"
+                android:text="Search for a job"
+                android:textColor="?attr/colorOnPrimary"
+                android:textColorHint="?attr/colorOnPrimary"
+                android:drawableEnd="@drawable/ic_baseline_search_24"
+                android:drawableTint="?attr/colorOnPrimary"
+                />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:paddingVertical="16dp">
+
+                <TextView
+                    android:id="@+id/minimumSalaryText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Minimum Salary: £100,000"
+                    android:textColor="?attr/colorOnPrimary" />
+
+                <SeekBar
+                    android:id="@+id/minimumSalary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:indeterminate="false"
+                    android:max="1000000"
+                    android:progress="100" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:paddingVertical="16dp">
+
+                <TextView
+                    android:id="@+id/maximumSalaryText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Maximum Salary: £125,000"
+                    android:textColor="?attr/colorOnPrimary" />
+
+                <SeekBar
+                    android:id="@+id/maximumSalary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:indeterminate="false"
+                    android:max="1000000"
+                    android:progress="100" />
+            </LinearLayout>
 
         </LinearLayout>
 
@@ -38,7 +91,7 @@
             android:orientation="vertical"
 
             app:behavior_hideable="false"
-            app:behavior_peekHeight="500dp"
+            app:behavior_peekHeight="530dp"
             app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
