@@ -17,11 +17,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.punchy.pmt.vacansee.R
-import com.punchy.pmt.vacansee.Util.JobObj
-import okhttp3.*
-import java.io.IOException
-import java.net.HttpURLConnection
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 
@@ -79,19 +76,19 @@ class JobsFragment : Fragment() {
             false
         )
         val gson = Gson()//Json converter
+        var jobsList = mutableListOf<Job>()
         fun sendGet() {
             val url = URL("https://56bea244b45d.ngrok.io/api/jobs?search=developer")
 
             with(url.openConnection() as HttpsURLConnection) {
                 requestMethod = "GET"  // optional default is GET
-
                 println("\nSent 'GET' request to URL : $url; Response Code : $responseCode")
-
+                val parseTemplate = object : TypeToken<MutableList<Job>>() {}.type //https://bezkoder.com/kotlin-parse-json-gson/
                 inputStream.bufferedReader().use {
                     it.lines().forEach { line ->
                         println(line)
-                        val converted: JobObj = gson.fromJson(line, JobObj::class.java)
-                        println("> From JSON String:\n" + converted)
+                        jobsList = gson.fromJson(line, parseTemplate)
+                        jobsList.forEachIndexed  { idx, tut -> println("> Item ${idx}:\n${tut}") }
                     }
                 }
             }
@@ -103,10 +100,9 @@ class JobsFragment : Fragment() {
 
 
 //        Create an arraylist
-        val jobsList = mutableListOf<Job>()
-        jobsList.add(Job("Junior Software Engineer", "Berzerker Electronics", 1500f, "Job desc job desc job desc job desc"))
-        jobsList.add(Job("Hammer-Time worker", "The Old Fashion", 3500f, "Job desc job desc job desc job desc"))
-        jobsList.add(Job("Professional Wanker", "WhoKnowsUs", 500f, "Job desc job desc job desc job desc"))
+//        jobsList.add(Job("Junior Software Engineer", "Berzerker Electronics", 1500f, "Job desc job desc job desc job desc"))
+//        jobsList.add(Job("Hammer-Time worker", "The Old Fashion", 3500f, "Job desc job desc job desc job desc"))
+//        jobsList.add(Job("Professional Wanker", "WhoKnowsUs", 500f, "Job desc job desc job desc job desc"))
 
         val backdropTitle = backdropView.findViewById<TextView>(R.id.jobsBackdropTitle)
         backdropTitle.text = "Jobs found (${jobsList.size})"
@@ -182,7 +178,7 @@ class JobsFragment : Fragment() {
                             + textMargin
                 )
                 trashBinIcon.draw(c)
-                if (dX >= 214) {
+                if (dX >= 214) {//SAVE THRESHOLD
                     if (touchDown) {
                         println("limit hit")
                         Toast.makeText(context, "Job saved", Toast.LENGTH_SHORT).show()
