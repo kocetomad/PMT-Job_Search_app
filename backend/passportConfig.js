@@ -11,14 +11,13 @@ const initialize = (passport) => {
                 if (err) {
                     throw err;
                 }
-                console.log(results.rows);
                 if (results.rows.length > 0) {
                     // user found
                     const user = results.rows[0];
 
                     bcrypt.compare(
                         password,
-                        user.password_hash, // unsure
+                        user.password_hash,
                         (err, isMatch) => {
                             if (err) {
                                 throw err;
@@ -44,7 +43,7 @@ const initialize = (passport) => {
         new LocalStrategy(
             {
                 usernameField: "email",
-                passwordField: "password", // unsure
+                passwordField: "password",
             },
             authenticateUser
         )

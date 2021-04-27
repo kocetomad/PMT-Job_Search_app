@@ -19,10 +19,11 @@ const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use((req, res, next) => {
+    let d = new Date();
     console.log(
-        `${req.method}  -  ${req.protocol}://${req.get("host")}${
-            req.originalUrl
-        }`
+        `${d.getHours()}:${d.getMinutes()}.${d.getSeconds()}  -  ${
+            req.method
+        }  -  ${req.protocol}://${req.get("host")}${req.originalUrl}`
     );
     next();
 });
@@ -54,14 +55,19 @@ const checkNotAuthenticated = (req, res, next) => {
 
 // Routes
 app.get("/", checkNotAuthenticated, (req, res) => {
-    res.send({ ok: "true" });
+    res.send({ success: "true" });
 });
 
-app.get("/api/jobs", checkNotAuthenticated, (req, res) => {
-    let searchTerm = req.query.search;
-    let location = req.query.location;
+app.get("/api/jobs", (req, res) => {
+    // add auth check
+    let { search, location } = req.query;
     // TODO: santisation checks
-    let url = `https://www.reed.co.uk/api/1.0/search?keywords=${searchTerm}&locationName=${location}`;
+    let url = "";
+    if (!location) {
+        url = `https://www.reed.co.uk/api/1.0/search?keywords=${search}`;
+    } else {
+        url = `https://www.reed.co.uk/api/1.0/search?keywords=${search}&locationName=${location}`;
+    }
 
     let config = {
         method: "get",
@@ -75,7 +81,7 @@ app.get("/api/jobs", checkNotAuthenticated, (req, res) => {
         .then(function (response) {
             // let responseData = response.data;
             let responseData = response.data;
-            res.send(responseData);
+            res.send(responseData.results);
             // company logo scraping functionality placeholder
         })
         .catch(function (error) {
@@ -83,45 +89,51 @@ app.get("/api/jobs", checkNotAuthenticated, (req, res) => {
         });
 });
 
-app.get("/api/moreDetails", checkNotAuthenticated, (req, res) => {
-    // console.log({ financeStatus: true, financeData: financeData });
-    let empName = req.query.empName;
-    let empID = req.query.empID;
+app.get("/api/moreDetails", checkNotAuthenticated, async (req, res) => {
+    let { empName, empID, jobID } = req.query;
 
-    if (empName == "" || empID == "") {
+    if (empName == "" || empID == "" || jobID == "") {
         res.send({
-            ok: "false",
-            message: "request must include ?empName=employerName&empID=1234",
+            success: "false",
+            message:
+                "request must include ?empName=employerName&empID=1234&jobID=5678",
         });
     }
 
+    // Financial data requests
     let shortName = empName.split(" ")[0]; // sometimes gives better results in request, sometimes doesn't
 
-    let config = {
+    let symbolSearchConfig = {
         method: "get",
         url: `https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${empName}&apikey=${process.env.ALPHA_AUTH}`,
         headers: {},
     };
 
-    axios(config)
+    let summarisedFinanceData = [];
+    axios(symbolSearchConfig)
         .then(function (response) {
-            let symbol = JSON.stringify(
-                response.data.bestMatches[0]["1. symbol"]
-            );
-            symbol = symbol.replace(/['"]+/g, "");
-            if (symbol != "") {
+            let symbol;
+            if (response.data.bestMatches[0]) {
+                symbol = JSON.stringify(
+                    response.data.bestMatches[0]["1. symbol"]
+                );
+                symbol = symbol.replace(/['"]+/g, "");
+            }
+
+            if (symbol) {
+                console.log(`symbol: ${symbol}`);
                 // financial data found, 2nd request start
-                let config2 = {
+                let fincancialDataConfig = {
                     method: "get",
                     url: `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${process.env.ALPHA_AUTH}`,
                     headers: {},
                 };
 
-                axios(config2)
+                axios(fincancialDataConfig)
                     .then(function (response) {
                         let financeData = response.data;
                         financeData = financeData["Time Series (Daily)"];
-                        let summarisedFinanceData = [];
+
                         for (
                             let i = 0;
                             i < Object.keys(financeData).length;
@@ -133,24 +145,76 @@ app.get("/api/moreDetails", checkNotAuthenticated, (req, res) => {
                                 sharePrice: financeData[thisDate]["4. close"],
                             });
                         }
-                        res.send(summarisedFinanceData);
+                        // res.send(summarisedFinanceData);
                     })
                     .catch(function (error) {
                         console.log(error);
                     });
                 // end of 2nd request
+            } else {
+                console.log("finance data not found for company of that name");
             }
         })
         .catch(function (error) {
             console.log(error);
         });
+
+    // Reed more details request
+
+    let jobDetails = [];
+
+    let jobDetailsConfig = {
+        method: "get",
+        url: `https://www.reed.co.uk/api/1.0/jobs/${jobID}`,
+        headers: {
+            Authorization: process.env.REED_AUTH,
+        },
+    };
+
+    axios(jobDetailsConfig)
+        .then(function (response) {
+            console.log(response.data);
+            jobDetails.push(response.data); // fix this to make json like me
+        })
+        .catch(function (error) {
+            console.log(error);
+        });
+
+    // Database review lookup
+
+    let reviewData = [];
+
+    pool.query(
+        `SELECT employer_id, user_id, rating, title, description
+	FROM review_tbl
+	WHERE employer_id=$1;`,
+        [empID],
+        (err, results) => {
+            if (err) {
+                throw err;
+            }
+
+            if (results.rows.length > 0) {
+                reviewData.push(results.rows);
+            }
+        }
+    );
+
+    // return all data
+    let moreDetailsReturn = {
+        jobData: [jobDetails],
+        financialData: summarisedFinanceData,
+        reviewData: reviewData,
+    };
+
+    res.send(moreDetailsReturn);
 });
 
 app.get("/api/pinned", checkNotAuthenticated, (req, res) => {
     let userID = req.query.user;
     if (userID) {
         res.send({
-            ok: "true",
+            success: "true",
             pinnedPosts: [
                 { postPlaceholder1: "blah" },
                 { postPlaceholder2: "blah again" },
@@ -159,7 +223,7 @@ app.get("/api/pinned", checkNotAuthenticated, (req, res) => {
         });
     } else {
         res.send({
-            ok: "false",
+            success: "false",
             error: "please include user_id as param ?user=",
         });
     }
