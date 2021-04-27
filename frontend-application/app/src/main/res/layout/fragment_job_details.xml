@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:transitionName="@{@string/email_card_transition_name}"
-    tools:context=".JobDetailsFragment">
+    tools:context=".searchJobs.JobDetailsFragment">
 
     <LinearLayout
         android:layout_width="match_parent"

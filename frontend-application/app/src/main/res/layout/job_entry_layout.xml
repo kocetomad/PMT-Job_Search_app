@@ -6,14 +6,12 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:transitionName="email_card_transition_nameHOME"
-    layout_height=""
-    layout_width=""
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="367dp"
+        android:layout_height="match_parent"
         android:background="#E31616"
         android:backgroundTint="#E31616"
         android:orientation="vertical"
@@ -21,7 +19,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical"
         android:visibility="visible">
 
@@ -30,7 +28,6 @@
             android:id="@+id/quality_image"
             android:layout_width="match_parent"
             android:layout_height="194dp"
-            android:contentDescription="звъ"
             android:scaleType="centerCrop"
             app:srcCompat="@drawable/ic_baseline_android_24" />
 
@@ -42,32 +39,33 @@
 
             <!-- Title, secondary and supporting text -->
             <TextView
-                android:id="@+id/tvName"
+                android:id="@+id/entryJobTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:text="Engineer"
                 android:textAppearance="?attr/textAppearanceHeadline6"
-                android:textSize="32dp" />
+                android:textSize="32sp" />
 
             <TextView
-                android:id="@+id/tvCount"
+                android:id="@+id/entryEmployerTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="string/secondary_text"
+                android:text="some employer"
                 android:textAppearance="?attr/textAppearanceBody2"
                 android:textColor="?android:attr/textColorSecondary"
-                android:textSize="32dp" />
+                android:textSize="24sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="string/supporting_text"
+                android:text="other text"
                 android:textAppearance="?attr/textAppearanceBody2"
                 android:textColor="?android:attr/textColorSecondary"
-                android:textSize="24dp" />
+                android:textSize="24sp" />
 
         </LinearLayout>
-    </LinearLayout>-->
+    </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

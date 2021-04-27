@@ -1,4 +1,4 @@
-package com.punchy.pmt.vacansee.recycleviewer
+package com.punchy.pmt.vacansee.searchJobs
 
 import android.view.LayoutInflater
 import android.view.View
@@ -10,17 +10,17 @@ import androidx.recyclerview.widget.RecyclerView
 import com.punchy.pmt.vacansee.R
 
 //input parameter has to be changed to an object containing the data from the query
-class RvAdapter(val userList: ArrayList<String>, val parentFragment: Fragment) :
+class RvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment) :
     RecyclerView.Adapter<RvAdapter.ViewHolder>() {
     override fun onCreateViewHolder(view: ViewGroup, index: Int): ViewHolder {
         val v =
-            LayoutInflater.from(view?.context).inflate(R.layout.adapter_item_layout, view, false)
-        return ViewHolder(v);
+            LayoutInflater.from(view?.context).inflate(R.layout.job_entry_layout, view, false)
+        return ViewHolder(v)
 
     }
 
     override fun getItemCount(): Int {
-        return userList.size
+        return jobsList.size
     }
 
     var isSaved = false
@@ -31,8 +31,10 @@ class RvAdapter(val userList: ArrayList<String>, val parentFragment: Fragment) :
 
     //the populates the view with the data from the query. Has to be changed to get the data from the object not just a string
     override fun onBindViewHolder(view: ViewHolder, index: Int) {
-        view.name?.text = userList[index].toString()
-        view.count?.text = userList[index].toString()
+        view.jobTitle?.text = jobsList[index].jobTitle
+        view.employerTitle?.text = jobsList[index].employerName
+        // TODO - map other data of Job here as well (i.e salary, reviews, etc)
+
         view.itemView.findViewById<com.google.android.material.card.MaterialCardView>(R.id.card)
             ?.setOnClickListener {
                 println(index)
@@ -44,8 +46,8 @@ class RvAdapter(val userList: ArrayList<String>, val parentFragment: Fragment) :
     }
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val name = itemView.findViewById<TextView>(R.id.tvName)
-        val count = itemView.findViewById<TextView>(R.id.tvCount)
-
+        val jobTitle = itemView.findViewById<TextView>(R.id.entryJobTitle)
+        val employerTitle = itemView.findViewById<TextView>(R.id.entryEmployerTitle)
+        // TODO - map other data of Job here as well (i.e salary, reviews, etc)
     }
 }

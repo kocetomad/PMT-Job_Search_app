@@ -1,4 +1,4 @@
-package com.punchy.pmt.vacansee
+package com.punchy.pmt.vacansee.searchJobs
 
 import android.graphics.Canvas
 import android.graphics.Color
@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.punchy.pmt.vacansee.recycleviewer.RvAdapter
+import com.punchy.pmt.vacansee.R
 
 
 // TODO: Rename parameter arguments, choose names that match
@@ -47,7 +47,7 @@ class JobsFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         val trashBinIcon = resources.getDrawable(
             R.drawable.ic_baseline_archive_24,
             null
@@ -71,17 +71,16 @@ class JobsFragment : Fragment() {
             false
         )
 //        Create an arraylist
-        val dataList = ArrayList<String>()
-        dataList.add("Job 1")
-        dataList.add("Job 2")
-        dataList.add("Job 3")
-        dataList.add("Job 4")
+        val jobsList = mutableListOf<Job>()
+        jobsList.add(Job("Junior Software Engineer", "Berzerker Electronics", 1500f, "Job desc job desc job desc job desc"))
+        jobsList.add(Job("Hammer-Time worker", "The Old Fashion", 3500f, "Job desc job desc job desc job desc"))
+        jobsList.add(Job("Professional Wanker", "WhoKnowsUs", 500f, "Job desc job desc job desc job desc"))
 
 //        pass the values to RvAdapter
-        val rvAdapter = RvAdapter(dataList, this)
+        val rvAdapter = RvAdapter(jobsList, this)
 
 //        set the recyclerView to the adapter
-        jobsRecyclerView.adapter = rvAdapter;
+        jobsRecyclerView.adapter = rvAdapter
 
         jobsRecyclerView.setOnTouchListener({ v, event ->
             if (MotionEvent.ACTION_UP == event.action) {
