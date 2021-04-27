@@ -16,7 +16,14 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.gson.Gson
 import com.punchy.pmt.vacansee.R
+import com.punchy.pmt.vacansee.Util.JobObj
+import okhttp3.*
+import java.io.IOException
+import java.net.HttpURLConnection
+import java.net.URL
+import javax.net.ssl.HttpsURLConnection
 
 
 // TODO: Rename parameter arguments, choose names that match
@@ -71,6 +78,29 @@ class JobsFragment : Fragment() {
             LinearLayoutManager.VERTICAL,
             false
         )
+        val gson = Gson()//Json converter
+        fun sendGet() {
+            val url = URL("https://56bea244b45d.ngrok.io/api/jobs?search=developer")
+
+            with(url.openConnection() as HttpsURLConnection) {
+                requestMethod = "GET"  // optional default is GET
+
+                println("\nSent 'GET' request to URL : $url; Response Code : $responseCode")
+
+                inputStream.bufferedReader().use {
+                    it.lines().forEach { line ->
+                        println(line)
+                        val converted: JobObj = gson.fromJson(line, JobObj::class.java)
+                        println("> From JSON String:\n" + converted)
+                    }
+                }
+            }
+        }
+        sendGet()
+
+
+
+
 
 //        Create an arraylist
         val jobsList = mutableListOf<Job>()

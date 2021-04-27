@@ -1,11 +1,14 @@
 package com.punchy.pmt.vacansee.searchJobs
 
 import android.os.Bundle
+import android.provider.Settings.Global.getString
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.navigation.Navigation.findNavController
+import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.punchy.pmt.vacansee.R
@@ -35,8 +38,8 @@ class RvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment) :
         view.jobTitle?.text = jobsList[index].jobTitle
         view.jobEmployerName?.text = jobsList[index].employerName
         // TODO - map other data of Job here as well (i.e salary, reviews, etc)
-
         view.itemView.findViewById<com.google.android.material.card.MaterialCardView>(R.id.card)
+
             ?.setOnClickListener {
                 println(index)
 
@@ -47,7 +50,6 @@ class RvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment) :
 
                 // TODO -- add it somehow when navigating
                 parentFragment.findNavController()
-
                     .navigate(R.id.action_jobsFragment_to_jobDetailsFragment)
 
             }
