@@ -9,6 +9,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -70,11 +71,15 @@ class JobsFragment : Fragment() {
             LinearLayoutManager.VERTICAL,
             false
         )
+
 //        Create an arraylist
         val jobsList = mutableListOf<Job>()
         jobsList.add(Job("Junior Software Engineer", "Berzerker Electronics", 1500f, "Job desc job desc job desc job desc"))
         jobsList.add(Job("Hammer-Time worker", "The Old Fashion", 3500f, "Job desc job desc job desc job desc"))
         jobsList.add(Job("Professional Wanker", "WhoKnowsUs", 500f, "Job desc job desc job desc job desc"))
+
+        val backdropTitle = backdropView.findViewById<TextView>(R.id.jobsBackdropTitle)
+        backdropTitle.text = "Jobs found (${jobsList.size})"
 
 //        pass the values to RvAdapter
         val rvAdapter = RvAdapter(jobsList, this)
