@@ -1,5 +1,6 @@
 package com.punchy.pmt.vacansee.searchJobs
 
+import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -32,13 +33,21 @@ class RvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment) :
     //the populates the view with the data from the query. Has to be changed to get the data from the object not just a string
     override fun onBindViewHolder(view: ViewHolder, index: Int) {
         view.jobTitle?.text = jobsList[index].jobTitle
-        view.employerTitle?.text = jobsList[index].employerName
+        view.jobEmployerName?.text = jobsList[index].employerName
         // TODO - map other data of Job here as well (i.e salary, reviews, etc)
 
         view.itemView.findViewById<com.google.android.material.card.MaterialCardView>(R.id.card)
             ?.setOnClickListener {
                 println(index)
+
+                // create the bundle to send to the JobDetails fragment
+                val bundle = Bundle()
+                bundle.putString("jobTitle", view.jobTitle.text as String)
+                bundle.putString("jobEmployerTitle", view.jobEmployerName.text as String)
+
+                // TODO -- add it somehow when navigating
                 parentFragment.findNavController()
+
                     .navigate(R.id.action_jobsFragment_to_jobDetailsFragment)
 
             }
@@ -47,7 +56,7 @@ class RvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment) :
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val jobTitle = itemView.findViewById<TextView>(R.id.entryJobTitle)
-        val employerTitle = itemView.findViewById<TextView>(R.id.entryEmployerTitle)
+        val jobEmployerName = itemView.findViewById<TextView>(R.id.entryEmployerName)
         // TODO - map other data of Job here as well (i.e salary, reviews, etc)
     }
 }

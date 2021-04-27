@@ -32,7 +32,17 @@
         android:id="@+id/jobDetailsFragment"
         android:name="com.punchy.pmt.vacansee.searchJobs.JobDetailsFragment"
         android:label="fragment_job_details"
-        tools:layout="@layout/fragment_job_details" />
+        tools:layout="@layout/fragment_job_details" >
+        <argument
+            android:name="jobTitle"
+            app:argType="string" />
+        <argument
+            android:name="jobEmployerName"
+            app:argType="string" />
+        <argument
+            android:name="jobDescription"
+            app:argType="string" />
+    </fragment>
     <fragment
         android:id="@+id/loginFragment"
         android:name="com.punchy.pmt.vacansee.LoginFragment"

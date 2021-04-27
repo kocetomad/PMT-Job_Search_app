@@ -1,10 +1,11 @@
 package com.punchy.pmt.vacansee.searchJobs
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
+import androidx.fragment.app.Fragment
 import com.punchy.pmt.vacansee.R
 
 // TODO: Rename parameter arguments, choose names that match
@@ -32,7 +33,21 @@ class JobDetailsFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_job_details, container, false)
+        val detailedJobsView = inflater.inflate(R.layout.fragment_job_details, container, false)
+
+        // main info
+        val jobTitle = detailedJobsView.findViewById<TextView>(R.id.jobTitle)
+        val jobEmployer = detailedJobsView.findViewById<TextView>(R.id.employerTitle)
+        val jobDescription = detailedJobsView.findViewById<TextView>(R.id.jobDescription)
+
+        // review data stuff
+        val reviewScoreText = detailedJobsView.findViewById<TextView>(R.id.reviewScore)
+
+        jobTitle.text = arguments?.getString("jobTitle")
+        jobEmployer.text = arguments?.getString("jobEmployerName")
+        jobDescription.text = arguments?.getString("jobDescription")
+
+        return detailedJobsView
     }
 
     companion object {
