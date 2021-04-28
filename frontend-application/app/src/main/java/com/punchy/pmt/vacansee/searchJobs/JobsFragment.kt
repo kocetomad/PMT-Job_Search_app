@@ -142,7 +142,7 @@ class JobsFragment : Fragment() {
             )
         )*/
 
-        val backdropTitle = backdropView.findViewById<TextView>(R.id.jobsBackdropTitle)
+        val backdropTitle = bottomSheetView.findViewById<TextView>(R.id.jobsBackdropTitle)
         backdropTitle.text = "Jobs found (${jobsList.size})"
 
 //        pass the values to RvAdapter
