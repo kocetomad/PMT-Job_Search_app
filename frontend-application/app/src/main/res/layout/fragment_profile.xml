@@ -1,14 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ProfileFragment">
+    android:layout_width="match_parent"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:paddingTop="14dp">
 
-    <!-- TODO: Update blank fragment layout -->
+    <ImageView
+        android:id="@+id/userProfilePicture"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:padding="14dp"
+        tools:src="@tools:sample/avatars" />
+
     <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="profile fragment" />
+        android:id="@+id/userFirstName"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="First name" />
 
-</FrameLayout>
+    <TextView
+        android:id="@+id/userLastName"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="Last name" />
+
+    <TextView
+        android:id="@+id/userHandle"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="@crazyslacker21" />
+
+</LinearLayout>
