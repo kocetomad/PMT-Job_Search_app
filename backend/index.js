@@ -257,6 +257,35 @@ app.get("/api/pinned", (req, res) => {
     );
 });
 
+app.post("/api/pinned", (req, res) => {
+    let { userID, jobID } = req.body;
+
+    if (!userID || !jobID) {
+        res.send({
+            success: false,
+            msg: "please include params userID and jobID",
+        });
+    } else {
+        pool.query(
+            `INSERT INTO pinned_tbl(
+	job_id, user_id)
+	VALUES ($1, $2) RETURNING job_id, user_id;`,
+            [jobID, userID],
+            (err, results) => {
+                if (err) {
+                    console.log(err);
+                    res.send({
+                        success: false,
+                        msg: `error adding pinned job to database.  either post is already pinned to that user, or user with userID ${userID} does not exist in db`,
+                    });
+                } else {
+                    res.send(results.rows);
+                }
+            }
+        );
+    }
+});
+
 app.post("/api/register", blockAuthenticated, async (req, res) => {
     let {
         username,
