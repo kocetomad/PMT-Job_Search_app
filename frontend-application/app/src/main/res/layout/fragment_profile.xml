@@ -17,20 +17,49 @@
 
     <TextView
         android:id="@+id/userFirstName"
-        android:layout_height="wrap_content"
         android:layout_width="wrap_content"
-        android:text="First name" />
+        android:layout_height="wrap_content"
+        android:text="First name"
+        android:textSize="24sp"
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/userLastName"
-        android:layout_height="wrap_content"
         android:layout_width="wrap_content"
-        android:text="Last name" />
+        android:layout_height="wrap_content"
+        android:text="Last name"
+        android:textSize="24sp"
+        android:textStyle="bold" />
 
     <TextView
-        android:id="@+id/userHandle"
-        android:layout_height="wrap_content"
+        android:id="@+id/userEmail"
         android:layout_width="wrap_content"
-        android:text="@crazyslacker21" />
+        android:layout_height="wrap_content"
+        android:text="emailaddress@server.com" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingVertical="12dp">
+
+        <Button
+            android:id="@+id/goToJobsSearch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="14dp"
+            android:drawableEnd="@drawable/ic_baseline_search_24"
+            android:drawableTint="?attr/colorOnPrimary"
+            android:text="Search for a job" />
+
+        <Button
+            android:id="@+id/goToSavedJobs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="14dp"
+            android:drawableEnd="@drawable/ic_baseline_archive_24"
+            android:drawableTint="?attr/colorOnPrimary"
+            android:text="See your saved jobs" />
+    </LinearLayout>
 
 </LinearLayout>
