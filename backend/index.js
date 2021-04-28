@@ -38,14 +38,14 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Auth check helper functions
-const checkAuthenticated = (req, res, next) => {
+const blockAuthenticated = (req, res, next) => {
     if (req.isAuthenticated()) {
         return res.redirect("/logoutError");
     }
     next();
 };
 
-const checkNotAuthenticated = (req, res, next) => {
+const blockNotAuthenticated = (req, res, next) => {
     if (req.isAuthenticated()) {
         return next();
     }
@@ -54,7 +54,7 @@ const checkNotAuthenticated = (req, res, next) => {
 };
 
 // Routes
-app.get("/", checkNotAuthenticated, (req, res) => {
+app.get("/", blockNotAuthenticated, (req, res) => {
     res.send({ success: "true" });
 });
 
@@ -136,11 +136,6 @@ app.get("/api/moreDetails", async (req, res) => {
             }
 
             if (results.rows.length > 0) {
-                console.log({
-                    reviewStatus: true,
-                    reviewData: results.rows,
-                });
-                // reviewData.push(results.rows);
                 moreDetailsReturn["reviewData"] = results.rows;
             } else {
                 console.log(`review data not found for empID ${empID}`);
@@ -170,7 +165,6 @@ app.get("/api/moreDetails", async (req, res) => {
             }
 
             if (symbol) {
-                console.log(`symbol: ${symbol}`);
                 // financial data found, 2nd request start
                 let fincancialDataConfig = {
                     method: "get",
@@ -216,26 +210,54 @@ app.get("/api/moreDetails", async (req, res) => {
         });
 });
 
-app.get("/api/pinned", checkNotAuthenticated, (req, res) => {
+app.get("/api/pinned", (req, res) => {
     let userID = req.query.user;
-    if (userID) {
-        res.send({
-            success: "true",
-            pinnedPosts: [
-                { postPlaceholder1: "blah" },
-                { postPlaceholder2: "blah again" },
-            ],
-            queryTest: [{ userID: userID }],
-        });
-    } else {
+
+    if (!userID) {
         res.send({
             success: "false",
             error: "please include user_id as param ?user=",
         });
     }
+
+    pool.query(
+        `SELECT job_id
+	FROM pinned_tbl
+	WHERE user_id=$1;`,
+        [userID],
+        (err, results) => {
+            if (err) {
+                throw err;
+            }
+
+            let pinnedResponse = [];
+
+            for (let i = 0; i < results.rows.length; i++) {
+                // Reed more details request
+                let jobDetailsConfig = {
+                    method: "get",
+                    url: `https://www.reed.co.uk/api/1.0/jobs/${results.rows[i].job_id}`,
+                    headers: {
+                        Authorization: process.env.REED_AUTH,
+                    },
+                };
+
+                axios(jobDetailsConfig)
+                    .then((response) => {
+                        pinnedResponse.push(response.data);
+                        if (i == results.rows.length - 1) {
+                            res.send(pinnedResponse);
+                        }
+                    })
+                    .catch((err) => {
+                        console.log(err);
+                    });
+            }
+        }
+    );
 });
 
-app.post("/api/register", checkAuthenticated, async (req, res) => {
+app.post("/api/register", blockAuthenticated, async (req, res) => {
     let {
         username,
         email,
@@ -323,13 +345,13 @@ app.post("/api/register", checkAuthenticated, async (req, res) => {
 
 app.post(
     "/login",
-    checkAuthenticated,
+    blockAuthenticated,
     passport.authenticate("local", {
         successRedirect: "/",
     })
 );
 
-app.get("/logout", checkNotAuthenticated, (req, res) => {
+app.get("/logout", blockNotAuthenticated, (req, res) => {
     req.logOut();
     res.send({
         success: true,
@@ -337,7 +359,7 @@ app.get("/logout", checkNotAuthenticated, (req, res) => {
     });
 });
 
-app.get("/loginError", checkAuthenticated, (req, res) => {
+app.get("/loginError", blockAuthenticated, (req, res) => {
     res.send({
         success: false,
         msg:
@@ -346,7 +368,7 @@ app.get("/loginError", checkAuthenticated, (req, res) => {
 });
 
 // this could be replaced by a more useful redirect, meaning the frontend can just call login
-app.get("/logoutError", checkNotAuthenticated, (req, res) => {
+app.get("/logoutError", blockNotAuthenticated, (req, res) => {
     res.send({
         success: false,
         msg:
