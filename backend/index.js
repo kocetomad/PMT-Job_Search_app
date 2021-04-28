@@ -89,7 +89,7 @@ app.get("/api/jobs", (req, res) => {
         });
 });
 
-app.get("/api/moreDetails", checkNotAuthenticated, async (req, res) => {
+app.get("/api/moreDetails", async (req, res) => {
     let { empName, empID, jobID } = req.query;
 
     if (empName == "" || empID == "" || jobID == "") {
@@ -99,6 +99,8 @@ app.get("/api/moreDetails", checkNotAuthenticated, async (req, res) => {
                 "request must include ?empName=employerName&empID=1234&jobID=5678",
         });
     }
+
+    let moreDetailsReturn = {};
 
     // Financial data requests
     let shortName = empName.split(" ")[0]; // sometimes gives better results in request, sometimes doesn't
@@ -110,12 +112,133 @@ app.get("/api/moreDetails", checkNotAuthenticated, async (req, res) => {
     };
 
     let summarisedFinanceData = [];
-    axios(symbolSearchConfig)
-        .then(function (response) {
+    const symbolSearchCall = axios(symbolSearchConfig)
+        // .then(function (response) {
+        //     let symbol;
+        //     if (response.data.bestMatches[0]) {
+        //         symbol = JSON.stringify(
+        //             response.data.bestMatches[0]["1. symbol"]
+        //         );
+        //         symbol = symbol.replace(/['"]+/g, "");
+        //     }
+
+        //     if (symbol) {
+        //         console.log(`symbol: ${symbol}`);
+        //         // financial data found, 2nd request start
+        //         let fincancialDataConfig = {
+        //             method: "get",
+        //             url: `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${process.env.ALPHA_AUTH}`,
+        //             headers: {},
+        //         };
+
+        //         axios(fincancialDataConfig)
+        //             .then(function (response) {
+        //                 let financeData = response.data;
+        //                 financeData = financeData["Time Series (Daily)"];
+
+        //                 for (
+        //                     let i = 0;
+        //                     i < Object.keys(financeData).length;
+        //                     i++
+        //                 ) {
+        //                     let thisDate = Object.keys(financeData)[i];
+        //                     summarisedFinanceData.push({
+        //                         date: thisDate,
+        //                         sharePrice: financeData[thisDate]["4. close"],
+        //                     });
+        //                 }
+        //                 // res.send(summarisedFinanceData);
+        //                 moreDetailsReturn[
+        //                     "financeData"
+        //                 ] = summarisedFinanceData;
+        //             })
+        //             .catch(function (error) {
+        //                 console.log(error);
+        //             });
+        //         // end of 2nd request
+        //     } else {
+        //         console.log("finance data not found for company of that name");
+        //     }
+        // })
+        .catch(function (error) {
+            console.log(error);
+        });
+
+    // Reed more details request
+
+    // let jobDetails = [];
+    console.log(`typeof jobDetails = ${typeof jobDetails}`);
+
+    let jobDetailsConfig = {
+        method: "get",
+        url: `https://www.reed.co.uk/api/1.0/jobs/${jobID}`,
+        headers: {
+            Authorization: process.env.REED_AUTH,
+        },
+    };
+
+    const jobDetailsCall = axios(jobDetailsConfig);
+    // .then(function (response) {
+    //     // console.log(response.data);
+    //     // jobDetails.push(response.data); // fix this to make json like me
+    // moreDetailsReturn["jobDetails"] = response.data;
+    // console.log(moreDetailsReturn);
+    // })
+    // .catch(function (error) {
+    //     console.log(error);
+    // });
+
+    // Database review lookup
+
+    // let reviewData = [];
+
+    const reviewDataCall = pool.query(
+        `SELECT employer_id, user_id, rating, title, description
+	FROM review_tbl
+	WHERE employer_id=$1;`,
+        [empID],
+        (err, results) => {
+            if (err) {
+                throw err;
+            }
+
+            if (results.rows.length > 0) {
+                console.log({
+                    reviewStatus: true,
+                    reviewData: results.rows,
+                });
+                // reviewData.push(results.rows);
+                moreDetailsReturn["reviewData"] = results.rows;
+            } else {
+                console.log(`review data not found for empID ${empID}`);
+            }
+        }
+    );
+
+    // return all data
+    // let moreDetailsReturn = {
+    //     jobData: [jobDetails],
+    //     financialData: summarisedFinanceData,
+    //     reviewData: reviewData,
+    // };
+
+    Promise.all([symbolSearchCall, jobDetailsCall, reviewDataCall])
+        .then((responses) => {
+            // let moreDetailsReturn = {}
+
+            // handle jobDetails data response
+            const jobDetailsResponse = responses[1];
+            moreDetailsReturn["jobDetails"] = jobDetailsResponse.data;
+
+            // handle reviewDataresponse
+            const reviewResponse = responses[2];
+
+            // handle finance data response
+            const symbolResponse = responses[0];
             let symbol;
-            if (response.data.bestMatches[0]) {
+            if (symbolResponse.data.bestMatches[0]) {
                 symbol = JSON.stringify(
-                    response.data.bestMatches[0]["1. symbol"]
+                    symbolResponse.data.bestMatches[0]["1. symbol"]
                 );
                 symbol = symbol.replace(/['"]+/g, "");
             }
@@ -146,6 +269,11 @@ app.get("/api/moreDetails", checkNotAuthenticated, async (req, res) => {
                             });
                         }
                         // res.send(summarisedFinanceData);
+                        moreDetailsReturn[
+                            "financeData"
+                        ] = summarisedFinanceData;
+                        console.log("finance data found!");
+                        res.send(moreDetailsReturn);
                     })
                     .catch(function (error) {
                         console.log(error);
@@ -153,61 +281,12 @@ app.get("/api/moreDetails", checkNotAuthenticated, async (req, res) => {
                 // end of 2nd request
             } else {
                 console.log("finance data not found for company of that name");
+                res.send(moreDetailsReturn);
             }
         })
-        .catch(function (error) {
-            console.log(error);
+        .catch((errors) => {
+            console.log(errors);
         });
-
-    // Reed more details request
-
-    let jobDetails = [];
-
-    let jobDetailsConfig = {
-        method: "get",
-        url: `https://www.reed.co.uk/api/1.0/jobs/${jobID}`,
-        headers: {
-            Authorization: process.env.REED_AUTH,
-        },
-    };
-
-    axios(jobDetailsConfig)
-        .then(function (response) {
-            console.log(response.data);
-            jobDetails.push(response.data); // fix this to make json like me
-        })
-        .catch(function (error) {
-            console.log(error);
-        });
-
-    // Database review lookup
-
-    let reviewData = [];
-
-    pool.query(
-        `SELECT employer_id, user_id, rating, title, description
-	FROM review_tbl
-	WHERE employer_id=$1;`,
-        [empID],
-        (err, results) => {
-            if (err) {
-                throw err;
-            }
-
-            if (results.rows.length > 0) {
-                reviewData.push(results.rows);
-            }
-        }
-    );
-
-    // return all data
-    let moreDetailsReturn = {
-        jobData: [jobDetails],
-        financialData: summarisedFinanceData,
-        reviewData: reviewData,
-    };
-
-    res.send(moreDetailsReturn);
 });
 
 app.get("/api/pinned", checkNotAuthenticated, (req, res) => {
