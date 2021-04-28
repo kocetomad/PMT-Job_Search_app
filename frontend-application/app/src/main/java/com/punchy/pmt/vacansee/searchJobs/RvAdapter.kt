@@ -12,6 +12,7 @@ import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.punchy.pmt.vacansee.R
+import org.w3c.dom.Text
 
 //input parameter has to be changed to an object containing the data from the query
 class RvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment) :
@@ -37,7 +38,8 @@ class RvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment) :
     override fun onBindViewHolder(view: ViewHolder, index: Int) {
         view.jobTitle?.text = jobsList[index].jobTitle
         view.jobEmployerName?.text = jobsList[index].employerName
-        // TODO - map other data of Job here as well (i.e salary, reviews, etc)
+        view.jobDescription?.text = jobsList[index].jobDescription
+
         view.itemView.findViewById<com.google.android.material.card.MaterialCardView>(R.id.card)
 
             ?.setOnClickListener {
@@ -66,6 +68,7 @@ class RvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment) :
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val jobTitle = itemView.findViewById<TextView>(R.id.entryJobTitle)
         val jobEmployerName = itemView.findViewById<TextView>(R.id.entryEmployerName)
+        val jobDescription = itemView.findViewById<TextView>(R.id.entryJobDescription)
         // TODO - map other data of Job here as well (i.e salary, reviews, etc)
     }
 }
