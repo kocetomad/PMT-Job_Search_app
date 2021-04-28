@@ -1,18 +1,14 @@
 package com.punchy.pmt.vacansee.searchJobs
 
 import android.os.Bundle
-import android.provider.Settings.Global.getString
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.navigation.Navigation.findNavController
-import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.punchy.pmt.vacansee.R
-import org.w3c.dom.Text
 
 //input parameter has to be changed to an object containing the data from the query
 class RvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment) :
@@ -40,24 +36,28 @@ class RvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment) :
         view.jobEmployerName?.text = jobsList[index].employerName
         view.jobDescription?.text = jobsList[index].jobDescription
 
+        view.jobSalaryMin?.text = "${jobsList[index].currency} ${jobsList[index].minimumSalary}"
+        view.jobSalaryMax?.text = "${jobsList[index].currency} ${jobsList[index].maximumSalary}"
+
         view.itemView.findViewById<com.google.android.material.card.MaterialCardView>(R.id.card)
 
             ?.setOnClickListener {
                 println(index)
 
                 // create the bundle to send to the JobDetails fragment
-                val bundle = Bundle()
-                bundle.putString("jobTitle", view.jobTitle.text as String)
-                bundle.putString("jobEmployerTitle", view.jobEmployerName.text as String)
-
                 val args = Bundle()
                 args.putString("jobTitle", jobsList[index].jobTitle)
                 args.putString("employerName", jobsList[index].employerName)
                 args.putString("jobDescription", jobsList[index].jobDescription)
 
-                args.putFloat("reviewScore", 0.0f)
+                args.putFloat("minSalary", jobsList[index].minimumSalary)
+                args.putFloat("maxSalary", jobsList[index].maximumSalary)
 
-                // TODO -- add it somehow when navigating
+                // args for getting job extra details
+                args.putString("employerName", jobsList[index].employerName)
+                args.putInt("employerId", jobsList[index].employerId)
+                args.putInt("jobId", jobsList[index].jobId)
+
                 parentFragment.findNavController()
                     .navigate(R.id.action_jobsFragment_to_jobDetailsFragment, args)
 
@@ -69,6 +69,9 @@ class RvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment) :
         val jobTitle = itemView.findViewById<TextView>(R.id.entryJobTitle)
         val jobEmployerName = itemView.findViewById<TextView>(R.id.entryEmployerName)
         val jobDescription = itemView.findViewById<TextView>(R.id.entryJobDescription)
+
+        val jobSalaryMin = itemView.findViewById<TextView>(R.id.entrySalaryMin)
+        val jobSalaryMax = itemView.findViewById<TextView>(R.id.entrySalaryMax)
         // TODO - map other data of Job here as well (i.e salary, reviews, etc)
     }
 }

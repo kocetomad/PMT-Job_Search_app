@@ -5,106 +5,148 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
+    android:padding="14dp"
     android:transitionName="@{@string/email_card_transition_name}"
     tools:context=".searchJobs.JobDetailsFragment">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="14dp">
+        android:layout_height="match_parent">
 
-        <TextView
-            android:id="@+id/jobTitle"
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Senior Software Engineer"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            android:layout_height="match_parent">
 
-        <TextView
-            android:id="@+id/employerName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Dynamic Robotix" />
-    </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" >
 
-    <View
-        android:id="@+id/divider"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="?android:attr/listDivider" />
+                <LinearLayout
+                    android:id="@+id/header"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingHorizontal="14dp"
-        android:paddingVertical="4dp">
+                    <TextView
+                        android:id="@+id/jobTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Senior Software Engineer"
+                        android:textSize="24sp"
+                        android:textStyle="bold" />
 
-        <ImageView
-            android:id="@+id/star1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:src="@android:drawable/btn_star_big_on"
-            tools:ignore="ContentDescription" />
+                    <TextView
+                        android:id="@+id/employerName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Dynamic Robotix"
+                        android:textSize="18sp" />
+                </LinearLayout>
 
-        <ImageView
-            android:id="@+id/star2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:src="@android:drawable/btn_star_big_on"
-            tools:ignore="ContentDescription" />
+                <LinearLayout
+                    android:id="@+id/reviewScoreLayout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingVertical="4dp">
 
-        <ImageView
-            android:id="@+id/star3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:src="@android:drawable/btn_star_big_on"
-            tools:ignore="ContentDescription" />
+                    <ImageView
+                        android:id="@+id/star1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        app:srcCompat="@drawable/ic_baseline_star_24"
+                        app:tint="#FFEB3B"
+                        tools:ignore="ContentDescription" />
 
-        <ImageView
-            android:id="@+id/star4"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:src="@android:drawable/btn_star_big_off"
-            tools:ignore="ContentDescription" />
+                    <ImageView
+                        android:id="@+id/star2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        app:srcCompat="@drawable/ic_baseline_star_24"
+                        app:tint="#FFEB3B"
+                        tools:ignore="ContentDescription" />
 
-        <ImageView
-            android:id="@+id/star5"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:src="@android:drawable/btn_star_big_off"
-            tools:ignore="ContentDescription" />
+                    <ImageView
+                        android:id="@+id/star3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        app:srcCompat="@drawable/ic_baseline_star_half_24"
+                        app:tint="#FFEB3B"
+                        tools:ignore="ContentDescription" />
 
-        <TextView
-            android:id="@+id/reviewScore"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:layout_weight="1"
-            android:paddingHorizontal="8dp"
-            android:text="3.0 out of 5.0"
-            android:textAlignment="center" />
+                    <ImageView
+                        android:id="@+id/star4"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        app:srcCompat="@drawable/ic_baseline_star_outline_24"
+                        app:tint="#FFEB3B"
+                        tools:ignore="ContentDescription" />
 
-    </LinearLayout>
+                    <ImageView
+                        android:id="@+id/star5"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        app:srcCompat="@drawable/ic_baseline_star_outline_24"
+                        app:tint="#FFEB3B"
+                        tools:ignore="ContentDescription" />
 
-    <View
-        android:id="@+id/divider2"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="?android:attr/listDivider" />
+                    <TextView
+                        android:id="@+id/reviewScore"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_weight="1"
+                        android:paddingHorizontal="8dp"
+                        android:text="3.0 out of 5.0"
+                        android:textAlignment="center" />
 
-    <TextView
-        android:id="@+id/jobDescription"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingHorizontal="14dp"
-        android:paddingVertical="8dp"
-        android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut non aliquam sem. Maecenas ornare tincidunt dolor, eget tristique tortor malesuada ut. Nulla tempor lorem elit, nec tempus enim rhoncus hendrerit. Aenean mollis, metus nec feugiat vulputate, massa diam dapibus purus, tincidunt lobortis nunc purus nec mi. Duis quam urna, eleifend id massa eu, venenatis gravida urna. Duis vestibulum accumsan auctor. Vestibulum a semper felis. Nullam in augue viverra, vulputate diam id, rhoncus nulla. Etiam eu dictum urna, vel volutpat dui. Duis mauris nibh, hendrerit vitae dui ac, fringilla efficitur neque. Nam id scelerisque neque. Mauris ultricies vel erat vitae congue. Donec porttitor dui et libero venenatis imperdiet. Aliquam ornare ex ac ultrices aliquam. Suspendisse pretium facilisis leo, at placerat ex tincidunt sed. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. \n\nPraesent a libero vitae nibh pretium lobortis vel ut lorem. In tempor in metus non euismod. In sed libero quis leo venenatis scelerisque nec a mi. Vestibulum in nulla dictum arcu interdum malesuada nec ut leo. Etiam sit amet cursus nisl. Mauris id nibh commodo, sagittis massa id, tincidunt magna. Nunc ipsum dui, pretium quis risus in, laoreet accumsan augue. In scelerisque varius diam id laoreet. Fusce vestibulum fringilla elit a viverra. Pellentesque cursus ac turpis ut faucibus. Mauris id dolor augue. Aenean ut elit vel mi posuere imperdiet. Sed vehicula ex ex, vitae congue sapien pulvinar eu. Nullam vitae mauris et sapien tincidunt sollicitudin." />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/textView3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="14dp"
+                    android:text="Salary"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/jobMinimumSalary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Minimum expected: $500" />
+
+                <TextView
+                    android:id="@+id/jobMaximumSalary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Maximum expected: $10,000" />
+
+                <TextView
+                    android:id="@+id/textView2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="14dp"
+                    android:text="Job Description"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/jobDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Description here" />
+
+            </LinearLayout>
+        </ScrollView>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
 </LinearLayout>

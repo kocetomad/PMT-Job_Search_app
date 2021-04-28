@@ -1,12 +1,15 @@
 package com.punchy.pmt.vacansee.searchJobs
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.punchy.pmt.vacansee.R
+import com.punchy.pmt.vacansee.searchJobs.httpRequests.getJobDetails
+import java.lang.Exception
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -43,18 +46,31 @@ class JobDetailsFragment : Fragment() {
         val jobEmployer = detailedJobsView.findViewById<TextView>(R.id.employerName)
         val jobDescription = detailedJobsView.findViewById<TextView>(R.id.jobDescription)
 
+        val jobMinSalary = detailedJobsView.findViewById<TextView>(R.id.jobMinimumSalary)
+        val jobMaxSalary = detailedJobsView.findViewById<TextView>(R.id.jobMaximumSalary)
+
+        try {
+            getJobDetails(arguments?.getString("employerName")!!, arguments?.getInt("employerId")!!, arguments?.getInt("jobId")!!)
+
+        } catch (e: Exception) {
+            Log.e("JobDetailsFragment", e.toString())
+        }
+
         // review data stuff
         val reviewScoreText = detailedJobsView.findViewById<TextView>(R.id.reviewScore)
+
 
 //        val jobId = arguments?.getString("jobId")
 //        val employerId = arguments?.getString("employerId")
 //        val employerName = arguments?.getString("employerName")
 
-//        getJobDetails()
 
         jobTitle.text = arguments?.getString("jobTitle")
         jobEmployer.text = arguments?.getString("employerName")
         jobDescription.text = arguments?.getString("jobDescription")
+
+        jobMinSalary.text = "Minimum expected: ${arguments?.getFloat("minSalary")}"
+        jobMaxSalary.text = "Maximum expected: ${arguments?.getFloat("maxSalary")}"
 
         // TODO - Bind that data to the view content (ex jobTitle.text = "stuff")
 

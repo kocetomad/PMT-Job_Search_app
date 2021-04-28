@@ -3,6 +3,7 @@ package com.punchy.pmt.vacansee.searchJobs.httpRequests
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.punchy.pmt.vacansee.searchJobs.Job
+import com.punchy.pmt.vacansee.searchJobs.JobDetails
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 
@@ -33,10 +34,10 @@ fun getJobs(): MutableList<Job> {
     }
 }
 
-fun getJobDetails(jobIndex: Int, jobsList: MutableList<Job>) {
+fun getJobDetails(employerName: String, employerId: Int, jobId: Int): JobDetails {
     val gson = Gson()
 
-    val url = URL("$route/moreDetails?empName=${jobsList[jobIndex].employerName}&empID=${jobsList[jobIndex].employerId}&jobID=${jobsList[jobIndex].jobId}")
+    val url = URL("$route/moreDetails?empName=$employerName&empID=$employerId&jobID=$jobId")
 
     with(url.openConnection() as HttpsURLConnection) {
         requestMethod = "GET"  // optional default is GET
@@ -52,4 +53,7 @@ fun getJobDetails(jobIndex: Int, jobsList: MutableList<Job>) {
             }
         }
     }
+
+    // TODO - add proper details
+    return JobDetails(0,0,0.0f)
 }
