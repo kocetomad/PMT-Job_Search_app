@@ -2,6 +2,7 @@ package com.punchy.pmt.vacansee.searchJobs
 
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Color.rgb
 import android.graphics.Rect
 import android.os.Bundle
 import android.util.Log
@@ -79,8 +80,8 @@ class JobsFragment : Fragment() {
 
         try {
             jobsList = getJobs()
-            val jobsProgressBar = backdropView.findViewById<ProgressBar>(R.id.jobsProgressBar)
-            jobsProgressBar.visibility = View.GONE
+            //val jobsProgressBar = backdropView.findViewById<ProgressBar>(R.id.jobsProgressBar)
+            //jobsProgressBar.visibility = View.GONE
         } catch (e: Exception) {
             Log.e("JobsFragment", "FETCH ERROR: ")
             Log.e("JobsFragment", e.toString())
@@ -159,6 +160,10 @@ class JobsFragment : Fragment() {
             false // return is important...
         })
 
+
+
+
+        var saveColor = Color.rgb(3f,218f,198f)
         val myCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
             override fun onMove(
                 recyclerView: RecyclerView,
@@ -202,13 +207,17 @@ class JobsFragment : Fragment() {
                     dX + 50f, viewHolder.itemView.bottom.toFloat() - 20f
                 )
 
-                c.drawColor(Color.GREEN)
+                //making the save thingy change color
+                if(218f+(dX/5000)<=255f && 198f+(dX/5000)<=255f){
+                    saveColor = Color.rgb(3f,218f+(dX/5000),198f+(dX/5000))
+                }
+                c.drawColor(saveColor)
                 val textMargin = 100
                 trashBinIcon.bounds = Rect(
                     textMargin,
-                    viewHolder.itemView.top + textMargin,
+                    viewHolder.itemView.top + (dX*1.5).toInt() + textMargin,
                     textMargin + trashBinIcon.intrinsicWidth,
-                    viewHolder.itemView.top + trashBinIcon.intrinsicHeight
+                    viewHolder.itemView.top +  (dX*1.5).toInt() + trashBinIcon.intrinsicHeight
                             + textMargin
                 )
                 trashBinIcon.draw(c)
