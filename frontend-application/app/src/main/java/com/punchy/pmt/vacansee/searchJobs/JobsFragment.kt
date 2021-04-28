@@ -4,7 +4,6 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import android.widget.LinearLayout
 import android.widget.ProgressBar
@@ -99,20 +98,19 @@ class JobsFragment : Fragment() {
             LinearLayoutManager.VERTICAL,
             false
         )
+        val jobsList = getJobs()
 
-        var jobsList = mutableListOf<Job>()
-
-        try {
-            jobsList = getJobs()
-
+        if (jobsList.isEmpty()) {
             // get progress bar and hide it after the jobs load.
             bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility = View.GONE
-        } catch (e: Exception) {
-            Log.e("JobsFragment", "FETCH ERROR: ")
-            Log.e("JobsFragment", e.toString())
 
             // get error view and make it visible if the fetching fails
+            bottomSheetView.findViewById<TextView>(R.id.errorText).text =
+                "Couldn't connect to endpoint"
             bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility = View.VISIBLE
+        } else {
+            // get progress bar and hide it after the jobs load.
+            bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility = View.GONE
         }
 
         /*jobsList.add(
