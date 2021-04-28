@@ -2,7 +2,6 @@ package com.punchy.pmt.vacansee.searchJobs
 
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.Color.rgb
 import android.graphics.Rect
 import android.os.Bundle
 import android.util.Log
@@ -60,8 +59,8 @@ class JobsFragment : Fragment() {
 
         val jobsView: View = inflater.inflate(R.layout.fragment_jobs, container, false)
 
-        val backdropView = jobsView.findViewById<LinearLayout>(R.id.jobsBackdropView)
-        val bottomSheetBehavior = BottomSheetBehavior.from(backdropView)
+        val bottomSheetView = jobsView.findViewById<LinearLayout>(R.id.jobsBackdropView)
+        val bottomSheetBehavior = BottomSheetBehavior.from(bottomSheetView)
 
         // set bottom sheet state as expanded by default
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
@@ -80,11 +79,15 @@ class JobsFragment : Fragment() {
 
         try {
             jobsList = getJobs()
-            //val jobsProgressBar = backdropView.findViewById<ProgressBar>(R.id.jobsProgressBar)
-            //jobsProgressBar.visibility = View.GONE
+
+            // get progress bar and hide it after the jobs load.
+            bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility = View.GONE
         } catch (e: Exception) {
             Log.e("JobsFragment", "FETCH ERROR: ")
             Log.e("JobsFragment", e.toString())
+
+            // get error view and make it visible if the fetching fails
+            bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility= View.VISIBLE
         }
 
         /*jobsList.add(
