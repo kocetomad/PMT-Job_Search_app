@@ -124,7 +124,7 @@ class JobsFragment : Fragment() {
             }
             false // return is important...
         })
-
+        val saveColor = Color.parseColor("#03DAC6")
         val myCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
             override fun onMove(
                 recyclerView: RecyclerView,
@@ -168,7 +168,7 @@ class JobsFragment : Fragment() {
                     dX + 50f, viewHolder.itemView.bottom.toFloat() - 20f
                 )
 
-                c.drawColor(Color.GREEN)
+                c.drawColor(saveColor)
                 val textMargin = 100
                 trashBinIcon.bounds = Rect(
                     textMargin,
