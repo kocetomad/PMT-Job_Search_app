@@ -48,9 +48,16 @@ class RvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment) :
                 bundle.putString("jobTitle", view.jobTitle.text as String)
                 bundle.putString("jobEmployerTitle", view.jobEmployerName.text as String)
 
+                val args = Bundle()
+                args.putString("jobTitle", jobsList[index].jobTitle)
+                args.putString("employerName", jobsList[index].employerName)
+                args.putString("jobDescription", jobsList[index].jobDescription)
+
+                args.putFloat("reviewScore", 0.0f)
+
                 // TODO -- add it somehow when navigating
                 parentFragment.findNavController()
-                    .navigate(R.id.action_jobsFragment_to_jobDetailsFragment)
+                    .navigate(R.id.action_jobsFragment_to_jobDetailsFragment, args)
 
             }
 

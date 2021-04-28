@@ -1,19 +1,19 @@
 package com.punchy.pmt.vacansee.searchJobs
 
 class Job(
-    val jobId: String,
-    val employerId: String,
-    val employerName: String,
-    val employerProfileId: String,
-    val employerProfileName: String,
+    val jobId: Int,
     val jobTitle: String,
+    val jobDescription: String,
+    val employerId: Int,
+    val employerName: String,
+    val employerProfileId: Int,
+    val employerProfileName: String,
     val locationName: String,
     val minimumSalary: Float,
     val maximumSalary: Float,
     val currency: String,
     val expirationDate: String,
-    val date: String,
-    val jobDescription: String,
+    val date: String?,
     val applications: Int,
     val jobUrl: String
 ) {

@@ -23,7 +23,7 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/employerTitle"
+            android:id="@+id/employerName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Dynamic Robotix" />

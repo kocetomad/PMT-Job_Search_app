@@ -40,16 +40,21 @@ class JobDetailsFragment : Fragment() {
 
         // main info
         val jobTitle = detailedJobsView.findViewById<TextView>(R.id.jobTitle)
-        val jobEmployer = detailedJobsView.findViewById<TextView>(R.id.employerTitle)
+        val jobEmployer = detailedJobsView.findViewById<TextView>(R.id.employerName)
         val jobDescription = detailedJobsView.findViewById<TextView>(R.id.jobDescription)
 
         // review data stuff
         val reviewScoreText = detailedJobsView.findViewById<TextView>(R.id.reviewScore)
 
-        // TODO - fetch arguments (like intents)
-        val jobId = arguments?.getString("jobId")
-        val employerId = arguments?.getString("employerId")
-        val employerName = arguments?.getString("employerName")
+//        val jobId = arguments?.getString("jobId")
+//        val employerId = arguments?.getString("employerId")
+//        val employerName = arguments?.getString("employerName")
+
+//        getJobDetails()
+
+        jobTitle.text = arguments?.getString("jobTitle")
+        jobEmployer.text = arguments?.getString("employerName")
+        jobDescription.text = arguments?.getString("jobDescription")
 
         // TODO - Bind that data to the view content (ex jobTitle.text = "stuff")
 

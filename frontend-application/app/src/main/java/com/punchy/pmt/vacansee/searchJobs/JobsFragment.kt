@@ -4,11 +4,13 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -16,11 +18,8 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.punchy.pmt.vacansee.R
-import java.net.URL
-import javax.net.ssl.HttpsURLConnection
+import com.punchy.pmt.vacansee.searchJobs.httpRequests.getJobs
 
 
 // TODO: Rename parameter arguments, choose names that match
@@ -75,31 +74,69 @@ class JobsFragment : Fragment() {
             LinearLayoutManager.VERTICAL,
             false
         )
-        val gson = Gson() // JSON converter
+
         var jobsList = mutableListOf<Job>()
-        fun sendGet() {
-            val url = URL("https://56bea244b45d.ngrok.io/api/jobs?search=developer")
 
-            with(url.openConnection() as HttpsURLConnection) {
-                requestMethod = "GET"  // optional default is GET
-                println("\nSent 'GET' request to URL : $url; Response Code : $responseCode")
-
-                val parseTemplate = object : TypeToken<MutableList<Job>>() {}.type //https://bezkoder.com/kotlin-parse-json-gson/
-                inputStream.bufferedReader().use {
-                    it.lines().forEach { line ->
-                        println(line)
-                        jobsList = gson.fromJson(line, parseTemplate)
-                        jobsList.forEachIndexed  { idx, tut -> println("> Item ${idx}:\n${tut}") }
-                    }
-                }
-            }
+        try {
+            jobsList = getJobs()
+            val jobsProgressBar = backdropView.findViewById<ProgressBar>(R.id.jobsProgressBar)
+            jobsProgressBar.visibility = View.GONE
+        } catch (e: Exception) {
+            Log.e("JobsFragment", "FETCH ERROR: ")
+            Log.e("JobsFragment", e.toString())
         }
-        sendGet()
 
-//        Create an arraylist
-//        jobsList.add(Job("Junior Software Engineer", "Berzerker Electronics", 1500f, "Job desc job desc job desc job desc"))
-//        jobsList.add(Job("Hammer-Time worker", "The Old Fashion", 3500f, "Job desc job desc job desc job desc"))
-//        jobsList.add(Job("Professional Wanker", "WhoKnowsUs", 500f, "Job desc job desc job desc job desc"))
+        /*jobsList.add(
+            Job(
+                jobId = 0,jobTitle = "Junior Software Engineer",
+                jobDescription = "Job desc job desc job desc job desc",
+                employerId = 0,
+                employerName = "Berserk Electronics",
+                employerProfileId = 0,
+                employerProfileName = "placeholder",
+                minimumSalary = 1500f, maximumSalary = 1500f,
+                currency = "GBP",
+                date="placeholder",
+                expirationDate="placeholder",
+                applications = 0,
+                jobUrl = "placeholder",
+                locationName = "placeholder"
+            )
+        )
+        jobsList.add(
+            Job(
+                jobId = 0,jobTitle = "Hammer-Time worker",
+                jobDescription = "Job desc job desc job desc job desc",
+                employerId = 0,
+                employerName = "The Old Fashion",
+                employerProfileId = 0,
+                employerProfileName = "placeholder",
+                minimumSalary = 3500f, maximumSalary = 3500f,
+                currency = "GBP",
+                date="placeholder",
+                expirationDate="placeholder",
+                applications = 0,
+                jobUrl = "placeholder",
+                locationName = "placeholder"
+            )
+        )
+        jobsList.add(
+            Job(
+                jobId = 0,jobTitle = "Professional Wanker",
+                jobDescription = "Job desc job desc job desc job desc",
+                employerId = 0,
+                employerName = "WhoKnowsUs",
+                employerProfileId = 0,
+                employerProfileName = "placeholder",
+                minimumSalary = 500f, maximumSalary = 1000f,
+                currency = "GBP",
+                date="placeholder",
+                expirationDate="placeholder",
+                applications = 0,
+                jobUrl = "placeholder",
+                locationName = "placeholder"
+            )
+        )*/
 
         val backdropTitle = backdropView.findViewById<TextView>(R.id.jobsBackdropTitle)
         backdropTitle.text = "Jobs found (${jobsList.size})"
