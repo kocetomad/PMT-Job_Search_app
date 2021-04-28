@@ -27,7 +27,13 @@
         android:id="@+id/profileFragment"
         android:name="com.punchy.pmt.vacansee.ProfileFragment"
         android:label="fragment_profile"
-        tools:layout="@layout/fragment_profile" />
+        tools:layout="@layout/fragment_profile" >
+        <action
+            android:id="@+id/action_profileFragment_to_jobsFragment"
+            app:destination="@id/jobsFragment"
+            app:enterAnim="@anim/fragment_fade_enter"
+            app:exitAnim="@anim/fragment_fade_exit" />
+    </fragment>
     <fragment
         android:id="@+id/jobDetailsFragment"
         android:name="com.punchy.pmt.vacansee.searchJobs.JobDetailsFragment"

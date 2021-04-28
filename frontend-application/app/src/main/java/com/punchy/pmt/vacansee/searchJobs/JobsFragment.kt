@@ -5,15 +5,14 @@ import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.MotionEvent
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -40,12 +39,38 @@ class JobsFragment : Fragment() {
     private var param1: String? = null
     private var param2: String? = null
 
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+
+        // remove action bar shadow
+        (activity as AppCompatActivity?)!!.supportActionBar?.elevation = 0f
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // add options menu support for action bar
+        setHasOptionsMenu(true)
+
         arguments?.let {
             param1 = it.getString(ARG_PARAM1)
             param2 = it.getString(ARG_PARAM2)
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.profile_menu, menu)
+
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
+        R.id.profileButton -> {
+            findNavController().navigate(R.id.action_jobsFragment_to_profileFragment)
+            true
+        }
+
+        else -> super.onOptionsItemSelected(item)
     }
 
     override fun onCreateView(
@@ -87,7 +112,7 @@ class JobsFragment : Fragment() {
             Log.e("JobsFragment", e.toString())
 
             // get error view and make it visible if the fetching fails
-            bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility= View.VISIBLE
+            bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility = View.VISIBLE
         }
 
         /*jobsList.add(
@@ -164,9 +189,7 @@ class JobsFragment : Fragment() {
         })
 
 
-
-
-        var saveColor = Color.rgb(3f,218f,198f)
+        var saveColor = Color.rgb(3f, 218f, 198f)
         val myCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
             override fun onMove(
                 recyclerView: RecyclerView,
@@ -211,16 +234,16 @@ class JobsFragment : Fragment() {
                 )
 
                 //making the save thingy change color
-                if(218f+(dX/5000)<=255f && 198f+(dX/5000)<=255f){
-                    saveColor = Color.rgb(3f,218f+(dX/5000),198f+(dX/5000))
+                if (218f + (dX / 5000) <= 255f && 198f + (dX / 5000) <= 255f) {
+                    saveColor = Color.rgb(3f, 218f + (dX / 5000), 198f + (dX / 5000))
                 }
                 c.drawColor(saveColor)
                 val textMargin = 100
                 trashBinIcon.bounds = Rect(
                     textMargin,
-                    viewHolder.itemView.top + (dX*1.5).toInt() + textMargin,
+                    viewHolder.itemView.top + (dX * 1.5).toInt() + textMargin,
                     textMargin + trashBinIcon.intrinsicWidth,
-                    viewHolder.itemView.top +  (dX*1.5).toInt() + trashBinIcon.intrinsicHeight
+                    viewHolder.itemView.top + (dX * 1.5).toInt() + trashBinIcon.intrinsicHeight
                             + textMargin
                 )
                 trashBinIcon.draw(c)
