@@ -10,6 +10,9 @@ const bcrypt = require("bcrypt");
 const passport = require("passport");
 const initializePassport = require("./passportConfig");
 
+// temp imports
+let jobsPrefetch = require("./sample_reed_job_response.json");
+
 initializePassport(passport);
 
 // Initialisation
@@ -59,34 +62,35 @@ app.get("/", blockNotAuthenticated, (req, res) => {
 });
 
 app.get("/api/jobs", (req, res) => {
-    // add auth check
-    let { search, location } = req.query;
-    // TODO: santisation checks
-    let url = "";
-    if (!location) {
-        url = `https://www.reed.co.uk/api/1.0/search?keywords=${search}`;
-    } else {
-        url = `https://www.reed.co.uk/api/1.0/search?keywords=${search}&locationName=${location}`;
-    }
+    // // add auth check
+    // let { search, location } = req.query;
+    // // TODO: santisation checks
+    // let url = "";
+    // if (!location) {
+    //     url = `https://www.reed.co.uk/api/1.0/search?keywords=${search}`;
+    // } else {
+    //     url = `https://www.reed.co.uk/api/1.0/search?keywords=${search}&locationName=${location}`;
+    // }
 
-    let config = {
-        method: "get",
-        url: url,
-        headers: {
-            Authorization: process.env.REED_AUTH,
-        },
-    };
+    // let config = {
+    //     method: "get",
+    //     url: url,
+    //     headers: {
+    //         Authorization: process.env.REED_AUTH,
+    //     },
+    // };
 
-    axios(config)
-        .then(function (response) {
-            // let responseData = response.data;
-            let responseData = response.data;
-            res.send(responseData.results);
-            // company logo scraping functionality placeholder
-        })
-        .catch(function (error) {
-            console.log(error);
-        });
+    // axios(config)
+    //     .then(function (response) {
+    //         // let responseData = response.data;
+    //         let responseData = response.data;
+    //         res.send(responseData.results);
+    //         // company logo scraping functionality placeholder
+    //     })
+    //     .catch(function (error) {
+    //         console.log(error);
+    //     });
+    res.send(jobsPrefetch);
 });
 
 app.get("/api/moreDetails", async (req, res) => {
@@ -279,7 +283,10 @@ app.post("/api/pinned", (req, res) => {
                         msg: `error adding pinned job to database.  either post is already pinned to that user, or user with userID ${userID} does not exist in db`,
                     });
                 } else {
-                    res.send(results.rows);
+                    res.send({
+                        success: true,
+                        msg: "Pin added to db",
+                    });
                 }
             }
         );
@@ -367,6 +374,50 @@ app.post("/api/register", blockAuthenticated, async (req, res) => {
                         }
                     );
                 }
+            }
+        );
+    }
+});
+
+app.post("/api/review", (req, res) => {
+    let { empID, userID, rating, title, desc } = req.body;
+    if (!empID || !userID || !rating || !title) {
+        return res.send({
+            success: false,
+            msg:
+                "empID, userID, rating and title are all required in request body, desc is optional",
+        });
+    }
+    if (desc) {
+        pool.query(
+            `INSERT INTO review_tbl(
+	employer_id, user_id, rating, title, description)
+	VALUES ($1, $2, $3, $4, $5);`,
+            [empID, userID, rating, title, desc],
+            (err, results) => {
+                if (err) {
+                    throw err;
+                }
+                return res.send({
+                    success: true,
+                    msg: "Review successfully added",
+                });
+            }
+        );
+    } else {
+        pool.query(
+            `INSERT INTO review_tbl(
+	employer_id, user_id, rating, title)
+	VALUES ($1, $2, $3, $4);`,
+            [empID, userID, rating, title],
+            (err, results) => {
+                if (err) {
+                    throw err;
+                }
+                return res.send({
+                    success: true,
+                    msg: "Review successfully added",
+                });
             }
         );
     }
