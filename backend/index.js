@@ -293,6 +293,53 @@ app.post("/api/pinned", (req, res) => {
     }
 });
 
+app.delete("/api/pinned", (req, res) => {
+    let { jobID, userID } = req.body;
+
+    if (!jobID || !userID) {
+        return res.send({
+            success: false,
+            msg: "Please include jobID and userID as params",
+        });
+    }
+
+    pool.query(
+        `SELECT job_id, user_id
+	FROM public.pinned_tbl
+	WHERE job_id=$1
+	AND user_id=$2;`,
+        [jobID, userID],
+        (err, results) => {
+            if (err) {
+                throw err;
+            }
+
+            if (results.rows.length == 0) {
+                return res.send({
+                    success: false,
+                    msg: `Pinned post with user id ${userID} and job id ${jobID} not found in db.`,
+                });
+            }
+
+            pool.query(
+                `DELETE FROM public.pinned_tbl
+	            WHERE job_id=$1
+	            AND user_id=$2;`,
+                [jobID, userID],
+                (err, results) => {
+                    if (err) {
+                        throw err;
+                    }
+                    res.send({
+                        success: true,
+                        msg: "post successfully un-pinned",
+                    });
+                }
+            );
+        }
+    );
+});
+
 app.post("/api/register", blockAuthenticated, async (req, res) => {
     let {
         username,
