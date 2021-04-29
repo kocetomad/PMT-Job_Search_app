@@ -6,7 +6,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.EditText
 import androidx.navigation.fragment.findNavController
+import com.punchy.pmt.vacansee.searchJobs.httpRequests.login
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -37,7 +39,11 @@ class LoginFragment : Fragment() {
     ): View {
         val loginView: View=inflater.inflate(R.layout.fragment_login, container, false)
 
+        val loginEmail = loginView.findViewById<EditText>(R.id.loginEmail).text.toString()
+        val loginPassword = loginView.findViewById<EditText>(R.id.loginPassword).text.toString()
+
         loginView.findViewById<Button>(R.id.loginButton)?.setOnClickListener {
+            login(loginEmail, loginPassword)
             findNavController().navigate(R.id.action_loginFragment_to_jobsFragment)
         }
 

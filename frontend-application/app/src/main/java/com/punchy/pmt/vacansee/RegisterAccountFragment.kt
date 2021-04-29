@@ -7,8 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
-import okhttp3.*
-import java.io.IOException
+import android.widget.LinearLayout
+import com.punchy.pmt.vacansee.searchJobs.httpRequests.registerAccount
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -25,40 +25,6 @@ class RegisterAccountFragment : Fragment() {
     private var param1: String? = null
     private var param2: String? = null
 
-    private val client = OkHttpClient()
-    private fun postAccountData(username: String, interestField: String, email: String, password: String, passwordConfirm: String) {
-        val formBody = FormBody.Builder()
-            .add("username", username)
-            .add("interestField", interestField)
-            .add("email", email)
-            .add("password", password)
-            .add("passwordConfirm", passwordConfirm)
-            .build()
-
-        val request = Request.Builder()
-            .url("https://reqbin.com/echo/post/json")
-            .post(formBody)
-            .build()
-
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                response.use {
-                    if (!response.isSuccessful) throw IOException("Unexpected code $response")
-
-                    for ((name, value) in response.headers) {
-                        println("$name: $value")
-                    }
-
-                    println(response.body!!.string())
-                }
-            }
-        })
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
@@ -71,37 +37,48 @@ class RegisterAccountFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val registerAccountView = inflater.inflate(R.layout.fragment_register_account, container, false)
+        val registerAccountView =
+            inflater.inflate(R.layout.fragment_register_account, container, false)
 
         val createAccountButton = registerAccountView.findViewById<Button>(R.id.createAccountButton)
+
         createAccountButton.setOnClickListener {
+            val firstName = registerAccountView.findViewById<EditText>(R.id.registerFirstName)
+            val lastName = registerAccountView.findViewById<EditText>(R.id.registerLastName)
             val username = registerAccountView.findViewById<EditText>(R.id.registerUsername)
-            val fieldOfInterest = registerAccountView.findViewById<EditText>(R.id.registerInterest)
+            val dateOfBirth = registerAccountView.findViewById<EditText>(R.id.registerDob)
             val email = registerAccountView.findViewById<EditText>(R.id.registerEmail)
+
             val password = registerAccountView.findViewById<EditText>(R.id.registerPassword)
-            val confirmPassword = registerAccountView.findViewById<EditText>(R.id.confirmRegisterPassword)
+            val confirmPassword = registerAccountView.findViewById<EditText>(R.id.registerPassword2)
 
-            if (username.text.isEmpty()) {
-                username.error = "Username required"
-            } else if (fieldOfInterest.text.isEmpty()) {
-                fieldOfInterest.error = "Field of interest required"
-            } else if (email.text.isEmpty()) {
-                email.error = "Email required"
-            } else if(password.text.isEmpty() && confirmPassword.text.isEmpty()) {
-                password.error = "Password required"
-            } else if (password.text.isNotEmpty() && confirmPassword.text.isEmpty()) {
-                confirmPassword.error = "Please confirm your password"
-            } else if (password.text.isNotEmpty() && confirmPassword.text.isNotEmpty() && password.text.toString() != confirmPassword.text.toString()) {
-                confirmPassword.error = "Passwords don't match"
-            } else {
-                username.error = null
-                fieldOfInterest.error = null
-                email.error = null
-                password.error = null
-                confirmPassword.error = null
+            val formView = registerAccountView.findViewById<LinearLayout>(R.id.loginForm)
 
-                postAccountData(username.text.toString(), fieldOfInterest.text.toString(), email.text.toString(), password.text.toString(), confirmPassword.text.toString())
-                // TODO - Let the user know the account has been created successfully. Send him to login screen
+            val childCount = formView.childCount
+            for (index in 0 until childCount) {
+                val childView = formView.getChildAt(index) as EditText
+                if (childView.text.isEmpty()) {
+                    childView.error = "${childView.hint} required"
+                } else {
+                    childView.error = null
+                }
+            }
+
+            if (firstName.text.isEmpty() || lastName.text.isEmpty() || username.text.isEmpty() || dateOfBirth.text.isEmpty() || email.text.isEmpty()) {
+                if (password.text.toString() != confirmPassword.text.toString()) {
+                    confirmPassword.error = "Passwords don't match"
+                } else {
+                    confirmPassword.error = null
+
+                    registerAccount(
+                        username.text.toString(),
+                        email.text.toString(),
+                        password.text.toString(),
+                        confirmPassword.text.toString(),
+                        firstName.text.toString(),
+                        lastName.text.toString()
+                    )
+                }
             }
         }
         // Inflate the layout for this fragment

@@ -11,14 +11,14 @@ import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 
 
-var route = "https://6aaf014ab2d0.ngrok.io/api"
+var route = "https://6aaf014ab2d0.ngrok.io/"
 private val client = OkHttpClient()
 
 fun getJobs(): MutableList<Job> {
-    var jobsList = mutableListOf<Job>()
+    var jobsList: MutableList<Job>
 
     val request = Request.Builder()
-        .url("$route/jobs?search=developer")
+        .url("$route/api/jobs?search=developer")
         .build()
 
     client.newCall(request).execute().use { response ->
@@ -44,7 +44,7 @@ fun getJobs(): MutableList<Job> {
 fun getJobDetails(employerName: String, employerId: Int, jobId: Int): JobDetails {
     val gson = Gson()
 
-    val url = URL("$route/moreDetails?empName=$employerName&empID=$employerId&jobID=$jobId")
+    val url = URL("$route/api/moreDetails?empName=$employerName&empID=$employerId&jobID=$jobId")
 
     with(url.openConnection() as HttpsURLConnection) {
         requestMethod = "GET"  // optional default is GET
@@ -67,4 +67,49 @@ fun getJobDetails(employerName: String, employerId: Int, jobId: Int): JobDetails
 
 fun getSavedJobs(): MutableList<Job> {
     return mutableListOf()
+}
+
+fun login(email: String, password: String) {
+    val request = Request.Builder()
+        .url("$route/login")
+        .addHeader("email", email)
+        .addHeader(password, "password")
+        .build()
+
+    client.newCall(request).execute().use { response ->
+        if (!response.isSuccessful) throw IOException("Unexpected code $response")
+
+        for ((name, value) in response.headers) {
+            println("$name: $value")
+        }
+        // TODO - fetch login cookie
+    }
+}
+
+fun logout() {
+    // TODO - add auth cookie on logout
+    val request = Request.Builder()
+        .url("$route/logout")
+        // TODO - add auth cookie
+        .build()
+
+    client.newCall(request).execute().use { response ->
+        if (!response.isSuccessful) throw IOException("Unexpected code $response")
+
+        for ((name, value) in response.headers) {
+            println("$name: $value")
+        }
+    }
+}
+
+fun registerAccount(
+    username: String,
+    email: String,
+    password: String,
+    password2: String,
+    firstName: String,
+    lastName: String
+    // TODO - add Date of Birth
+) {
+
 }
