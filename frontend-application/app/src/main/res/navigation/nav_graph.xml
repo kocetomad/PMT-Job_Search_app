@@ -13,10 +13,10 @@
         <action
             android:id="@+id/action_jobsFragment_to_profileFragment"
             app:destination="@id/profileFragment"
-            app:enterAnim="@anim/fragment_fade_enter"
-            app:exitAnim="@anim/fragment_fade_exit"
-            app:popEnterAnim="@anim/fragment_fade_enter"
-            app:popExitAnim="@anim/fragment_fade_enter" />
+            app:enterAnim="@android:anim/slide_out_right"
+            app:exitAnim="@android:anim/slide_in_left"
+            app:popEnterAnim="@android:anim/slide_out_right"
+            app:popExitAnim="@android:anim/slide_in_left" />
         <action
             android:id="@+id/action_jobsFragment_to_jobDetailsFragment"
             app:destination="@id/jobDetailsFragment"

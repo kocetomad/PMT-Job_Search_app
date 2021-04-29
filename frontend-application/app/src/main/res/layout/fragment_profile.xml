@@ -1,65 +1,161 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_height="match_parent"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:app="http://schemas.android.com/apk/res-auto"
+xmlns:tools="http://schemas.android.com/tools"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+tools:context=".searchJobs.JobsFragment"
+android:windowSoftInputMode="adjustNothing">
+
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    android:id="@+id/jobsCoordinatorLayoutRoot"
     android:layout_width="match_parent"
-    android:gravity="center_horizontal"
-    android:orientation="vertical"
-    android:paddingTop="14dp">
+    android:layout_height="match_parent"
+    android:background="?attr/colorPrimary">
 
-    <ImageView
-        android:id="@+id/userProfilePicture"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:padding="14dp"
-        tools:src="@tools:sample/avatars" />
-
-    <TextView
-        android:id="@+id/userFirstName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="First name"
-        android:textSize="24sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/userLastName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Last name"
-        android:textSize="24sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/userEmail"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="emailaddress@server.com" />
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:paddingVertical="12dp">
+        android:paddingTop="14dp">
 
-        <Button
-            android:id="@+id/goToJobsSearch"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginVertical="14dp"
-            android:drawableEnd="@drawable/ic_baseline_search_24"
-            android:drawableTint="?attr/colorOnPrimary"
-            android:text="Search for a job" />
+        <ImageView
+            android:id="@+id/userProfilePicture"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:padding="14dp"
+            tools:src="@tools:sample/avatars" />
 
-        <Button
-            android:id="@+id/goToSavedJobs"
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/userFirstName"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginVertical="14dp"
-            android:drawableEnd="@drawable/ic_baseline_archive_24"
-            android:drawableTint="?attr/colorOnPrimary"
-            android:text="See your saved jobs" />
+            android:text="First name"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/userLastName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Last name"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/userEmail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="emailaddress@server.com" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingVertical="12dp">
+
+            <Button
+                android:id="@+id/goToJobsSearch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="14dp"
+                android:drawableEnd="@drawable/ic_baseline_search_24"
+                android:drawableTint="?attr/colorOnPrimary"
+                android:text="Search for a job" />
+
+            <Button
+                android:id="@+id/goToSavedJobs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="14dp"
+                android:drawableEnd="@drawable/ic_baseline_archive_24"
+                android:drawableTint="?attr/colorOnPrimary"
+                android:text="See your saved jobs" />
+        </LinearLayout>
+
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:paddingVertical="16dp"/>
+
     </LinearLayout>
 
-</LinearLayout>
+    <LinearLayout
+        android:id="@+id/jobsBackdropView"
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent"
+
+        android:background="@drawable/rounded_backdrop"
+
+        android:orientation="vertical"
+
+        app:behavior_hideable="false"
+        app:behavior_peekHeight="48dp"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/jobsBackdropTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="14dp"
+                android:paddingTop="14dp"
+                android:paddingEnd="14dp"
+                android:text="Jobs found (x)"
+                android:textStyle="bold" />
+
+            <ProgressBar
+                android:id="@+id/jobsProgressBar"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:indeterminate="true"
+                android:visibility="visible" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/errorView"
+            android:layout_width="match_parent"
+            android:layout_height="fill_parent"
+            android:gravity="center_horizontal|center_vertical"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/errorText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Failed to get jobs" />
+
+            <ImageView
+                android:id="@+id/imageView"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:src="@drawable/ic_baseline_error_outline_24" />
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/jobsRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+        </androidx.recyclerview.widget.RecyclerView>
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+</FrameLayout>
