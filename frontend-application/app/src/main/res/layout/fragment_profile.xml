@@ -13,9 +13,7 @@ android:windowSoftInputMode="adjustNothing">
     android:layout_height="match_parent"
     android:background="?attr/colorPrimary">
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
+    <LinearLayout
         android:layout_height="match_parent"
         android:layout_width="match_parent"
         android:gravity="center_horizontal"
@@ -26,14 +24,14 @@ android:windowSoftInputMode="adjustNothing">
             android:id="@+id/userProfilePicture"
             android:layout_width="150dp"
             android:layout_height="150dp"
-            android:padding="14dp"
-            tools:src="@tools:sample/avatars" />
+            app:srcCompat="@drawable/ic_baseline_account_circle_24" />
 
         <TextView
             android:id="@+id/userFirstName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="First name"
+            android:textColor="?attr/colorOnPrimary"
             android:textSize="24sp"
             android:textStyle="bold" />
 
@@ -42,6 +40,7 @@ android:windowSoftInputMode="adjustNothing">
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Last name"
+            android:textColor="?attr/colorOnPrimary"
             android:textSize="24sp"
             android:textStyle="bold" />
 
@@ -49,19 +48,21 @@ android:windowSoftInputMode="adjustNothing">
             android:id="@+id/userEmail"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="emailaddress@server.com" />
+            android:paddingVertical="4dp"
+            android:text="emailaddress@server.com"
+            android:textColor="?attr/colorOnPrimary" />
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingVertical="12dp">
+            android:paddingVertical="28dp">
 
             <Button
                 android:id="@+id/goToJobsSearch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginVertical="14dp"
+                android:backgroundTint="?attr/colorPrimaryVariant"
                 android:drawableEnd="@drawable/ic_baseline_search_24"
                 android:drawableTint="?attr/colorOnPrimary"
                 android:text="Search for a job" />
@@ -70,24 +71,17 @@ android:windowSoftInputMode="adjustNothing">
                 android:id="@+id/goToSavedJobs"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginVertical="14dp"
+                android:backgroundTint="?attr/colorPrimaryVariant"
                 android:drawableEnd="@drawable/ic_baseline_archive_24"
                 android:drawableTint="?attr/colorOnPrimary"
                 android:text="See your saved jobs" />
         </LinearLayout>
 
 
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:paddingVertical="16dp"/>
-
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/jobsBackdropView"
+        android:id="@+id/savedJobsBackdrop"
         android:layout_width="match_parent"
         android:layout_height="fill_parent"
 
@@ -109,17 +103,17 @@ android:windowSoftInputMode="adjustNothing">
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/jobsBackdropTitle"
+                android:id="@+id/savedJobsBackdropTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingStart="14dp"
                 android:paddingTop="14dp"
                 android:paddingEnd="14dp"
-                android:text="Jobs found (x)"
+                android:text="Saved jobs"
                 android:textStyle="bold" />
 
             <ProgressBar
-                android:id="@+id/jobsProgressBar"
+                android:id="@+id/savedJobsProgressBar"
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -128,7 +122,7 @@ android:windowSoftInputMode="adjustNothing">
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/errorView"
+            android:id="@+id/savedJobsErrorView"
             android:layout_width="match_parent"
             android:layout_height="fill_parent"
             android:gravity="center_horizontal|center_vertical"
@@ -136,7 +130,7 @@ android:windowSoftInputMode="adjustNothing">
             android:visibility="gone">
 
             <TextView
-                android:id="@+id/errorText"
+                android:id="@+id/savedJobsErrorText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Failed to get jobs" />
@@ -149,10 +143,9 @@ android:windowSoftInputMode="adjustNothing">
         </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/jobsRecyclerView"
+            android:id="@+id/savedJobsRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
-
         </androidx.recyclerview.widget.RecyclerView>
     </LinearLayout>
 
