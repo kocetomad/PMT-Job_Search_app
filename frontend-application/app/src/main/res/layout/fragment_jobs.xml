@@ -2,13 +2,13 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/jobsRootView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".searchJobs.JobsFragment"
-    android:windowSoftInputMode="adjustNothing">
+    android:windowSoftInputMode="adjustNothing"
+    tools:context=".searchJobs.JobsFragment">
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
-        android:id="@+id/jobsCoordinatorLayoutRoot"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="?attr/colorPrimary">
@@ -25,21 +25,20 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/rounded_search_bar"
+                android:drawableEnd="@drawable/ic_baseline_search_24"
+                android:drawableTint="?attr/colorOnPrimary"
                 android:ems="10"
                 android:inputType="textPersonName"
                 android:submitBackground="@drawable/rounded_search_bar"
                 android:text="Search for a job"
                 android:textColor="?attr/colorOnPrimary"
-                android:textColorHint="?attr/colorOnPrimary"
-                android:drawableEnd="@drawable/ic_baseline_search_24"
-                android:drawableTint="?attr/colorOnPrimary"
-                />
+                android:textColorHint="?attr/colorOnPrimary" />
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingVertical="16dp">
+                android:paddingTop="16dp">
 
                 <TextView
                     android:id="@+id/minimumSalaryText"
@@ -59,9 +58,9 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingVertical="16dp">
+                android:paddingTop="16dp">
 
                 <TextView
                     android:id="@+id/maximumSalaryText"
@@ -82,7 +81,7 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/jobsBackdropView"
+            android:id="@+id/jobsForegroundView"
             android:layout_width="match_parent"
             android:layout_height="fill_parent"
 

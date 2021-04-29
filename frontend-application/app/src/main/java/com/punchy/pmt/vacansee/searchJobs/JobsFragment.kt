@@ -73,18 +73,14 @@ class JobsFragment : Fragment() {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
-        val trashBinIcon = resources.getDrawable(
-            R.drawable.ic_baseline_archive_24,
-            null
-        )
+        val trashBinIcon = resources.getDrawable(R.drawable.ic_baseline_archive_24, null)
 
         val jobsView: View = inflater.inflate(R.layout.fragment_jobs, container, false)
 
-        val bottomSheetView = jobsView.findViewById<LinearLayout>(R.id.jobsBackdropView)
-        val bottomSheetBehavior = BottomSheetBehavior.from(bottomSheetView)
+        val jobsForegroundView = jobsView.findViewById<LinearLayout>(R.id.jobsForegroundView)
+        val bottomSheetBehavior = BottomSheetBehavior.from(jobsForegroundView)
 
         // set bottom sheet state as expanded by default
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
@@ -103,15 +99,17 @@ class JobsFragment : Fragment() {
 
         if (jobsList.isEmpty()) {
             // get progress bar and hide it after the jobs load.
-            bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility = View.GONE
+            jobsForegroundView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility =
+                View.GONE
 
             // get error view and make it visible if the fetching fails
-            bottomSheetView.findViewById<TextView>(R.id.errorText).text =
+            jobsForegroundView.findViewById<TextView>(R.id.errorText).text =
                 "Couldn't connect to endpoint"
-            bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility = View.VISIBLE
+            jobsForegroundView.findViewById<LinearLayout>(R.id.errorView).visibility = View.VISIBLE
         } else {
             // get progress bar and hide it after the jobs load.
-            bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility = View.GONE
+            jobsForegroundView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility =
+                View.GONE
         }
 
         /*jobsList.add(
@@ -166,7 +164,7 @@ class JobsFragment : Fragment() {
             )
         )*/
 
-        val backdropTitle = bottomSheetView.findViewById<TextView>(R.id.jobsBackdropTitle)
+        val backdropTitle = jobsForegroundView.findViewById<TextView>(R.id.jobsBackdropTitle)
         backdropTitle.text = "Jobs found (${jobsList.size})"
 
 //        pass the values to RvAdapter
