@@ -13,11 +13,20 @@ import com.punchy.pmt.vacansee.R
 //input parameter has to be changed to an object containing the data from the query
 class RvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment) :
     RecyclerView.Adapter<RvAdapter.ViewHolder>() {
-    override fun onCreateViewHolder(view: ViewGroup, index: Int): ViewHolder {
-        val v =
-            LayoutInflater.from(view?.context).inflate(R.layout.job_entry_layout, view, false)
-        return ViewHolder(v)
 
+    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val jobTitle = itemView.findViewById<TextView>(R.id.entryJobTitle)
+        val jobEmployerName = itemView.findViewById<TextView>(R.id.entryEmployerName)
+        val jobDescription = itemView.findViewById<TextView>(R.id.entryJobDescription)
+
+        val jobSalaryMin = itemView.findViewById<TextView>(R.id.entrySalaryMin)
+        val jobSalaryMax = itemView.findViewById<TextView>(R.id.entrySalaryMax)
+    }
+
+    override fun onCreateViewHolder(view: ViewGroup, index: Int): ViewHolder {
+        val v = LayoutInflater.from(view?.context).inflate(R.layout.job_entry_layout, view, false)
+
+        return ViewHolder(v)
     }
 
     override fun getItemCount(): Int {
@@ -27,6 +36,7 @@ class RvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment) :
     var isSaved = false
     fun setItemSaved(state: Boolean): Boolean {
         isSaved = state
+
         return isSaved
     }
 
@@ -40,10 +50,7 @@ class RvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment) :
         view.jobSalaryMax?.text = "${jobsList[index].currency} ${jobsList[index].maximumSalary}"
 
         view.itemView.findViewById<com.google.android.material.card.MaterialCardView>(R.id.card)
-
             ?.setOnClickListener {
-                println(index)
-
                 // create the bundle to send to the JobDetails fragment
                 val args = Bundle()
                 args.putString("jobTitle", jobsList[index].jobTitle)
@@ -60,18 +67,6 @@ class RvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment) :
 
                 parentFragment.findNavController()
                     .navigate(R.id.action_jobsFragment_to_jobDetailsFragment, args)
-
             }
-
-    }
-
-    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val jobTitle = itemView.findViewById<TextView>(R.id.entryJobTitle)
-        val jobEmployerName = itemView.findViewById<TextView>(R.id.entryEmployerName)
-        val jobDescription = itemView.findViewById<TextView>(R.id.entryJobDescription)
-
-        val jobSalaryMin = itemView.findViewById<TextView>(R.id.entrySalaryMin)
-        val jobSalaryMax = itemView.findViewById<TextView>(R.id.entrySalaryMax)
-        // TODO - map other data of Job here as well (i.e salary, reviews, etc)
     }
 }
