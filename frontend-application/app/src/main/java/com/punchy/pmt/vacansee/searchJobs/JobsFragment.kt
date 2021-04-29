@@ -98,6 +98,7 @@ class JobsFragment : Fragment() {
             LinearLayoutManager.VERTICAL,
             false
         )
+
         val jobsList = getJobs()
 
         if (jobsList.isEmpty()) {

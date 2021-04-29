@@ -5,16 +5,47 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.punchy.pmt.vacansee.searchJobs.Job
 import com.punchy.pmt.vacansee.searchJobs.JobDetails
-import java.lang.Exception
+import okhttp3.*
+import java.io.IOException
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 
 
-var route = "https://3f15331b7bf8.ngrok.io/api"
-
+var route = "https://6aaf014ab2d0.ngrok.io/api"
+private val client = OkHttpClient()
 fun getJobs(): MutableList<Job> {
     var jobsList = mutableListOf<Job>()
-    val gson = Gson() // JSON converter
+
+    val request = Request.Builder()
+        .url("$route/jobs?search=developer")
+        .build()
+
+    client.newCall(request).enqueue(object : Callback {
+        override fun onFailure(call: Call, e: IOException) {
+            e.printStackTrace()
+        }
+
+        override fun onResponse(call: Call, response: Response) :MutableList<Job>{
+            response.use {
+                if (!response.isSuccessful) throw IOException("Unexpected code $response")
+
+                for ((name, value) in response.headers) {
+                    Log.d("Requests", "$name: $value")
+                }
+
+                val gson = Gson()
+                val jobsJSON = response.body!!.string()
+                val parseTemplate = object : TypeToken<MutableList<Job>>() {}.type
+
+                jobsList = gson.fromJson(jobsJSON, parseTemplate)
+                jobsList.forEachIndexed { idx, tut -> println("> Item ${idx}:\n${tut}") }
+
+            }
+            return jobsList
+        }
+    })
+
+    /*val gson = Gson() // JSON converter
 
     try {
         val url = URL("$route/jobs?search=developer")
@@ -38,7 +69,7 @@ fun getJobs(): MutableList<Job> {
         Log.e("Requests", e.toString())
     } finally {
         return jobsList
-    }
+    }*/
 }
 
 fun getJobDetails(employerName: String, employerId: Int, jobId: Int): JobDetails {
