@@ -1,0 +1,19 @@
+name: AutoDeployBackend
+on: 
+  push:
+    branches: [ backend-live ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy pipeline
+        uses: fifsky/ssh-action@master
+        with:
+          command: |
+            ./Deploy.sh
+          host: 138.68.133.230
+          args: "-tt -vvv"  
+          user: pmt
+          key: ${{ secrets.PRIVATE_KEY }}
+          port: 919

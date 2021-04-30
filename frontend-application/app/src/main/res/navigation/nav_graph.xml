@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/loginFragment">
+
+    <fragment
+        android:id="@+id/jobsFragment"
+        android:name="com.punchy.pmt.vacansee.searchJobs.JobsFragment"
+        android:label="fragment_jobs"
+        tools:layout="@layout/fragment_jobs" >
+        <action
+            android:id="@+id/action_jobsFragment_to_profileFragment"
+            app:destination="@id/profileFragment"
+            app:enterAnim="@anim/fragment_fade_enter"
+            app:exitAnim="@anim/fragment_fade_exit"
+            app:popEnterAnim="@anim/fragment_fade_enter"
+            app:popExitAnim="@anim/fragment_fade_enter" />
+        <action
+            android:id="@+id/action_jobsFragment_to_jobDetailsFragment"
+            app:destination="@id/jobDetailsFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim" />
+    </fragment>
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.punchy.pmt.vacansee.ProfileFragment"
+        android:label="fragment_profile"
+        tools:layout="@layout/fragment_profile" />
+    <fragment
+        android:id="@+id/jobDetailsFragment"
+        android:name="com.punchy.pmt.vacansee.searchJobs.JobDetailsFragment"
+        android:label="fragment_job_details"
+        tools:layout="@layout/fragment_job_details" >
+        <argument
+            android:name="jobTitle"
+            app:argType="string" />
+        <argument
+            android:name="jobEmployerName"
+            app:argType="string" />
+        <argument
+            android:name="jobDescription"
+            app:argType="string" />
+    </fragment>
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.punchy.pmt.vacansee.LoginFragment"
+        android:label="fragment_login"
+        tools:layout="@layout/fragment_login" >
+        <action
+            android:id="@+id/action_loginFragment_to_jobsFragment"
+            app:destination="@id/jobsFragment" />
+        <action
+            android:id="@+id/action_loginFragment_to_registerAccountFragment"
+            app:destination="@id/registerAccountFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/registerAccountFragment"
+        android:name="com.punchy.pmt.vacansee.RegisterAccountFragment"
+        android:label="fragment_register_account"
+        tools:layout="@layout/fragment_register_account" />
+</navigation>
