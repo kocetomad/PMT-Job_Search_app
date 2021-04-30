@@ -43,7 +43,7 @@ app.use(passport.session());
 // Auth check helper functions
 const blockAuthenticated = (req, res, next) => {
     if (req.isAuthenticated()) {
-        return res.redirect("/logoutError");
+        return res.redirect("/api/logoutError");
     }
     next();
 };
@@ -53,7 +53,7 @@ const blockNotAuthenticated = (req, res, next) => {
         return next();
     }
 
-    res.redirect("/loginError");
+    res.redirect("/api/loginError");
 };
 
 // Routes
@@ -539,14 +539,14 @@ app.delete("/api/review", (req, res) => {
 });
 
 app.post(
-    "/login",
+    "/api/login",
     blockAuthenticated,
     passport.authenticate("local", {
         successRedirect: "/",
     })
 );
 
-app.get("/logout", blockNotAuthenticated, (req, res) => {
+app.get("/api/logout", blockNotAuthenticated, (req, res) => {
     req.logOut();
     res.send({
         success: true,
@@ -554,7 +554,7 @@ app.get("/logout", blockNotAuthenticated, (req, res) => {
     });
 });
 
-app.get("/loginError", blockAuthenticated, (req, res) => {
+app.get("/api/loginError", blockAuthenticated, (req, res) => {
     res.send({
         success: false,
         msg:
@@ -563,7 +563,7 @@ app.get("/loginError", blockAuthenticated, (req, res) => {
 });
 
 // this could be replaced by a more useful redirect, meaning the frontend can just call login
-app.get("/logoutError", blockNotAuthenticated, (req, res) => {
+app.get("/api/logoutError", blockNotAuthenticated, (req, res) => {
     res.send({
         success: false,
         msg:
