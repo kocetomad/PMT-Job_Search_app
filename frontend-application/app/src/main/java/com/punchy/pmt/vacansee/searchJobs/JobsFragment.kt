@@ -102,14 +102,14 @@ class JobsFragment : Fragment() {
         )
 
 
-        fun loadData(perantFragment: Fragment) = CoroutineScope(Dispatchers.Main).launch {
+        fun loadData(parentFragment: Fragment) = CoroutineScope(Dispatchers.Main).launch {
             bottomSheetView.findViewById<TextView>(R.id.errorText).text =
                 "Couldn't connect to wooow"
             val task = async(Dispatchers.IO) {
                 getJobs()
             }
             jobsList = task.await()
-            val rvAdapter = RvAdapter(jobsList, perantFragment)
+            val rvAdapter = RvAdapter(jobsList, parentFragment)
             jobsRecyclerView.adapter = rvAdapter
 
             val backdropTitle = bottomSheetView.findViewById<TextView>(R.id.jobsBackdropTitle)
