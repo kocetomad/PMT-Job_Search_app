@@ -1,7 +1,6 @@
 package com.punchy.pmt.vacansee
 
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -10,13 +9,12 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.navigation.fragment.findNavController
-import com.punchy.pmt.vacansee.searchJobs.httpRequests.getJobs
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.login
-import com.punchy.pmt.vacansee.searchJobs.jobsList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import java.io.IOException
 
 //import com.punchy.pmt.vacansee.searchJobs.httpRequests.login
 
@@ -47,25 +45,20 @@ class LoginFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val loginView: View=inflater.inflate(R.layout.fragment_login, container, false)
+        val loginView: View = inflater.inflate(R.layout.fragment_login, container, false)
 
         loginView.findViewById<Button>(R.id.loginButton)?.setOnClickListener {
             val loginEmail = loginView.findViewById<EditText>(R.id.loginEmail).text.toString()
             val loginPassword = loginView.findViewById<EditText>(R.id.loginPassword).text.toString()
 
-            fun asyncLogin(email: String, password: String) = CoroutineScope(Dispatchers.Main).launch {
-                val task = async(Dispatchers.IO) {
-                    login(email, password)
+            fun asyncLogin(email: String, password: String) =
+                CoroutineScope(Dispatchers.Main).launch {
+                    val task = async(Dispatchers.IO) {
+                        login(email, password)
+                    }
+                    task.await()
                 }
 
-                val response = task.await()
-
-                if (response == "true") {
-                    findNavController().navigate(R.id.action_loginFragment_to_jobsFragment)
-                } else {
-//                    Toast.makeText(this, "Request Successful. Something else happened", Toast.LENGTH_LONG).show()
-                }
-            }
             asyncLogin(loginEmail, loginPassword)
             findNavController().navigate(R.id.action_loginFragment_to_jobsFragment)
         }
