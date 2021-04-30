@@ -435,39 +435,107 @@ app.post("/api/review", (req, res) => {
                 "empID, userID, rating and title are all required in request body, desc is optional",
         });
     }
-    if (desc) {
-        pool.query(
-            `INSERT INTO review_tbl(
-	employer_id, user_id, rating, title, description)
-	VALUES ($1, $2, $3, $4, $5);`,
-            [empID, userID, rating, title, desc],
-            (err, results) => {
-                if (err) {
-                    throw err;
-                }
+
+    pool.query(
+        `SELECT employer_id, user_id, rating, title, description
+	FROM review_tbl
+	WHERE employer_id=$1
+    AND user_id=$2`,
+        [empID, userID],
+        (err, results) => {
+            if (err) {
+                throw err;
+            }
+            if (results.rows.length != 0) {
+                // user already left review for that employer
                 return res.send({
-                    success: true,
-                    msg: "Review successfully added",
+                    success: false,
+                    msg: "user already left review for that employer",
                 });
             }
-        );
-    } else {
-        pool.query(
-            `INSERT INTO review_tbl(
-	employer_id, user_id, rating, title)
-	VALUES ($1, $2, $3, $4);`,
-            [empID, userID, rating, title],
-            (err, results) => {
-                if (err) {
-                    throw err;
-                }
-                return res.send({
-                    success: true,
-                    msg: "Review successfully added",
-                });
+
+            if (desc) {
+                pool.query(
+                    `INSERT INTO review_tbl(
+	        employer_id, user_id, rating, title, description)
+	        VALUES ($1, $2, $3, $4, $5);`,
+                    [empID, userID, rating, title, desc],
+                    (err, results) => {
+                        if (err) {
+                            throw err;
+                        }
+                        return res.send({
+                            success: true,
+                            msg: "Review successfully added",
+                        });
+                    }
+                );
+            } else {
+                pool.query(
+                    `INSERT INTO review_tbl(
+	        employer_id, user_id, rating, title)
+	        VALUES ($1, $2, $3, $4);`,
+                    [empID, userID, rating, title],
+                    (err, results) => {
+                        if (err) {
+                            throw err;
+                        }
+                        return res.send({
+                            success: true,
+                            msg: "Review successfully added",
+                        });
+                    }
+                );
             }
-        );
+        }
+    );
+});
+
+app.delete("/api/review", (req, res) => {
+    let { empID, userID } = req.body;
+
+    if (!empID || !userID) {
+        return res.send({
+            success: false,
+            msg: "params empID and userID are required for this endpoint",
+        });
     }
+
+    pool.query(
+        `SELECT employer_id, user_id, rating, title, description
+	FROM review_tbl
+	WHERE employer_id=$1
+	AND user_id=$2;`,
+        [empID, userID],
+        (err, results) => {
+            if (err) {
+                throw err;
+            }
+
+            if (results.rows.length == 0) {
+                return res.send({
+                    success: false,
+                    msg: `review not found for empID ${empID} and userID ${userID}`,
+                });
+            }
+
+            pool.query(
+                `DELETE FROM review_tbl
+		        WHERE employer_id=$1
+	            AND user_id=$2;`,
+                [empID, userID],
+                (err, results) => {
+                    if (err) {
+                        throw err;
+                    }
+                    return res.send({
+                        success: true,
+                        msg: "review successfully deleted",
+                    });
+                }
+            );
+        }
+    );
 });
 
 app.post(
