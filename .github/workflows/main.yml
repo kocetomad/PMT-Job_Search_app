@@ -1,7 +1,7 @@
 name: AutoDeployBackend
 on: 
   push:
-    branches: [ backend-live ]
+    branches: [ backend-deploy ]
 
 jobs:
   build:
