@@ -627,11 +627,30 @@ app.post(
     blockAuthenticated,
     passport.authenticate("local"),
     (req, res) => {
-        // console.log(res);
-        res.send({
-            success: true,
-            msg: "logged in",
-        });
+        // send userID to frontend
+        pool.query(
+            `SELECT user_id
+	FROM public.user_tbl
+	WHERE email=$1;`,
+            [req.body.email],
+            (err, results) => {
+                if (err) {
+                    throw err;
+                }
+                if (results.rows.length == 0) {
+                    return res.send({
+                        success: false,
+                        msg:
+                            "login worked, but cant find userID for that email",
+                    });
+                }
+                res.send({
+                    success: true,
+                    msg: "logged in",
+                    userID: results.rows[0]["user_id"],
+                });
+            }
+        );
     }
 );
 
