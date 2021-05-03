@@ -61,7 +61,7 @@ app.get("/", (req, res) => {
     res.send({ success: "true" });
 });
 
-app.get("/api/jobs", (req, res) => {
+app.get("/api/jobs", blockNotAuthenticated, (req, res) => {
     // // add auth check
     // let { search, location } = req.query;
     // // TODO: santisation checks
@@ -531,6 +531,90 @@ app.delete("/api/review", (req, res) => {
                     return res.send({
                         success: true,
                         msg: "review successfully deleted",
+                    });
+                }
+            );
+        }
+    );
+});
+
+app.get("/api/review", (req, res) => {
+    let { empID, userID } = req.query;
+
+    if (!empID || !userID) {
+        return res.send({
+            success: false,
+            msg: "params empID and userID are required for this endpoint",
+        });
+    }
+
+    pool.query(
+        `SELECT employer_id, user_id, rating, title, description
+	FROM review_tbl
+	WHERE employer_id=$1
+	AND user_id=$2;`,
+        [empID, userID],
+        (err, results) => {
+            if (err) {
+                throw err;
+            }
+
+            if (results.rows.length == 0) {
+                return res.send({
+                    success: false,
+                    msg: `review not found for empID ${empID} and userID ${userID}`,
+                });
+            }
+            res.send({
+                success: true,
+                review: results.rows,
+            });
+        }
+    );
+});
+
+app.put("/api/review", (req, res) => {
+    let { rating, title, desc, empID, userID } = req.body;
+
+    if (!rating || !title || !desc || !empID || !userID) {
+        return res.send({
+            success: false,
+            msg:
+                "params rating, title, desc, empID and userID are all required for this endpoint",
+        });
+    }
+
+    pool.query(
+        `SELECT employer_id, user_id, rating, title, description
+	FROM review_tbl
+	WHERE employer_id=$1
+	AND user_id=$2;`,
+        [empID, userID],
+        (err, results) => {
+            if (err) {
+                throw err;
+            }
+
+            if (results.rows.length == 0) {
+                return res.send({
+                    success: false,
+                    msg: `review not found for empID ${empID} and userID ${userID}`,
+                });
+            }
+
+            pool.query(
+                `UPDATE review_tbl
+	            SET rating=$1, title=$2, description=$3
+	            WHERE employer_id=$4
+	            AND user_id=$5;`,
+                [rating, title, desc, empID, userID],
+                (err, results) => {
+                    if (err) {
+                        throw err;
+                    }
+                    return res.send({
+                        success: true,
+                        msg: "review successfully updated",
                     });
                 }
             );
