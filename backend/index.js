@@ -58,7 +58,7 @@ const blockNotAuthenticated = (req, res, next) => {
 
 // Routes
 app.get("/", (req, res) => {
-    res.send({ success: "true", cookie: req.get("Cookie") });
+    res.send({ success: "true" });
 });
 
 app.get("/api/jobs", blockNotAuthenticated, (req, res) => {
@@ -625,9 +625,14 @@ app.put("/api/review", (req, res) => {
 app.post(
     "/api/login",
     blockAuthenticated,
-    passport.authenticate("local", {
-        successRedirect: "/",
-    })
+    passport.authenticate("local"),
+    (req, res) => {
+        // console.log(res);
+        res.send({
+            success: true,
+            msg: "logged in",
+        });
+    }
 );
 
 app.get("/api/logout", blockNotAuthenticated, (req, res) => {
