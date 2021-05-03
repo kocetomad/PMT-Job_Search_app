@@ -61,7 +61,7 @@ app.get("/", (req, res) => {
     res.send({ success: "true" });
 });
 
-app.get("/api/jobs", (req, res) => {
+app.get("/api/jobs", blockNotAuthenticated, (req, res) => {
     // // add auth check
     // let { search, location } = req.query;
     // // TODO: santisation checks
