@@ -539,7 +539,7 @@ app.delete("/api/review", (req, res) => {
 });
 
 app.get("/api/review", (req, res) => {
-    let { empID, userID } = req.body;
+    let { empID, userID } = req.query;
 
     if (!empID || !userID) {
         return res.send({
