@@ -1,6 +1,7 @@
 package com.punchy.pmt.vacansee
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -15,6 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.io.IOException
+import java.lang.Exception
 
 //import com.punchy.pmt.vacansee.searchJobs.httpRequests.login
 
@@ -22,7 +24,7 @@ import java.io.IOException
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
-
+var sessionCookie = ""
 /**
  * A simple [Fragment] subclass.
  * Use the [LoginFragment.newInstance] factory method to
@@ -51,16 +53,31 @@ class LoginFragment : Fragment() {
             val loginEmail = loginView.findViewById<EditText>(R.id.loginEmail).text.toString()
             val loginPassword = loginView.findViewById<EditText>(R.id.loginPassword).text.toString()
 
+            var loginResponse = arrayOf<String?>()
             fun asyncLogin(email: String, password: String) =
                 CoroutineScope(Dispatchers.Main).launch {
                     val task = async(Dispatchers.IO) {
                         login(email, password)
                     }
-                    task.await()
+
+                    loginResponse=task.await()
+                    if(loginResponse[0].equals("true")){
+                        sessionCookie = loginResponse[1].toString()
+                        Log.d("login", "cookie post login:"+ sessionCookie)
+                        findNavController().navigate(R.id.action_loginFragment_to_jobsFragment)
+                    }else{
+                        Toast.makeText(context, "Bad credentials", Toast.LENGTH_SHORT).show()
+                    }
+
+
                 }
 
-            asyncLogin(loginEmail, loginPassword)
-            findNavController().navigate(R.id.action_loginFragment_to_jobsFragment)
+            try {
+                asyncLogin(loginEmail, loginPassword)
+            }catch (e: Exception){
+                Toast.makeText(context, "Error", Toast.LENGTH_SHORT).show()
+            }
+
         }
 
         loginView.findViewById<Button>(R.id.registerButton).setOnClickListener {

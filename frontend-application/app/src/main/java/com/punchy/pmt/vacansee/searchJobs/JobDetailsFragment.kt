@@ -9,6 +9,11 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.punchy.pmt.vacansee.R
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.getJobDetails
+import com.punchy.pmt.vacansee.searchJobs.httpRequests.getJobs
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import java.lang.Exception
 
 // TODO: Rename parameter arguments, choose names that match
@@ -49,12 +54,16 @@ class JobDetailsFragment : Fragment() {
         val jobMinSalary = detailedJobsView.findViewById<TextView>(R.id.jobMinimumSalary)
         val jobMaxSalary = detailedJobsView.findViewById<TextView>(R.id.jobMaximumSalary)
 
-        try {
-            getJobDetails(arguments?.getString("employerName")!!, arguments?.getInt("employerId")!!, arguments?.getInt("jobId")!!)
 
-        } catch (e: Exception) {
-            Log.e("JobDetailsFragment", e.toString())
+        fun loadData() = CoroutineScope(Dispatchers.Main).launch {
+
+            val task = async(Dispatchers.IO) {
+                getJobDetails(arguments?.getString("employerName")!!, arguments?.getInt("employerId")!!, arguments?.getInt("jobId")!!)
+            }
+            val details = task.await()
         }
+        loadData()
+
 
         // review data stuff
         val reviewScoreText = detailedJobsView.findViewById<TextView>(R.id.reviewScore)

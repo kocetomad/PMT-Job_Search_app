@@ -5,6 +5,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.punchy.pmt.vacansee.searchJobs.Job
 import com.punchy.pmt.vacansee.searchJobs.JobDetails
+import com.punchy.pmt.vacansee.sessionCookie
 import okhttp3.*
 import org.json.JSONObject
 import java.io.IOException
@@ -13,10 +14,10 @@ import javax.net.ssl.HttpsURLConnection
 
 
 //var route = "https://138.68.133.230:5000"
-const val route = "https://07fe6e8b59a6.ngrok.io"
+const val route = "https://e128efdfc1a3.ngrok.io"
 private val client = OkHttpClient()
 
-fun login(email: String, password: String): String {
+fun login(email: String, password: String): Array<String?> {
     val formBody = FormBody.Builder()
         .add("email", email)
         .add("password", password)
@@ -35,12 +36,18 @@ fun login(email: String, password: String): String {
             Log.d("Requests", "$name: $value")
         }
 
+
         // TODO - fetch login cookie
         val gson = Gson()
         val responseJSON = response.body!!.string()
 //        val parseTemplate = object : TypeToken<MutableList<Job>>() {}.type
+        val cookie = response.headers.get("Set-Cookie")?.trim()?.split("\\s+".toRegex())//FORMATING THE COOKIE STRING SO ITS EASIER T OUSE FOR OUR PURPOUSES :))
+        Log.d("login", "cookie:"+ (cookie?.get(0)?.dropLast(1)))
+        Log.d("login", "req:"+JSONObject(responseJSON).get("msg").toString())
+        Log.d("login", "req:"+JSONObject(responseJSON).get("success").toString())
 
-        return JSONObject(responseJSON).get("success").toString()
+
+        return arrayOf(JSONObject(responseJSON).get("success").toString(),(cookie?.get(0)?.dropLast(1)))
     }
 }
 
@@ -104,6 +111,7 @@ fun getJobs(): MutableList<Job> {
 
     val request = Request.Builder()
         .url("$route/api/jobs?search=developer")
+        .addHeader("Cookie", sessionCookie)
         .build()
 
     client.newCall(request).execute().use { response ->
@@ -126,6 +134,11 @@ fun getJobs(): MutableList<Job> {
 
 fun getJobDetails(employerName: String, employerId: Int, jobId: Int): JobDetails {
     val gson = Gson()
+
+    val request = Request.Builder()
+        .url("$route/api/moreDetails?empName=$employerName&empID=$employerId&jobID=$jobId")
+        .addHeader("Cookie", sessionCookie)
+        .build()
 
     val url = URL("$route/api/moreDetails?empName=$employerName&empID=$employerId&jobID=$jobId")
 
