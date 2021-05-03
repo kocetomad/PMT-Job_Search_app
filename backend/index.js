@@ -57,8 +57,8 @@ const blockNotAuthenticated = (req, res, next) => {
 };
 
 // Routes
-app.get("/", (req, res) => {
-    res.send({ success: "true" });
+app.get("/", blockNotAuthenticated, (req, res) => {
+    res.send({ success: "true", cookie: req.get("Cookie") });
 });
 
 app.get("/api/jobs", blockNotAuthenticated, (req, res) => {
