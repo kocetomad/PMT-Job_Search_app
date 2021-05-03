@@ -270,7 +270,6 @@ app.get("/api/pinned", blockNotAuthenticated, (req, res) => {
             let pinnedResponse = [];
 
             for (let i = 0; i < results.rows.length; i++) {
-                console.log("sorry reed");
                 // Reed more details request
                 let jobDetailsConfig = {
                     method: "get",
