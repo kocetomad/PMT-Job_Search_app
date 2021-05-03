@@ -18,7 +18,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.punchy.pmt.vacansee.R
+import com.punchy.pmt.vacansee.searchJobs.httpRequests.getJobDetails
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.getJobs
+import com.punchy.pmt.vacansee.searchJobs.httpRequests.saveJob
+import com.punchy.pmt.vacansee.userID
 import kotlinx.coroutines.*
 
 
@@ -135,6 +138,11 @@ class JobsFragment : Fragment() {
                     touchDown = false
                     rvAdapter?.notifyItemChanged(viewHolder.adapterPosition)
                     savedItems.add(viewHolder.adapterPosition)
+
+
+                            //saveJob(userID, jobsList.get(viewHolder.itemView.id).jobId.toString())
+
+
                     Toast.makeText(context, "Job saved", Toast.LENGTH_SHORT).show()
                     return
                 }

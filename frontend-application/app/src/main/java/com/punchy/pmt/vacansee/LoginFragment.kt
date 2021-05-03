@@ -25,6 +25,7 @@ import java.lang.Exception
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
 var sessionCookie = ""
+var userID = ""
 /**
  * A simple [Fragment] subclass.
  * Use the [LoginFragment.newInstance] factory method to
@@ -63,6 +64,7 @@ class LoginFragment : Fragment() {
                     loginResponse=task.await()
                     if(loginResponse[0].equals("true")){
                         sessionCookie = loginResponse[1].toString()
+                        userID = loginResponse[2].toString()
                         Log.d("login", "cookie post login:"+ sessionCookie)
                         findNavController().navigate(R.id.action_loginFragment_to_jobsFragment)
                     }else{

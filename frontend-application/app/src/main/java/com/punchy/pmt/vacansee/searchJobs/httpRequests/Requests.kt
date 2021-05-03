@@ -14,7 +14,7 @@ import javax.net.ssl.HttpsURLConnection
 
 
 //var route = "https://138.68.133.230:5000"
-const val route = "https://e128efdfc1a3.ngrok.io"
+const val route = "https://www.pmtjobapp.xyz"
 private val client = OkHttpClient()
 
 fun login(email: String, password: String): Array<String?> {
@@ -43,11 +43,12 @@ fun login(email: String, password: String): Array<String?> {
 //        val parseTemplate = object : TypeToken<MutableList<Job>>() {}.type
         val cookie = response.headers.get("Set-Cookie")?.trim()?.split("\\s+".toRegex())//FORMATING THE COOKIE STRING SO ITS EASIER T OUSE FOR OUR PURPOUSES :))
         Log.d("login", "cookie:"+ (cookie?.get(0)?.dropLast(1)))
+        Log.d("login", "userID:"+JSONObject(responseJSON).get("userID").toString())
         Log.d("login", "req:"+JSONObject(responseJSON).get("msg").toString())
         Log.d("login", "req:"+JSONObject(responseJSON).get("success").toString())
 
 
-        return arrayOf(JSONObject(responseJSON).get("success").toString(),(cookie?.get(0)?.dropLast(1)))
+        return arrayOf(JSONObject(responseJSON).get("success").toString(),(cookie?.get(0)?.dropLast(1)),JSONObject(responseJSON).get("userID").toString())
     }
 }
 
@@ -132,35 +133,73 @@ fun getJobs(): MutableList<Job> {
     }
 }
 
-fun getJobDetails(employerName: String, employerId: Int, jobId: Int): JobDetails {
+fun getJobDetails(employerName: String, employerId: Int, jobId: Int): String {
     val gson = Gson()
+    var details: String
+
 
     val request = Request.Builder()
         .url("$route/api/moreDetails?empName=$employerName&empID=$employerId&jobID=$jobId")
         .addHeader("Cookie", sessionCookie)
         .build()
 
-    val url = URL("$route/api/moreDetails?empName=$employerName&empID=$employerId&jobID=$jobId")
 
-    with(url.openConnection() as HttpsURLConnection) {
-        requestMethod = "GET"  // optional default is GET
-        println("\nSent 'GET' request to URL : $url; Response Code : $responseCode")
+    client.newCall(request).execute().use { response ->
+        if (!response.isSuccessful) throw IOException("Unexpected code $response")
 
-        val parseTemplate = object :
-            TypeToken<MutableList<Job>>() {}.type //https://bezkoder.com/kotlin-parse-json-gson/
-        inputStream.bufferedReader().use {
-            it.lines().forEach { line ->
-                println(line)
-//                jobsList = gson.fromJson(line, parseTemplate)
-//                jobsList.forEachIndexed { idx, tut -> println("> Item ${idx}:\n${tut}") }
-            }
+        for ((name, value) in response.headers) {
+            Log.d("Requests","$name: $value")
         }
+
+        val gson = Gson()
+        val jobDetail = response.body!!.string()
+        val parseTemplate = object : TypeToken<JobDetails>() {}.type
+
+
+        details = JSONObject(jobDetail).get("jobDetails").toString()
+        Log.d("Requests", details)
+
+        return details
     }
 
+
     // TODO - add proper details
-    return JobDetails(0, 0, 0.0f)
 }
 
 fun getSavedJobs(): MutableList<Job> {
     return mutableListOf()
+}
+
+fun saveJob(userID: String, jobID: String): Array<String?> {
+    val formBody = FormBody.Builder()
+        .add("userID", userID)
+        .add("jobID", jobID)
+        .build()
+
+    val request = Request.Builder() 
+        .url("$route/api/pinned")
+        .addHeader("Cookie", sessionCookie)
+        .post(formBody)
+        .build()
+
+    client.newCall(request).execute().use { response ->
+        if (!response.isSuccessful) throw IOException("Unexpected code $response")
+
+        Log.d("Requests", "Request begin:")
+        for ((name, value) in response.headers) {
+            Log.d("Requests", "$name: $value")
+        }
+
+
+        // TODO - fetch login cookie
+        val gson = Gson()
+        val responseJSON = response.body!!.string()
+//        val parseTemplate = object : TypeToken<MutableList<Job>>() {}.type
+
+        Log.d("save", "req:"+JSONObject(responseJSON).get("msg").toString())
+        Log.d("save", "req:"+JSONObject(responseJSON).get("success").toString())
+
+
+        return arrayOf(JSONObject(responseJSON).get("success").toString(),JSONObject(responseJSON).get("msg").toString())
+    }
 }
