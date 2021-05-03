@@ -9,6 +9,9 @@ const { pool } = require("./dbConfig");
 const bcrypt = require("bcrypt");
 const passport = require("passport");
 const initializePassport = require("./passportConfig");
+const flatCache = require("flat-cache");
+const cache = flatCache.load("cache1");
+const moment = require("moment");
 
 // temp imports
 let jobsPrefetch = require("./sample_reed_job_response.json");
@@ -40,6 +43,25 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Caching
+const lessThanOneHourAgo = (date) => {
+    return moment(date).isAfter(moment().subtract(1, "hours"));
+};
+
+const cacher = (req, res, next) => {
+    let thisCache = cache.getKey(req.originalUrl);
+    if (thisCache != null) {
+        if (!lessThanOneHourAgo(thisCache.date)) {
+            console.log("cache too old, refetching");
+            return next();
+        }
+        console.log("data fetched from cache");
+        return res.send(thisCache.data);
+    }
+    console.log("no cache, fetching");
+    next();
+};
+
 // Auth check helper functions
 const blockAuthenticated = (req, res, next) => {
     if (req.isAuthenticated()) {
@@ -61,39 +83,42 @@ app.get("/", (req, res) => {
     res.send({ success: "true" });
 });
 
-app.get("/api/jobs", blockNotAuthenticated, (req, res) => {
-    // // add auth check
-    // let { search, location } = req.query;
-    // // TODO: santisation checks
-    // let url = "";
-    // if (!location) {
-    //     url = `https://www.reed.co.uk/api/1.0/search?keywords=${search}`;
-    // } else {
-    //     url = `https://www.reed.co.uk/api/1.0/search?keywords=${search}&locationName=${location}`;
-    // }
+app.get("/api/jobs", blockNotAuthenticated, cacher, (req, res) => {
+    // add auth check
+    let { search, location } = req.query;
+    // TODO: santisation checks
+    let url = "";
+    if (!location) {
+        url = `https://www.reed.co.uk/api/1.0/search?keywords=${search}&resultsToTake=15`;
+    } else {
+        url = `https://www.reed.co.uk/api/1.0/search?keywords=${search}&locationName=${location}&resultsToTake=15`;
+    }
 
-    // let config = {
-    //     method: "get",
-    //     url: url,
-    //     headers: {
-    //         Authorization: process.env.REED_AUTH,
-    //     },
-    // };
+    let config = {
+        method: "get",
+        url: url,
+        headers: {
+            Authorization: process.env.REED_AUTH,
+        },
+    };
 
-    // axios(config)
-    //     .then(function (response) {
-    //         // let responseData = response.data;
-    //         let responseData = response.data;
-    //         res.send(responseData.results);
-    //         // company logo scraping functionality placeholder
-    //     })
-    //     .catch(function (error) {
-    //         console.log(error);
-    //     });
-    res.send(jobsPrefetch);
+    axios(config)
+        .then(function (response) {
+            let responseData = response.data;
+            cache.setKey(req.originalUrl, {
+                date: new Date(),
+                data: response.data,
+            });
+            res.send(responseData.results);
+            // company logo scraping functionality placeholder
+        })
+        .catch(function (error) {
+            console.log(error);
+        });
+    // res.send(jobsPrefetch);
 });
 
-app.get("/api/moreDetails", async (req, res) => {
+app.get("/api/moreDetails", blockNotAuthenticated, cacher, async (req, res) => {
     let { empName, empID, jobID } = req.query;
 
     if (empName == "" || empID == "" || jobID == "") {
@@ -197,6 +222,10 @@ app.get("/api/moreDetails", async (req, res) => {
                             "financeData"
                         ] = summarisedFinanceData;
                         console.log("finance data found!");
+                        cache.setKey(req.originalUrl, {
+                            date: new Date(),
+                            data: moreDetailsReturn,
+                        });
                         res.send(moreDetailsReturn);
                     })
                     .catch(function (error) {
@@ -206,6 +235,10 @@ app.get("/api/moreDetails", async (req, res) => {
             } else {
                 // no financial data found, send without it.
                 console.log("finance data not found for company of that name");
+                cache.setKey(req.originalUrl, {
+                    date: new Date(),
+                    data: moreDetailsReturn,
+                });
                 res.send(moreDetailsReturn);
             }
         })
@@ -214,7 +247,7 @@ app.get("/api/moreDetails", async (req, res) => {
         });
 });
 
-app.get("/api/pinned", (req, res) => {
+app.get("/api/pinned", blockNotAuthenticated, (req, res) => {
     let userID = req.query.user;
 
     if (!userID) {
@@ -257,11 +290,15 @@ app.get("/api/pinned", (req, res) => {
                         console.log(err);
                     });
             }
+            res.send({
+                success: false,
+                msg: "there are no pinned jobs for this user",
+            });
         }
     );
 });
 
-app.post("/api/pinned", (req, res) => {
+app.post("/api/pinned", blockNotAuthenticated, (req, res) => {
     let { userID, jobID } = req.body;
 
     if (!userID || !jobID) {
@@ -293,7 +330,7 @@ app.post("/api/pinned", (req, res) => {
     }
 });
 
-app.delete("/api/pinned", (req, res) => {
+app.delete("/api/pinned", blockNotAuthenticated, (req, res) => {
     let { jobID, userID } = req.body;
 
     if (!jobID || !userID) {
@@ -426,7 +463,7 @@ app.post("/api/register", blockAuthenticated, async (req, res) => {
     }
 });
 
-app.post("/api/review", (req, res) => {
+app.post("/api/review", blockNotAuthenticated, (req, res) => {
     let { empID, userID, rating, title, desc } = req.body;
     if (!empID || !userID || !rating || !title) {
         return res.send({
@@ -491,7 +528,7 @@ app.post("/api/review", (req, res) => {
     );
 });
 
-app.delete("/api/review", (req, res) => {
+app.delete("/api/review", blockNotAuthenticated, (req, res) => {
     let { empID, userID } = req.body;
 
     if (!empID || !userID) {
@@ -538,7 +575,7 @@ app.delete("/api/review", (req, res) => {
     );
 });
 
-app.get("/api/review", (req, res) => {
+app.get("/api/review", blockNotAuthenticated, (req, res) => {
     let { empID, userID } = req.query;
 
     if (!empID || !userID) {
@@ -573,7 +610,7 @@ app.get("/api/review", (req, res) => {
     );
 });
 
-app.put("/api/review", (req, res) => {
+app.put("/api/review", blockNotAuthenticated, (req, res) => {
     let { rating, title, desc, empID, userID } = req.body;
 
     if (!rating || !title || !desc || !empID || !userID) {
@@ -630,7 +667,7 @@ app.post(
         // send userID to frontend
         pool.query(
             `SELECT user_id
-	FROM public.user_tbl
+	FROM user_tbl
 	WHERE email=$1;`,
             [req.body.email],
             (err, results) => {
@@ -683,4 +720,3 @@ app.get("/api/logoutError", blockNotAuthenticated, (req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
 
-// testing 4
