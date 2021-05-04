@@ -13,9 +13,6 @@ const flatCache = require("flat-cache");
 const cache = flatCache.load("cache1");
 const moment = require("moment");
 
-// temp imports
-let jobsPrefetch = require("./sample_reed_job_response.json");
-
 initializePassport(passport);
 
 // Initialisation
@@ -88,7 +85,6 @@ app.get("/", (req, res) => {
 });
 
 app.get("/api/jobs", blockNotAuthenticated, cacher, (req, res) => {
-    // add auth check
     let { search, location } = req.query;
     // TODO: santisation checks
     let url = "";
@@ -109,23 +105,45 @@ app.get("/api/jobs", blockNotAuthenticated, cacher, (req, res) => {
     axios(config)
         .then(function (response) {
             let responseData = response.data;
-            cache.setKey(req.originalUrl, {
-                date: new Date(),
-                data: {
+
+            let logoPromises = [];
+
+            for (let i = 0; i < responseData.results.length; i++) {
+                let empName = responseData.results[i]["employerName"];
+                let logoConfig = {
+                    method: "get",
+                    url: `https://autocomplete.clearbit.com/v1/companies/suggest?query=${empName}`,
+                };
+
+                let thisPromise = axios(logoConfig);
+                logoPromises.push(thisPromise);
+            }
+
+            Promise.all(logoPromises).then((responses) => {
+                for (response in responses) {
+                    if (responses[response].data[0]) {
+                        responseData.results[response]["logoUrl"] =
+                            responses[response].data[0].logo;
+                        responseData.results[response]["extUrl"] =
+                            responses[response].data[0].domain;
+                    }
+                }
+                cache.setKey(req.originalUrl, {
+                    date: moment(),
+                    data: {
+                        success: true,
+                        jobs: responseData.results,
+                    },
+                });
+                res.send({
                     success: true,
                     jobs: responseData.results,
-                },
+                });
             });
-            res.send({
-                success: true,
-                jobs: responseData.results,
-            });
-            // company logo scraping functionality placeholder
         })
         .catch(function (error) {
             console.log(error);
         });
-    // res.send(jobsPrefetch);
 });
 
 app.get("/api/moreDetails", blockNotAuthenticated, cacher, async (req, res) => {
@@ -134,7 +152,7 @@ app.get("/api/moreDetails", blockNotAuthenticated, cacher, async (req, res) => {
     if (empName == "" || empID == "" || jobID == "") {
         res.send({
             success: "false",
-            message:
+            msg:
                 "request must include ?empName=employerName&empID=1234&jobID=5678",
         });
     }
@@ -184,11 +202,20 @@ app.get("/api/moreDetails", blockNotAuthenticated, cacher, async (req, res) => {
 
     Promise.all([symbolSearchCall, jobDetailsCall, reviewDataCall])
         .then((responses) => {
-            // let moreDetailsReturn = {}
+            // initialise phase 2 requests promises
+            const promises = [];
 
             // handle jobDetails data response
             const jobDetailsResponse = responses[1];
             moreDetailsReturn["jobDetails"] = [jobDetailsResponse.data];
+
+            let logoConfig = {
+                method: "get",
+                url: `https://autocomplete.clearbit.com/v1/companies/suggest?query=${empName}`,
+            };
+
+            let logoPromise = axios(logoConfig);
+            promises.push(logoPromise);
 
             // handle reviewDataresponse
             const reviewResponse = responses[2];
@@ -211,46 +238,46 @@ app.get("/api/moreDetails", blockNotAuthenticated, cacher, async (req, res) => {
                     headers: {},
                 };
 
-                axios(fincancialDataConfig)
-                    .then(function (response) {
-                        let financeData = response.data;
-                        financeData = financeData["Time Series (Daily)"];
-
-                        for (
-                            let i = 0;
-                            i < Object.keys(financeData).length;
-                            i++
-                        ) {
-                            let thisDate = Object.keys(financeData)[i];
-                            summarisedFinanceData.push({
-                                date: thisDate,
-                                sharePrice: financeData[thisDate]["4. close"],
-                            });
-                        }
-                        // res.send(summarisedFinanceData);
-                        moreDetailsReturn[
-                            "financeData"
-                        ] = summarisedFinanceData;
-                        console.log("finance data found!");
-                        cache.setKey(req.originalUrl, {
-                            date: new Date(),
-                            data: moreDetailsReturn,
-                        });
-                        res.send(moreDetailsReturn);
-                    })
-                    .catch(function (error) {
-                        console.log(error);
-                    });
+                const financialDataPromise = axios(fincancialDataConfig);
+                promises.push(financialDataPromise);
                 // end of 2nd request
             } else {
-                // no financial data found, send without it.
                 console.log("finance data not found for company of that name");
+            }
+            Promise.all(promises).then((responses) => {
+                if (responses.length > 1) {
+                    // finance data request was made
+                    let financeData = responses[1].data;
+                    financeData = financeData["Time Series (Daily)"];
+
+                    for (let i = 0; i < Object.keys(financeData).length; i++) {
+                        let thisDate = Object.keys(financeData)[i];
+                        summarisedFinanceData.push({
+                            date: thisDate,
+                            sharePrice: financeData[thisDate]["4. close"],
+                        });
+                    }
+                    moreDetailsReturn["financeData"] = summarisedFinanceData;
+                    console.log("finance data found!");
+                }
+
+                let logoResponse = responses[0].data;
+
+                if (logoResponse.length != 0) {
+                    moreDetailsReturn["jobDetails"][0]["logoUrl"] =
+                        logoResponse[0].logo;
+                    moreDetailsReturn["jobDetails"][0]["extUrl"] =
+                        logoResponse[0].domain;
+                } else {
+                    console.log("no logo found");
+                }
+
                 cache.setKey(req.originalUrl, {
-                    date: new Date(),
+                    date: moment(),
                     data: moreDetailsReturn,
                 });
                 res.send(moreDetailsReturn);
-            }
+            });
         })
         .catch((errors) => {
             console.log(errors);
@@ -279,31 +306,34 @@ app.get("/api/pinned", blockNotAuthenticated, (req, res) => {
 
             let pinnedResponse = [];
 
-            for (let i = 0; i < results.rows.length; i++) {
-                // Reed more details request
-                let jobDetailsConfig = {
-                    method: "get",
-                    url: `https://www.reed.co.uk/api/1.0/jobs/${results.rows[i].job_id}`,
-                    headers: {
-                        Authorization: process.env.REED_AUTH,
-                    },
-                };
+            if (results.rows.length > 0) {
+                for (let i = 0; i < results.rows.length; i++) {
+                    // Reed more details request
+                    let jobDetailsConfig = {
+                        method: "get",
+                        url: `https://www.reed.co.uk/api/1.0/jobs/${results.rows[i].job_id}`,
+                        headers: {
+                            Authorization: process.env.REED_AUTH,
+                        },
+                    };
 
-                axios(jobDetailsConfig)
-                    .then((response) => {
-                        pinnedResponse.push(response.data);
-                        if (i == results.rows.length - 1) {
-                            res.send(pinnedResponse);
-                        }
-                    })
-                    .catch((err) => {
-                        console.log(err);
-                    });
+                    axios(jobDetailsConfig)
+                        .then((response) => {
+                            pinnedResponse.push(response.data);
+                            if (i == results.rows.length - 1) {
+                                res.send(pinnedResponse);
+                            }
+                        })
+                        .catch((err) => {
+                            console.log(err);
+                        });
+                }
+            } else {
+                res.send({
+                    success: false,
+                    msg: "there are no pinned jobs for this user",
+                });
             }
-            res.send({
-                success: false,
-                msg: "there are no pinned jobs for this user",
-            });
         }
     );
 });
@@ -729,4 +759,3 @@ app.get("/api/logoutError", blockNotAuthenticated, (req, res) => {
 // Port assignment
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
-
