@@ -45,12 +45,16 @@ app.use(passport.session());
 
 // Caching
 const lessThanOneHourAgo = (date) => {
-    return moment(date).isAfter(moment().subtract(1, "hours"));
+    const now = moment();
+    return moment(date).isAfter(now.subtract(1, "h"));
 };
 
 const cacher = (req, res, next) => {
     let thisCache = cache.getKey(req.originalUrl);
     if (thisCache != null) {
+        console.log(
+            `less than one hour ago bool: ${lessThanOneHourAgo(thisCache.date)}`
+        );
         if (!lessThanOneHourAgo(thisCache.date)) {
             console.log("cache too old, refetching");
             return next();
@@ -107,9 +111,15 @@ app.get("/api/jobs", blockNotAuthenticated, cacher, (req, res) => {
             let responseData = response.data;
             cache.setKey(req.originalUrl, {
                 date: new Date(),
-                data: response.data,
+                data: {
+                    success: true,
+                    jobs: responseData.results,
+                },
             });
-            res.send(responseData.results);
+            res.send({
+                success: true,
+                jobs: responseData.results,
+            });
             // company logo scraping functionality placeholder
         })
         .catch(function (error) {
