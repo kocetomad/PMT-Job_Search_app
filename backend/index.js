@@ -126,6 +126,11 @@ app.get("/api/jobs", blockNotAuthenticated, cacher, (req, res) => {
                             responses[response].data[0].logo;
                         responseData.results[response]["extUrl"] =
                             responses[response].data[0].domain;
+                    } else {
+                        responseData.results[response]["logoUrl"] =
+                            "https://i.imgur.com/uU0G6CL.png";
+                        responseData.results[response]["extUrl"] =
+                            "https://www.google.com/";
                     }
                 }
                 cache.setKey(req.originalUrl, {
