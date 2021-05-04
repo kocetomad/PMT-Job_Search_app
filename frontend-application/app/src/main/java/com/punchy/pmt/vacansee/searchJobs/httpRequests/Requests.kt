@@ -6,6 +6,7 @@ import com.google.gson.reflect.TypeToken
 import com.punchy.pmt.vacansee.searchJobs.Job
 import com.punchy.pmt.vacansee.searchJobs.JobDetails
 import com.punchy.pmt.vacansee.sessionCookie
+import com.punchy.pmt.vacansee.userID
 import okhttp3.*
 import org.json.JSONObject
 import java.io.IOException
@@ -126,9 +127,11 @@ fun getJobs(): MutableList<Job> {
         val jobsJSON = response.body!!.string()
         val parseTemplate = object : TypeToken<MutableList<Job>>() {}.type
 
-        Log.d("Requests", jobsJSON)
+        Log.d("Requests","jobs" + jobsJSON)
 
         jobsList = gson.fromJson(JSONObject(jobsJSON).get("jobs").toString(), parseTemplate)
+        Log.d("Requests","job" + jobsList[0].employerName)
+
         return jobsList
     }
 }
@@ -167,10 +170,34 @@ fun getJobDetails(employerName: String, employerId: Int, jobId: Int): String {
 }
 
 fun getSavedJobs(): MutableList<Job> {
-    return mutableListOf()
+    val savedList: MutableList<Job>
+
+    val request = Request.Builder()
+        .url("$route/api/pinned?user="+ userID)
+        .addHeader("Cookie", sessionCookie)
+        .build()
+
+    client.newCall(request).execute().use { response ->
+        if (!response.isSuccessful) throw IOException("Unexpected code $response")
+
+        Log.d("Requests", "Request begin:")
+        for ((name, value) in response.headers) {
+            Log.d("Requests", "$name: $value")
+        }
+
+        val gson = Gson()
+        val jobsJSON = response.body!!.string()
+        val parseTemplate = object : TypeToken<MutableList<Job>>() {}.type
+        Log.d("SavedRequests","job" + jobsJSON)
+
+        savedList = gson.fromJson(JSONObject(jobsJSON).get("jobs").toString(), parseTemplate)
+        Log.d("SavedRequests","job" + jobsJSON)
+
+        return savedList
+    }
 }
 
-fun saveJob(userID: String, jobID: String): Array<String?> {
+fun saveJob( jobID: String): Array<String?> {
     val formBody = FormBody.Builder()
         .add("userID", userID)
         .add("jobID", jobID)

@@ -4,6 +4,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.widget.LinearLayout
 import android.widget.ProgressBar
@@ -23,6 +24,7 @@ import com.punchy.pmt.vacansee.searchJobs.httpRequests.getJobs
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.saveJob
 import com.punchy.pmt.vacansee.userID
 import kotlinx.coroutines.*
+import org.json.JSONObject
 
 
 // TODO: Rename parameter arguments, choose names that match
@@ -114,6 +116,7 @@ class JobsFragment : Fragment() {
             jobsList = task.await()
             val rvAdapter = RvAdapter(jobsList, parentFragment)
             jobsRecyclerView.adapter = rvAdapter
+            Log.d("jobsList","jobs" + jobsList[0].employerName)
 
             val backdropTitle = bottomSheetView.findViewById<TextView>(R.id.jobsBackdropTitle)
             backdropTitle.text = "Jobs found (${jobsList.size})"
@@ -133,14 +136,18 @@ class JobsFragment : Fragment() {
                     viewHolder: RecyclerView.ViewHolder,
                     direction: Int
                 ) {
-                    println(direction)
                     // More code here
                     touchDown = false
                     rvAdapter?.notifyItemChanged(viewHolder.adapterPosition)
                     savedItems.add(viewHolder.adapterPosition)
 
-
-                            //saveJob(userID, jobsList.get(viewHolder.itemView.id).jobId.toString())
+                    fun assSave() = CoroutineScope(Dispatchers.Main).launch {
+                        val save = async(Dispatchers.IO) {
+                            saveJob(jobsList.get(viewHolder.adapterPosition).jobId.toString())
+                        }
+                        val aSave = save.await()
+                    }
+                    assSave()
 
 
                     Toast.makeText(context, "Job saved", Toast.LENGTH_SHORT).show()
@@ -186,6 +193,14 @@ class JobsFragment : Fragment() {
                     trashBinIcon.draw(c)
                     if (dX >= 214) {//SAVE THRESHOLD
                         if (touchDown) {
+                            fun assSave() = CoroutineScope(Dispatchers.Main).launch {
+                                val save = async(Dispatchers.IO) {
+                                    saveJob(jobsList.get(viewHolder.adapterPosition).jobId.toString())
+                                }
+                                val aSave = save.await()
+                            }
+                            assSave()
+
                             println("limit hit")
                             Toast.makeText(context, "Job saved", Toast.LENGTH_SHORT).show()
                             touchDown = false
