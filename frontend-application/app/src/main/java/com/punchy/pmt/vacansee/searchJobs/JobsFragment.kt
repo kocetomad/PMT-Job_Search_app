@@ -20,7 +20,10 @@ import com.punchy.pmt.vacansee.R
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.Job
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.getJobs
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.saveJob
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 
 
 // TODO: Rename parameter arguments, choose names that match
@@ -44,6 +47,10 @@ class JobsFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
+        super.onCreate(savedInstanceState);
+        setRetainInstance(true);
+
+
         // remove action bar shadow
         (activity as AppCompatActivity?)!!.supportActionBar?.elevation = 0f
     }
@@ -59,6 +66,7 @@ class JobsFragment : Fragment() {
             param2 = it.getString(ARG_PARAM2)
         }
     }
+
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.profile_menu, menu)
@@ -141,11 +149,15 @@ class JobsFragment : Fragment() {
                             saveJob(jobsList.get(viewHolder.adapterPosition).jobId.toString())
                         }
                         val aSave = save.await()
+                        if(aSave != null){
+                            jobsList.get(viewHolder.adapterPosition).setSaved()
+                        }
                     }
                     assSave()
 
-
-                    Toast.makeText(context, "Job saved", Toast.LENGTH_SHORT).show()
+                    if(jobsList.get(viewHolder.adapterPosition).saved == false){
+                        Toast.makeText(context, "Job saved", Toast.LENGTH_SHORT).show()
+                    }
                     return
                 }
 
@@ -193,11 +205,16 @@ class JobsFragment : Fragment() {
                                     saveJob(jobsList.get(viewHolder.adapterPosition).jobId.toString())
                                 }
                                 val aSave = save.await()
+                                if(aSave != null){
+                                    jobsList.get(viewHolder.adapterPosition).setSaved()
+                                }
                             }
                             assSave()
 
                             println("limit hit")
-                            Toast.makeText(context, "Job saved", Toast.LENGTH_SHORT).show()
+                            if(jobsList.get(viewHolder.adapterPosition).saved == false){
+                                Toast.makeText(context, "Job saved", Toast.LENGTH_SHORT).show()
+                            }
                             touchDown = false
                             rvAdapter.notifyItemChanged(viewHolder.adapterPosition)
                             savedItems.add(viewHolder.adapterPosition)
@@ -262,6 +279,7 @@ class JobsFragment : Fragment() {
 
         return jobsView
     }
+
 
 
     companion object {

@@ -35,10 +35,8 @@ class JobsRvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment
     }
 
     var isSaved = false
-    fun setItemSaved(state: Boolean): Boolean {
+    fun setItemSaved(state: Boolean) {
         isSaved = state
-
-        return isSaved
     }
 
     //the populates the view with the data from the query. Has to be changed to get the data from the object not just a string
