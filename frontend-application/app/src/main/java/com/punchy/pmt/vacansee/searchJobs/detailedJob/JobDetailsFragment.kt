@@ -100,7 +100,7 @@ class JobDetailsFragment : Fragment() {
         jobMaxSalary.text = "Maximum expected: £${arguments?.getFloat("maxSalary")}"
 
 
-        val rvAdapter = ReviewsRvAdapter(reviewsList)
+        val rvAdapter = ReviewsRvAdapter(fullJob.reviewData)
         reviewsRecyclerView.adapter = rvAdapter
 
         return detailedJobsView
