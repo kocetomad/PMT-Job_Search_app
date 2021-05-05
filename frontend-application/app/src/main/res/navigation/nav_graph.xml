@@ -34,7 +34,7 @@
     </fragment>
     <fragment
         android:id="@+id/jobDetailsFragment"
-        android:name="com.punchy.pmt.vacansee.searchJobs.JobDetailsFragment"
+        android:name="com.punchy.pmt.vacansee.searchJobs.detailedJob.JobDetailsFragment"
         android:label="fragment_job_details"
         tools:layout="@layout/fragment_job_details" >
         <argument

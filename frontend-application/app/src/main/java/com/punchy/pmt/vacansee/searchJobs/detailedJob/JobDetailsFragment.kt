@@ -1,25 +1,26 @@
-package com.punchy.pmt.vacansee.searchJobs
+package com.punchy.pmt.vacansee.searchJobs.detailedJob
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.RecyclerView
 import com.punchy.pmt.vacansee.R
+import com.punchy.pmt.vacansee.searchJobs.JobsRvAdapter
+import com.punchy.pmt.vacansee.searchJobs.httpRequests.ReviewData
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.getJobDetails
-import com.punchy.pmt.vacansee.searchJobs.httpRequests.getJobs
+import com.punchy.pmt.vacansee.searchJobs.jobsList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import java.lang.Exception
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 
-
+var reviewsList = mutableListOf<ReviewData>()
 /**
  * A simple [Fragment] subclass.
  * Use the [JobDetailsFragment.newInstance] factory method to
@@ -54,16 +55,21 @@ class JobDetailsFragment : Fragment() {
         val jobMinSalary = detailedJobsView.findViewById<TextView>(R.id.jobMinimumSalary)
         val jobMaxSalary = detailedJobsView.findViewById<TextView>(R.id.jobMaximumSalary)
 
+        // Inflate the layout for this fragment
+        val reviewsRecyclerView = detailedJobsView.findViewById<RecyclerView>(R.id.detailedJobReviewsRecyclerView)
+
 
         fun loadData() = CoroutineScope(Dispatchers.Main).launch {
 
             val task = async(Dispatchers.IO) {
                 getJobDetails(arguments?.getString("employerName")!!, arguments?.getInt("employerId")!!, arguments?.getInt("jobId")!!)
             }
-            val details = task.await()
+            val reviewsList = task.await()
+
+//            val rvAdapter = ReviewsRvAdapter(reviewsList)
+//            reviewsRecyclerView.adapter = rvAdapter
         }
         loadData()
-
 
         // review data stuff
         val reviewScoreText = detailedJobsView.findViewById<TextView>(R.id.reviewScore)
@@ -78,10 +84,12 @@ class JobDetailsFragment : Fragment() {
         jobEmployer.text = arguments?.getString("employerName")
         jobDescription.text = arguments?.getString("jobDescription")
 
-        jobMinSalary.text = "Minimum expected: ${arguments?.getFloat("minSalary")}"
-        jobMaxSalary.text = "Maximum expected: ${arguments?.getFloat("maxSalary")}"
+        jobMinSalary.text = "Minimum expected: £${arguments?.getFloat("minSalary")}"
+        jobMaxSalary.text = "Maximum expected: £${arguments?.getFloat("maxSalary")}"
 
-        // TODO - Bind that data to the view content (ex jobTitle.text = "stuff")
+
+        val rvAdapter = ReviewsRvAdapter(reviewsList)
+        reviewsRecyclerView.adapter = rvAdapter
 
         return detailedJobsView
     }

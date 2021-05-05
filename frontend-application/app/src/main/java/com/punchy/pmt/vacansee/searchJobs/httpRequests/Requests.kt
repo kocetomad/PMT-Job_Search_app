@@ -3,7 +3,6 @@ package com.punchy.pmt.vacansee.searchJobs.httpRequests
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.punchy.pmt.vacansee.searchJobs.Job
 import com.punchy.pmt.vacansee.sessionCookie
 import com.punchy.pmt.vacansee.userID
 import okhttp3.*
@@ -128,10 +127,7 @@ fun getJobs(): MutableList<Job> {
         val jobsJSON = response.body!!.string()
         val parseTemplate = object : TypeToken<MutableList<Job>>() {}.type
 
-        Log.d("Requests", "jobs" + jobsJSON)
-
         jobsList = gson.fromJson(JSONObject(jobsJSON).get("jobs").toString(), parseTemplate)
-        Log.d("Requests", "job" + jobsList[0].employerName)
 
         return jobsList
     }
@@ -140,6 +136,8 @@ fun getJobs(): MutableList<Job> {
 
 fun getJobDetails(employerName: String, employerId: Int, jobId: Int): String {
     var details: String
+    var reviews: MutableList<ReviewData>
+    var financeData: MutableList<FinanceData>
 
     val request = Request.Builder()
         .url("$route/api/moreDetails?empName=$employerName&empID=$employerId&jobID=$jobId")
@@ -153,10 +151,22 @@ fun getJobDetails(employerName: String, employerId: Int, jobId: Int): String {
             Log.d("Requests", "$name: $value")
         }
 
-        val jobDetail = response.body!!.string()
+        val job = response.body!!.string()
 
-        details = JSONObject(jobDetail).get("jobDetails").toString()
-        Log.d("Requests", details)
+        Log.d("Requests - jobDetails", JSONObject(job).toString())
+
+        details = JSONObject(job).get("jobDetails").toString()
+//        reviews = JSONObject(jobDetail).get("reviewData").toString()
+        // TODO - handle empty reviews
+
+//        val parseTemplate = object : TypeToken<MutableList<FinanceData>>() {}.type
+//        val financeDataString = JSONObject(job).get("financeData").toString()
+//        financeData = Gson().fromJson(financeDataString, parseTemplate)
+        // TODO - handle empty finance data
+
+        Log.d("Requests - jobDetails", details)
+//        Log.d("Requests - jobDetails", reviews!!)
+//        Log.d("Requests - jobDetails", financeData)
 
         return details
     }

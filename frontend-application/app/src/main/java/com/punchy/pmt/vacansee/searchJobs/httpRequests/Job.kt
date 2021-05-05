@@ -1,4 +1,4 @@
-package com.punchy.pmt.vacansee.searchJobs
+package com.punchy.pmt.vacansee.searchJobs.httpRequests
 
 class Job(
     val jobId: Int,

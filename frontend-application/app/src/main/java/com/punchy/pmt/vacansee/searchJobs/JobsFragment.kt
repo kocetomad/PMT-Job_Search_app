@@ -4,7 +4,6 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import android.widget.LinearLayout
 import android.widget.ProgressBar
@@ -12,19 +11,16 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentTransaction
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.punchy.pmt.vacansee.R
-import com.punchy.pmt.vacansee.searchJobs.httpRequests.getJobDetails
+import com.punchy.pmt.vacansee.searchJobs.httpRequests.Job
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.getJobs
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.saveJob
-import com.punchy.pmt.vacansee.userID
 import kotlinx.coroutines.*
-import org.json.JSONObject
 
 
 // TODO: Rename parameter arguments, choose names that match
@@ -114,9 +110,8 @@ class JobsFragment : Fragment() {
                 getJobs()
             }
             jobsList = task.await()
-            val rvAdapter = RvAdapter(jobsList, parentFragment)
+            val rvAdapter = JobsRvAdapter(jobsList, parentFragment)
             jobsRecyclerView.adapter = rvAdapter
-            Log.d("jobsList","jobs" + jobsList[0].employerName)
 
             val backdropTitle = bottomSheetView.findViewById<TextView>(R.id.jobsBackdropTitle)
             backdropTitle.text = "Jobs found (${jobsList.size})"
@@ -138,7 +133,7 @@ class JobsFragment : Fragment() {
                 ) {
                     // More code here
                     touchDown = false
-                    rvAdapter?.notifyItemChanged(viewHolder.adapterPosition)
+                    rvAdapter.notifyItemChanged(viewHolder.adapterPosition)
                     savedItems.add(viewHolder.adapterPosition)
 
                     fun assSave() = CoroutineScope(Dispatchers.Main).launch {
@@ -204,7 +199,7 @@ class JobsFragment : Fragment() {
                             println("limit hit")
                             Toast.makeText(context, "Job saved", Toast.LENGTH_SHORT).show()
                             touchDown = false
-                            rvAdapter?.notifyItemChanged(viewHolder.adapterPosition)
+                            rvAdapter.notifyItemChanged(viewHolder.adapterPosition)
                             savedItems.add(viewHolder.adapterPosition)
                         }
                         return
@@ -231,7 +226,8 @@ class JobsFragment : Fragment() {
 
         if (jobsList.isEmpty()) {
             // get progress bar and hide it after the jobs load.
-            bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility = View.VISIBLE
+            bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility =
+                View.VISIBLE
 
             // get error view and make it visible if the fetching fails
             bottomSheetView.findViewById<TextView>(R.id.errorText).text =
@@ -246,7 +242,7 @@ class JobsFragment : Fragment() {
         backdropTitle.text = "Jobs found (${jobsList.size})"
 
 //        pass the values to RvAdapter
-        val rvAdapter = RvAdapter(jobsList, this)
+        val rvAdapter = JobsRvAdapter(jobsList, this)
 
 //        set the recyclerView to the adapter
         jobsRecyclerView.adapter = rvAdapter
@@ -264,10 +260,8 @@ class JobsFragment : Fragment() {
         })
 
 
-
         return jobsView
     }
-
 
 
     companion object {

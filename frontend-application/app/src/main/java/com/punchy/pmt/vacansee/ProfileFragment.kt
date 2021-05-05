@@ -17,8 +17,7 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.punchy.pmt.vacansee.searchJobs.RvAdapter
-import com.punchy.pmt.vacansee.searchJobs.httpRequests.getJobs
+import com.punchy.pmt.vacansee.searchJobs.JobsRvAdapter
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.getSavedJobs
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.saveJob
 import com.punchy.pmt.vacansee.searchJobs.jobsList
@@ -103,7 +102,7 @@ class ProfileFragment : Fragment() {
                 getSavedJobs()
             }
             jobsList = task.await()
-            val rvAdapter = RvAdapter(jobsList, parentFragment)
+            val rvAdapter = JobsRvAdapter(jobsList, parentFragment)
             profileRecycler.adapter = rvAdapter
             Log.d("jobsList","jobs" + jobsList[0].employerName)
 
@@ -127,7 +126,7 @@ class ProfileFragment : Fragment() {
                 ) {
                     // More code here
                     touchDown = false
-                    rvAdapter?.notifyItemChanged(viewHolder.adapterPosition)
+                    rvAdapter.notifyItemChanged(viewHolder.adapterPosition)
                     savedItems.add(viewHolder.adapterPosition)
 
                     fun assSave() = CoroutineScope(Dispatchers.Main).launch {
@@ -193,7 +192,7 @@ class ProfileFragment : Fragment() {
                             println("limit hit")
                             Toast.makeText(context, "Job saved", Toast.LENGTH_SHORT).show()
                             touchDown = false
-                            rvAdapter?.notifyItemChanged(viewHolder.adapterPosition)
+                            rvAdapter.notifyItemChanged(viewHolder.adapterPosition)
                             savedItems.add(viewHolder.adapterPosition)
                         }
                         return
@@ -232,7 +231,7 @@ class ProfileFragment : Fragment() {
         backdropTitle.text = "Saved jobs found (${jobsList.size})"
 
 //        pass the values to RvAdapter
-        val rvAdapter = RvAdapter(jobsList, this)
+        val rvAdapter = JobsRvAdapter(jobsList, this)
 
 //        set the recyclerView to the adapter
         profileRecycler.adapter = rvAdapter
