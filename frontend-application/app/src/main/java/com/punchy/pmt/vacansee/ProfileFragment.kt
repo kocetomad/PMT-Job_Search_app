@@ -27,6 +27,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 //import com.punchy.pmt.vacansee.searchJobs.httpRequests.getSavedJobs
 
@@ -66,7 +67,7 @@ class ProfileFragment : Fragment() {
     ): View {
 
         val trashBinIcon = resources.getDrawable(
-            R.drawable.ic_baseline_archive_24,
+            R.drawable.ic_baseline_delete_forever_24,
             null
         )
 

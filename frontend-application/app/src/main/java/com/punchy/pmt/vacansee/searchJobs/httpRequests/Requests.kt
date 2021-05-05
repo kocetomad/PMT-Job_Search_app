@@ -179,7 +179,7 @@ fun getJobDetails(employerName: String, employerId: Int, jobId: Int): DetailedJo
 
 
 fun getSavedJobs(): MutableList<Job> {
-    val savedList: MutableList<Job>
+    var savedList = mutableListOf<Job>()
 
     val request = Request.Builder()
         .url("$route/api/pinned?user=$userID")
@@ -197,10 +197,15 @@ fun getSavedJobs(): MutableList<Job> {
         val gson = Gson()
         val jobsJSON = response.body!!.string()
         val parseTemplate = object : TypeToken<MutableList<Job>>() {}.type
-        Log.d("SavedRequests", "job $jobsJSON")
+        Log.d("SavedRequests", "job"+JSONObject(jobsJSON).get("jobs").toString())
 
-        savedList = gson.fromJson(JSONObject(jobsJSON).get("jobs").toString(), parseTemplate)
-        Log.d("SavedRequests", "job $jobsJSON")
+        try {
+            savedList = gson.fromJson(JSONObject(jobsJSON).get("jobs").toString(), parseTemplate)
+
+        }catch (e: Exception){
+            Log.d("SavedRequests", "exceptyion $e")
+        }
+        Log.d("SavedRequests", "count"+savedList.size)
 
         return savedList
     }
@@ -237,4 +242,47 @@ fun saveJob(jobID: String): Array<String?> {
             JSONObject(responseJSON).get("msg").toString()
         )
     }
+}
+
+fun unpinJob(jobID: String): Array<String?> {
+
+    val formBody = FormBody.Builder()
+        .add("userID", userID)
+        .add("jobID", jobID)
+        .build()
+
+    val request = Request.Builder()
+        .url("$route/api/pinned")
+        .addHeader("Cookie", sessionCookie)
+        .delete(formBody)
+        .build()
+
+    try {
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) throw IOException("Unexpected code $response")
+
+            Log.d("unpin", "Request begin:")
+            for ((name, value) in response.headers) {
+                Log.d("unpin0", "$name: $value")
+            }
+
+            val responseJSON = response.body!!.string()
+
+            Log.d("unpin", "req:" + JSONObject(responseJSON).get("msg").toString())
+            Log.d("unpin", "req:" + JSONObject(responseJSON).get("success").toString())
+
+            return arrayOf(
+                JSONObject(responseJSON).get("success").toString(),
+                JSONObject(responseJSON).get("msg").toString()
+            )
+        }
+    }catch (e: Exception){
+        Log.d("unpin", "req:" + e)
+    }
+
+    return arrayOf(
+        "JSONObject(responseJSON).get(",
+        ""
+    )
+
 }

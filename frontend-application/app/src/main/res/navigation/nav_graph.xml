@@ -31,6 +31,9 @@
             app:destination="@id/jobsFragment"
             app:enterAnim="@anim/fragment_fade_enter"
             app:exitAnim="@anim/fragment_fade_exit" />
+        <action
+            android:id="@+id/action_profileFragment_to_jobDetailsFragment"
+            app:destination="@id/jobDetailsFragment" />
     </fragment>
     <fragment
         android:id="@+id/jobDetailsFragment"
