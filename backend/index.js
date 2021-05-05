@@ -291,8 +291,8 @@ app.get("/api/moreDetails", blockNotAuthenticated, cacher, async (req, res) => {
         });
 });
 
-app.get("/api/pinned", blockNotAuthenticated, (req, res) => {
-    let userID = req.query.user;
+app.get("/api/pinned", blockNotAuthenticated, cacher, (req, res) => {
+    let userID = req.user.user_id;
 
     if (!userID) {
         res.send({
@@ -354,6 +354,13 @@ app.get("/api/pinned", blockNotAuthenticated, (req, res) => {
                             thisJob["extUrl"] = "https://www.google.com/";
                             pinnedResponse.push(thisJob);
                             if (i == results.rows.length - 1) {
+                                cache.setKey(req.originalUrl, {
+                                    date: moment(),
+                                    data: {
+                                        success: true,
+                                        jobs: pinnedResponse,
+                                    },
+                                });
                                 res.send({
                                     success: true,
                                     jobs: pinnedResponse,
@@ -365,6 +372,13 @@ app.get("/api/pinned", blockNotAuthenticated, (req, res) => {
                         });
                 }
             } else {
+                cache.setKey(req.originalUrl, {
+                    date: moment(),
+                    data: {
+                        success: false,
+                        msg: "there are no pinned jobs for this user",
+                    },
+                });
                 res.send({
                     success: false,
                     msg: "there are no pinned jobs for this user",
@@ -375,7 +389,8 @@ app.get("/api/pinned", blockNotAuthenticated, (req, res) => {
 });
 
 app.post("/api/pinned", blockNotAuthenticated, (req, res) => {
-    let { userID, jobID } = req.body;
+    let { jobID } = req.body;
+    let userID = req.user.user_id;
 
     if (!userID || !jobID) {
         res.send({
@@ -396,6 +411,8 @@ app.post("/api/pinned", blockNotAuthenticated, (req, res) => {
                         msg: `error adding pinned job to database.  either post is already pinned to that user, or user with userID ${userID} does not exist in db`,
                     });
                 } else {
+                    // invalidate cache
+                    cache.removeKey("/api/pinned");
                     res.send({
                         success: true,
                         msg: "Pin added to db",
@@ -407,7 +424,8 @@ app.post("/api/pinned", blockNotAuthenticated, (req, res) => {
 });
 
 app.delete("/api/pinned", blockNotAuthenticated, (req, res) => {
-    let { jobID, userID } = req.body;
+    let { jobID } = req.body;
+    let userID = req.user.user_id;
 
     if (!jobID || !userID) {
         return res.send({
@@ -443,6 +461,8 @@ app.delete("/api/pinned", blockNotAuthenticated, (req, res) => {
                     if (err) {
                         throw err;
                     }
+                    // invalidate cache
+                    cache.removeKey("/api/pinned");
                     res.send({
                         success: true,
                         msg: "post successfully un-pinned",
@@ -540,7 +560,9 @@ app.post("/api/register", blockAuthenticated, async (req, res) => {
 });
 
 app.post("/api/review", blockNotAuthenticated, (req, res) => {
-    let { empID, userID, rating, title, desc } = req.body;
+    let { empID, rating, title, desc } = req.body;
+    let userID = req.user.user_id;
+
     if (!empID || !userID || !rating || !title) {
         return res.send({
             success: false,
@@ -605,7 +627,8 @@ app.post("/api/review", blockNotAuthenticated, (req, res) => {
 });
 
 app.delete("/api/review", blockNotAuthenticated, (req, res) => {
-    let { empID, userID } = req.body;
+    let { empID } = req.body;
+    let userID = req.user.user_id;
 
     if (!empID || !userID) {
         return res.send({
@@ -652,7 +675,8 @@ app.delete("/api/review", blockNotAuthenticated, (req, res) => {
 });
 
 app.get("/api/review", blockNotAuthenticated, (req, res) => {
-    let { empID, userID } = req.query;
+    let { empID } = req.query;
+    let userID = req.user.user_id;
 
     if (!empID || !userID) {
         return res.send({
@@ -687,13 +711,14 @@ app.get("/api/review", blockNotAuthenticated, (req, res) => {
 });
 
 app.put("/api/review", blockNotAuthenticated, (req, res) => {
-    let { rating, title, desc, empID, userID } = req.body;
+    let { rating, title, desc, empID } = req.body;
+    let userID = req.user.user_id;
 
     if (!rating || !title || !desc || !empID || !userID) {
         return res.send({
             success: false,
             msg:
-                "params rating, title, desc, empID and userID are all required for this endpoint",
+                "params rating, title, desc and empID are all required for this endpoint",
         });
     }
 
