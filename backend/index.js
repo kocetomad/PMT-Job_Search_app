@@ -292,7 +292,7 @@ app.get("/api/moreDetails", blockNotAuthenticated, cacher, async (req, res) => {
 });
 
 app.get("/api/pinned", blockNotAuthenticated, (req, res) => {
-    let userID = req.query.user;
+    let userID = req.user.user_id;
 
     if (!userID) {
         res.send({
@@ -375,7 +375,8 @@ app.get("/api/pinned", blockNotAuthenticated, (req, res) => {
 });
 
 app.post("/api/pinned", blockNotAuthenticated, (req, res) => {
-    let { userID, jobID } = req.body;
+    let { jobID } = req.body;
+    let userID = req.user.user_id;
 
     if (!userID || !jobID) {
         res.send({
@@ -407,7 +408,8 @@ app.post("/api/pinned", blockNotAuthenticated, (req, res) => {
 });
 
 app.delete("/api/pinned", blockNotAuthenticated, (req, res) => {
-    let { jobID, userID } = req.body;
+    let { jobID } = req.body;
+    let userID = req.user.user_id;
 
     if (!jobID || !userID) {
         return res.send({
@@ -540,7 +542,9 @@ app.post("/api/register", blockAuthenticated, async (req, res) => {
 });
 
 app.post("/api/review", blockNotAuthenticated, (req, res) => {
-    let { empID, userID, rating, title, desc } = req.body;
+    let { empID, rating, title, desc } = req.body;
+    let userID = req.user.user_id;
+
     if (!empID || !userID || !rating || !title) {
         return res.send({
             success: false,
@@ -605,7 +609,8 @@ app.post("/api/review", blockNotAuthenticated, (req, res) => {
 });
 
 app.delete("/api/review", blockNotAuthenticated, (req, res) => {
-    let { empID, userID } = req.body;
+    let { empID } = req.body;
+    let userID = req.user.user_id;
 
     if (!empID || !userID) {
         return res.send({
@@ -652,7 +657,8 @@ app.delete("/api/review", blockNotAuthenticated, (req, res) => {
 });
 
 app.get("/api/review", blockNotAuthenticated, (req, res) => {
-    let { empID, userID } = req.query;
+    let { empID } = req.query;
+    let userID = req.user.user_id;
 
     if (!empID || !userID) {
         return res.send({
@@ -687,13 +693,14 @@ app.get("/api/review", blockNotAuthenticated, (req, res) => {
 });
 
 app.put("/api/review", blockNotAuthenticated, (req, res) => {
-    let { rating, title, desc, empID, userID } = req.body;
+    let { rating, title, desc, empID } = req.body;
+    let userID = req.user.user_id;
 
     if (!rating || !title || !desc || !empID || !userID) {
         return res.send({
             success: false,
             msg:
-                "params rating, title, desc, empID and userID are all required for this endpoint",
+                "params rating, title, desc and empID are all required for this endpoint",
         });
     }
 
