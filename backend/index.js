@@ -291,7 +291,7 @@ app.get("/api/moreDetails", blockNotAuthenticated, cacher, async (req, res) => {
         });
 });
 
-app.get("/api/pinned", blockNotAuthenticated, (req, res) => {
+app.get("/api/pinned", blockNotAuthenticated, cacher, (req, res) => {
     let userID = req.user.user_id;
 
     if (!userID) {
@@ -354,6 +354,13 @@ app.get("/api/pinned", blockNotAuthenticated, (req, res) => {
                             thisJob["extUrl"] = "https://www.google.com/";
                             pinnedResponse.push(thisJob);
                             if (i == results.rows.length - 1) {
+                                cache.setKey(req.originalUrl, {
+                                    date: moment(),
+                                    data: {
+                                        success: true,
+                                        jobs: pinnedResponse,
+                                    },
+                                });
                                 res.send({
                                     success: true,
                                     jobs: pinnedResponse,
@@ -365,6 +372,13 @@ app.get("/api/pinned", blockNotAuthenticated, (req, res) => {
                         });
                 }
             } else {
+                cache.setKey(req.originalUrl, {
+                    date: moment(),
+                    data: {
+                        success: false,
+                        msg: "there are no pinned jobs for this user",
+                    },
+                });
                 res.send({
                     success: false,
                     msg: "there are no pinned jobs for this user",
@@ -397,6 +411,8 @@ app.post("/api/pinned", blockNotAuthenticated, (req, res) => {
                         msg: `error adding pinned job to database.  either post is already pinned to that user, or user with userID ${userID} does not exist in db`,
                     });
                 } else {
+                    // invalidate cache
+                    cache.removeKey("/api/pinned");
                     res.send({
                         success: true,
                         msg: "Pin added to db",
@@ -445,6 +461,8 @@ app.delete("/api/pinned", blockNotAuthenticated, (req, res) => {
                     if (err) {
                         throw err;
                     }
+                    // invalidate cache
+                    cache.removeKey("/api/pinned");
                     res.send({
                         success: true,
                         msg: "post successfully un-pinned",
