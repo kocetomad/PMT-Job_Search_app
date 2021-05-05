@@ -326,9 +326,38 @@ app.get("/api/pinned", blockNotAuthenticated, (req, res) => {
 
                     axios(jobDetailsConfig)
                         .then((response) => {
-                            pinnedResponse.push(response.data);
+                            let thisJob = {};
+                            thisJob["jobId"] = response.data["jobId"];
+                            thisJob["employerId"] = response.data["employerId"];
+                            thisJob["employerName"] =
+                                response.data["employerName"];
+                            thisJob["employerProfileId"] = "";
+                            thisJob["employerProfileName"] = "";
+                            thisJob["jobTitle"] = response.data["jobTitle"];
+                            thisJob["locationName"] =
+                                response.data["locationName"];
+                            thisJob["minimumSalary"] =
+                                response.data["minimumSalary"];
+                            thisJob["maximumSalary"] =
+                                response.data["maximumSalary"];
+                            thisJob["currency"] = response.data["currency"];
+                            thisJob["expirationDate"] =
+                                response.data["expirationDate"];
+                            thisJob["date"] = response.data["datePosted"];
+                            thisJob["jobDescription"] = response.data[
+                                "jobDescription"
+                            ].replace(/(<([^>]+)>)/gi, "");
+                            thisJob["applications"] = 0;
+                            thisJob["jobUrl"] = response.data["jobUrl"];
+                            thisJob["logoUrl"] =
+                                "https://i.imgur.com/uU0G6CL.png";
+                            thisJob["extUrl"] = "https://www.google.com/";
+                            pinnedResponse.push(thisJob);
                             if (i == results.rows.length - 1) {
-                                res.send(pinnedResponse);
+                                res.send({
+                                    success: true,
+                                    jobs: pinnedResponse,
+                                });
                             }
                         })
                         .catch((err) => {
