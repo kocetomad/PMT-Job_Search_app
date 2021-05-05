@@ -201,6 +201,7 @@ app.get("/api/moreDetails", blockNotAuthenticated, cacher, async (req, res) => {
                 moreDetailsReturn["reviewData"] = results.rows;
             } else {
                 console.log(`review data not found for empID ${empID}`);
+                moreDetailsReturn["reviewData"] = [];
             }
         }
     );
@@ -248,6 +249,7 @@ app.get("/api/moreDetails", blockNotAuthenticated, cacher, async (req, res) => {
                 // end of 2nd request
             } else {
                 console.log("finance data not found for company of that name");
+                moreDetailsReturn["financeData"] = [];
             }
             Promise.all(promises).then((responses) => {
                 if (responses.length > 1) {
