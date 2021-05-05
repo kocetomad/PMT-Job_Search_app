@@ -34,7 +34,43 @@
                 android:textColor="?attr/colorOnPrimary"
                 android:textColorHint="?attr/colorOnPrimary" />
 
+            <EditText
+                android:id="@+id/locationSearchBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_search_bar"
+                android:ems="10"
+                android:hint="Location"
+                android:inputType="textPersonName"
+                android:submitBackground="@drawable/rounded_search_bar"
+                android:textColor="?attr/colorOnPrimary"
+                android:textColorHint="?attr/colorOnPrimary" />
+
             <LinearLayout
+                android:id="@+id/distanceFromLocation"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:paddingTop="16dp">
+
+                <TextView
+                    android:id="@+id/distanceFromLocationText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Distance from location: +10 miles"
+                    android:textColor="?attr/colorOnPrimary" />
+
+                <SeekBar
+                    android:id="@+id/distanceFromLocationSlider"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:indeterminate="false"
+                    android:max="200"
+                    android:progress="1" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/minimumSalary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -48,7 +84,7 @@
                     android:textColor="?attr/colorOnPrimary" />
 
                 <SeekBar
-                    android:id="@+id/minimumSalary"
+                    android:id="@+id/minimumSalarySlider"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:indeterminate="false"
@@ -57,6 +93,7 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/maximumSalary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -70,13 +107,31 @@
                     android:textColor="?attr/colorOnPrimary" />
 
                 <SeekBar
-                    android:id="@+id/maximumSalary"
+                    android:id="@+id/maximumSalarySlider"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:indeterminate="false"
                     android:max="1000000"
                     android:progress="100" />
             </LinearLayout>
+
+            <CheckBox
+                android:id="@+id/partTimeCheckbox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:buttonTint="?attr/colorSecondary"
+                android:text="Part-time"
+                android:textColor="?attr/colorOnPrimary" />
+
+            <CheckBox
+                android:id="@+id/fullTimeCheckbox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:buttonTint="?attr/colorSecondary"
+                android:text="Full-time"
+                android:textColor="?attr/colorOnPrimary" />
 
         </LinearLayout>
 
