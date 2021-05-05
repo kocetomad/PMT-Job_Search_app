@@ -4,19 +4,18 @@ import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.punchy.pmt.vacansee.searchJobs.Job
-import com.punchy.pmt.vacansee.searchJobs.JobDetails
 import com.punchy.pmt.vacansee.sessionCookie
 import com.punchy.pmt.vacansee.userID
 import okhttp3.*
 import org.json.JSONObject
 import java.io.IOException
-import java.net.URL
-import javax.net.ssl.HttpsURLConnection
 
 
-//var route = "https://138.68.133.230:5000"
 const val route = "https://www.pmtjobapp.xyz"
 private val client = OkHttpClient()
+// val parseTemplate = object : TypeToken<MutableList<Job>>() {}.type
+// put here just in case it's ever needed in the future
+
 
 fun login(email: String, password: String): Array<String?> {
     val formBody = FormBody.Builder()
@@ -38,37 +37,40 @@ fun login(email: String, password: String): Array<String?> {
         }
 
 
-        // TODO - fetch login cookie
-        val gson = Gson()
         val responseJSON = response.body!!.string()
-//        val parseTemplate = object : TypeToken<MutableList<Job>>() {}.type
-        val cookie = response.headers.get("Set-Cookie")?.trim()?.split("\\s+".toRegex())//FORMATING THE COOKIE STRING SO ITS EASIER T OUSE FOR OUR PURPOUSES :))
-        Log.d("login", "cookie:"+ (cookie?.get(0)?.dropLast(1)))
-        Log.d("login", "userID:"+JSONObject(responseJSON).get("userID").toString())
-        Log.d("login", "req:"+JSONObject(responseJSON).get("msg").toString())
-        Log.d("login", "req:"+JSONObject(responseJSON).get("success").toString())
+        val cookie = response.headers.get("Set-Cookie")?.trim()
+            ?.split("\\s+".toRegex()) // Formatting the cookie string so it's easier to use for our purposes :))
+        Log.d("login", "cookie:" + (cookie?.get(0)?.dropLast(1)))
+        Log.d("login", "userID:" + JSONObject(responseJSON).get("userID").toString())
+        Log.d("login", "req:" + JSONObject(responseJSON).get("msg").toString())
+        Log.d("login", "req:" + JSONObject(responseJSON).get("success").toString())
 
 
-        return arrayOf(JSONObject(responseJSON).get("success").toString(),(cookie?.get(0)?.dropLast(1)),JSONObject(responseJSON).get("userID").toString())
+        return arrayOf(
+            JSONObject(responseJSON).get("success").toString(),
+            (cookie?.get(0)?.dropLast(1)),
+            JSONObject(responseJSON).get("userID").toString()
+        )
     }
 }
 
+
 fun logout() {
-    // TODO - add auth cookie on logout
     val request = Request.Builder()
         .url("$route/logout")
-        // TODO - add auth cookie
+        // TODO - add auth cookie on logout
         .build()
 
     client.newCall(request).execute().use { response ->
         if (!response.isSuccessful) throw IOException("Unexpected code $response")
 
-        Log.d("Requests","Logout Request begin:")
+        Log.d("Requests", "Logout Request begin:")
         for ((name, value) in response.headers) {
             Log.d("Requests", "$name: $value")
         }
     }
 }
+
 
 fun registerAccount(
     username: String,
@@ -86,7 +88,7 @@ fun registerAccount(
         .add("password2", password2)
         .add("firstName", firstName)
         .add("lastName", lastName)
-        .add("dob","2000-12-12")
+        .add("dob", "2000-12-12")
         .build()
 
     val request = Request.Builder()
@@ -97,13 +99,12 @@ fun registerAccount(
     client.newCall(request).execute().use { response ->
         if (!response.isSuccessful) throw IOException("Unexpected code $response")
 
-        Log.d("Requests","Register Account Request begin:")
+        Log.d("Requests", "Register Account Request begin:")
         for ((name, value) in response.headers) {
             Log.d("Requests", "$name: $value")
         }
 
         Log.d("Requests", response.body!!.string())
-        // TODO - fetch login cookie
     }
 }
 
@@ -120,60 +121,53 @@ fun getJobs(): MutableList<Job> {
         if (!response.isSuccessful) throw IOException("Unexpected code $response")
 
         for ((name, value) in response.headers) {
-            Log.d("Requests","$name: $value")
+            Log.d("Requests", "$name: $value")
         }
 
         val gson = Gson()
         val jobsJSON = response.body!!.string()
         val parseTemplate = object : TypeToken<MutableList<Job>>() {}.type
 
-        Log.d("Requests","jobs" + jobsJSON)
+        Log.d("Requests", "jobs" + jobsJSON)
 
         jobsList = gson.fromJson(JSONObject(jobsJSON).get("jobs").toString(), parseTemplate)
-        Log.d("Requests","job" + jobsList[0].employerName)
+        Log.d("Requests", "job" + jobsList[0].employerName)
 
         return jobsList
     }
 }
 
-fun getJobDetails(employerName: String, employerId: Int, jobId: Int): String {
-    val gson = Gson()
-    var details: String
 
+fun getJobDetails(employerName: String, employerId: Int, jobId: Int): String {
+    var details: String
 
     val request = Request.Builder()
         .url("$route/api/moreDetails?empName=$employerName&empID=$employerId&jobID=$jobId")
         .addHeader("Cookie", sessionCookie)
         .build()
 
-
     client.newCall(request).execute().use { response ->
         if (!response.isSuccessful) throw IOException("Unexpected code $response")
 
         for ((name, value) in response.headers) {
-            Log.d("Requests","$name: $value")
+            Log.d("Requests", "$name: $value")
         }
 
-        val gson = Gson()
         val jobDetail = response.body!!.string()
-        val parseTemplate = object : TypeToken<JobDetails>() {}.type
-
 
         details = JSONObject(jobDetail).get("jobDetails").toString()
         Log.d("Requests", details)
 
         return details
     }
-
-
-    // TODO - add proper details
 }
+
 
 fun getSavedJobs(): MutableList<Job> {
     val savedList: MutableList<Job>
 
     val request = Request.Builder()
-        .url("$route/api/pinned?user="+ userID)
+        .url("$route/api/pinned?user=$userID")
         .addHeader("Cookie", sessionCookie)
         .build()
 
@@ -188,22 +182,23 @@ fun getSavedJobs(): MutableList<Job> {
         val gson = Gson()
         val jobsJSON = response.body!!.string()
         val parseTemplate = object : TypeToken<MutableList<Job>>() {}.type
-        Log.d("SavedRequests","job" + jobsJSON)
+        Log.d("SavedRequests", "job $jobsJSON")
 
         savedList = gson.fromJson(JSONObject(jobsJSON).get("jobs").toString(), parseTemplate)
-        Log.d("SavedRequests","job" + jobsJSON)
+        Log.d("SavedRequests", "job $jobsJSON")
 
         return savedList
     }
 }
 
-fun saveJob( jobID: String): Array<String?> {
+
+fun saveJob(jobID: String): Array<String?> {
     val formBody = FormBody.Builder()
         .add("userID", userID)
         .add("jobID", jobID)
         .build()
 
-    val request = Request.Builder() 
+    val request = Request.Builder()
         .url("$route/api/pinned")
         .addHeader("Cookie", sessionCookie)
         .post(formBody)
@@ -217,16 +212,14 @@ fun saveJob( jobID: String): Array<String?> {
             Log.d("Requests", "$name: $value")
         }
 
-
-        // TODO - fetch login cookie
-        val gson = Gson()
         val responseJSON = response.body!!.string()
-//        val parseTemplate = object : TypeToken<MutableList<Job>>() {}.type
 
-        Log.d("save", "req:"+JSONObject(responseJSON).get("msg").toString())
-        Log.d("save", "req:"+JSONObject(responseJSON).get("success").toString())
+        Log.d("save", "req:" + JSONObject(responseJSON).get("msg").toString())
+        Log.d("save", "req:" + JSONObject(responseJSON).get("success").toString())
 
-
-        return arrayOf(JSONObject(responseJSON).get("success").toString(),JSONObject(responseJSON).get("msg").toString())
+        return arrayOf(
+            JSONObject(responseJSON).get("success").toString(),
+            JSONObject(responseJSON).get("msg").toString()
+        )
     }
 }
