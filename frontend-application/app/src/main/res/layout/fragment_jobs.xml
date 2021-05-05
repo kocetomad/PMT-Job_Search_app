@@ -21,7 +21,7 @@
             android:padding="14dp">
 
             <EditText
-                android:id="@+id/searchJobs"
+                android:id="@+id/searchJobsBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/rounded_search_bar"
@@ -30,7 +30,7 @@
                 android:ems="10"
                 android:inputType="textPersonName"
                 android:submitBackground="@drawable/rounded_search_bar"
-                android:text="Search for a job"
+                android:hint="Search for a job"
                 android:textColor="?attr/colorOnPrimary"
                 android:textColorHint="?attr/colorOnPrimary" />
 

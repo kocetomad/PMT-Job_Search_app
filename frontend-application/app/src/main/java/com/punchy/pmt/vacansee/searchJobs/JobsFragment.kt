@@ -5,10 +5,8 @@ import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
 import android.view.*
-import android.widget.LinearLayout
-import android.widget.ProgressBar
-import android.widget.TextView
-import android.widget.Toast
+import android.view.View.OnTouchListener
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -33,6 +31,8 @@ private const val ARG_PARAM2 = "param2"
 var savedItems: MutableList<Int> = mutableListOf()
 var touchDown = true
 var jobsList = mutableListOf<Job>()
+
+var searchParam = "job" // uses "job" as placeholder
 
 /**
  * A simple [Fragment] subclass.
@@ -114,11 +114,12 @@ class JobsFragment : Fragment() {
         )
 
 
-        fun loadData(parentFragment: Fragment) = CoroutineScope(Dispatchers.Main).launch {
+        fun loadData(searchParam: String, parentFragment: Fragment) = CoroutineScope(Dispatchers.Main).launch {
             bottomSheetView.findViewById<TextView>(R.id.errorText).text =
-                "Couldn't connect to wooow"
+                "Loading jobs..."
+
             val task = async(Dispatchers.IO) {
-                getJobs()
+                getJobs(searchParam)
             }
             jobsList = task.await()
             val rvAdapter = JobsRvAdapter(jobsList, parentFragment)
@@ -130,6 +131,7 @@ class JobsFragment : Fragment() {
             rvAdapter.notifyDataSetChanged()
 
             var saveColor = Color.rgb(3f, 218f, 198f)
+
             //Save to swipe logic
             val myCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
                 override fun onMove(
@@ -239,7 +241,7 @@ class JobsFragment : Fragment() {
 
             bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility = View.GONE
         }
-        loadData(this)
+        loadData(searchParam,this)
 
 
         if (jobsList.isEmpty()) {
@@ -267,14 +269,61 @@ class JobsFragment : Fragment() {
 
         jobsRecyclerView.setOnTouchListener({ v, event ->
             if (MotionEvent.ACTION_UP == event.action) {
-                println("Up")
                 touchDown = false
             }
             if (MotionEvent.ACTION_DOWN == event.action) {
-                println("Down")
                 touchDown = true
             }
             false // return is important...
+        })
+
+        // add ENTER listener on Search EditText
+        val searchBox = jobsView.findViewById<EditText>(R.id.searchJobsBox)
+        searchBox.setOnKeyListener(View.OnKeyListener { v, keyCode, event ->
+            if (keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_UP) {
+                    if(searchBox.text.isNotBlank()) {
+                        jobsList = mutableListOf()
+                        rvAdapter.notifyDataSetChanged()
+
+                        bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility =
+                            View.VISIBLE
+
+                        bottomSheetView.findViewById<TextView>(R.id.errorText).text =
+                            "Loading jobs..."
+                        bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility = View.VISIBLE
+
+                        bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+
+                        loadData(searchBox.text.toString(), this)
+                    }
+                return@OnKeyListener true
+            }
+            false
+        })
+        searchBox.setOnTouchListener(OnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_UP) {
+                if (event.rawX >= (searchBox.right - searchBox.compoundDrawables[2].bounds.width())) {
+                    // your action for drawable click event
+                    if(searchBox.text.isNotBlank()) {
+                        jobsList = mutableListOf()
+                        rvAdapter.notifyDataSetChanged()
+
+                        bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility =
+                            View.VISIBLE
+
+                        bottomSheetView.findViewById<TextView>(R.id.errorText).text =
+                            "Loading jobs..."
+                        bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility = View.VISIBLE
+
+                        bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+
+                        loadData(searchBox.text.toString(), this)
+                    }
+
+                    return@OnTouchListener true
+                }
+            }
+            false
         })
 
 
