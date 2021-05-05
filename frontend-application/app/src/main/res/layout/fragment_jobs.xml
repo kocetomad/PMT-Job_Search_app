@@ -30,6 +30,7 @@
                 android:ems="10"
                 android:hint="Search for a job"
                 android:inputType="textPersonName"
+                android:singleLine="true"
                 android:submitBackground="@drawable/rounded_search_bar"
                 android:textColor="?attr/colorOnPrimary"
                 android:textColorHint="?attr/colorOnPrimary" />
@@ -43,6 +44,7 @@
                 android:ems="10"
                 android:hint="Location"
                 android:inputType="textPersonName"
+                android:singleLine="true"
                 android:submitBackground="@drawable/rounded_search_bar"
                 android:textColor="?attr/colorOnPrimary"
                 android:textColorHint="?attr/colorOnPrimary" />
@@ -195,7 +197,8 @@
                     android:id="@+id/imageView"
                     android:layout_width="50dp"
                     android:layout_height="50dp"
-                    android:src="@drawable/ic_baseline_error_outline_24" />
+                    android:src="@drawable/ic_baseline_error_outline_24"
+                    tools:ignore="ContentDescription" />
             </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
