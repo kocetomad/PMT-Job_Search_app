@@ -45,8 +45,14 @@ class JobsRvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment
         view.jobEmployerName?.text = jobsList[index].employerName
         view.jobDescription?.text = jobsList[index].jobDescription
         view.jobID = jobsList[index].jobId
-        view.jobSalaryMin?.text = "£${jobsList[index].minimumSalary}"
-        view.jobSalaryMax?.text = "£${jobsList[index].maximumSalary}"
+
+        if (jobsList[index].minimumSalary == -1f && jobsList[index].maximumSalary == -1f) {
+            view.jobSalaryMin?.text = "TBD"
+            view.jobSalaryMax?.visibility = View.GONE
+        } else {
+            view.jobSalaryMin?.text = "Min: £${jobsList[index].minimumSalary}"
+            view.jobSalaryMax?.text = "Max: £${jobsList[index].maximumSalary}"
+        }
 
         view.itemView.findViewById<com.google.android.material.card.MaterialCardView>(R.id.card)
             ?.setOnClickListener {

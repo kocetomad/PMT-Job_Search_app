@@ -108,20 +108,16 @@ fun registerAccount(
 }
 
 
-fun getJobs(): MutableList<Job> {
+fun getJobs(searchParam: String): MutableList<Job> {
     var jobsList: MutableList<Job>
 
     val request = Request.Builder()
-        .url("$route/api/jobs?search=developer")
+        .url("$route/api/jobs?search=$searchParam")
         .addHeader("Cookie", sessionCookie)
         .build()
 
     client.newCall(request).execute().use { response ->
         if (!response.isSuccessful) throw IOException("Unexpected code $response")
-
-        for ((name, value) in response.headers) {
-            Log.d("Requests", "$name: $value")
-        }
 
         val gson = Gson()
         val jobsJSON = response.body!!.string()
@@ -129,6 +125,7 @@ fun getJobs(): MutableList<Job> {
 
         jobsList = gson.fromJson(JSONObject(jobsJSON).get("jobs").toString(), parseTemplate)
 
+        Log.d("Requests - getJobs", jobsList.toString())
         return jobsList
     }
 }

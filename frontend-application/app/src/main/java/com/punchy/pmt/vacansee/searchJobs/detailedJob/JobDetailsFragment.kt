@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 
-//var fullJob = DetailedJob(Job(), mutableListOf(), mutableListOf())
+var fullJob = DetailedJob(Job(), mutableListOf(), mutableListOf())
 /**
  * A simple [Fragment] subclass.
  * Use the [JobDetailsFragment.newInstance] factory method to
@@ -57,28 +57,28 @@ class JobDetailsFragment : Fragment() {
             val task = async(Dispatchers.IO) {
                 getJobDetails(arguments?.getString("employerName")!!, arguments?.getInt("employerId")!!, arguments?.getInt("jobId")!!)
             }
-//            fullJob = task.await()
-//
-//            val rvAdapter = ReviewsRvAdapter(fullJob.reviewData)
-//            reviewsRecyclerView.adapter = rvAdapter
-//            rvAdapter.notifyDataSetChanged()
-//
-//            val reviewScoreText = detailedJobsView.findViewById<TextView>(R.id.reviewScore)
-//
-//
-//            if (fullJob.reviewData.isEmpty()) {
-//                // get average of all reviews
-//                var reviewScoreAverage = 0.0f
-//                val reviewCount = fullJob.reviewData.size
-//
-//                for (review in fullJob.reviewData)
-//                    reviewScoreAverage += review.rating
-//
-//                reviewScoreAverage /= reviewCount
-//                reviewScoreText.text = "${reviewScoreAverage} out of 5.0"
-//            } else {
-//                reviewScoreText.text = "No reviews."
-//            }
+            fullJob = task.await()
+
+            val rvAdapter = ReviewsRvAdapter(fullJob.reviewData)
+            reviewsRecyclerView.adapter = rvAdapter
+            rvAdapter.notifyDataSetChanged()
+
+            val reviewScoreText = detailedJobsView.findViewById<TextView>(R.id.reviewScore)
+
+
+            if (fullJob.reviewData.isEmpty()) {
+                // get average of all reviews
+                var reviewScoreAverage = 0.0f
+                val reviewCount = fullJob.reviewData.size
+
+                for (review in fullJob.reviewData)
+                    reviewScoreAverage += review.rating
+
+                reviewScoreAverage /= reviewCount
+                reviewScoreText.text = "${reviewScoreAverage} out of 5.0"
+            } else {
+                reviewScoreText.text = "No reviews."
+            }
 
         }
         loadData()
@@ -100,8 +100,8 @@ class JobDetailsFragment : Fragment() {
         jobMaxSalary.text = "Maximum expected: £${arguments?.getFloat("maxSalary")}"
 
 
-        //val rvAdapter = ReviewsRvAdapter(reviewsList)
-        //reviewsRecyclerView.adapter = rvAdapter
+        val rvAdapter = ReviewsRvAdapter(reviewsList)
+        reviewsRecyclerView.adapter = rvAdapter
 
         return detailedJobsView
     }
