@@ -43,7 +43,7 @@ app.use(passport.session());
 // Caching
 const lessThanOneHourAgo = (date) => {
     const now = moment();
-    return moment(date).isAfter(now.subtract(1, "h"));
+    return moment(date).isAfter(now.subtract(2, "h")); // temp increased to 2
 };
 
 const cacher = (req, res, next) => {
@@ -331,7 +331,7 @@ app.get("/api/pinned", blockNotAuthenticated, cacher, (req, res) => {
                             thisJob["employerId"] = response.data["employerId"];
                             thisJob["employerName"] =
                                 response.data["employerName"];
-                            thisJob["employerProfileId"] = "";
+                            thisJob["employerProfileId"] = 0;
                             thisJob["employerProfileName"] = "";
                             thisJob["jobTitle"] = response.data["jobTitle"];
                             thisJob["locationName"] =
