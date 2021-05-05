@@ -46,6 +46,9 @@ class JobsFragment : Fragment() {
 
         // remove action bar shadow
         (activity as AppCompatActivity?)!!.supportActionBar?.elevation = 0f
+
+        // don't destroy the contents when switching fragments
+        retainInstance = true
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -220,8 +223,6 @@ class JobsFragment : Fragment() {
             bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility = View.GONE
         }
         loadData(this)
-
-
 
 
         if (jobsList.isEmpty()) {

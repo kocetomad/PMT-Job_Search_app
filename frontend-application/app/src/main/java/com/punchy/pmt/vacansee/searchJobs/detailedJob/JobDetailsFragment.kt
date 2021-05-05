@@ -8,10 +8,9 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import com.punchy.pmt.vacansee.R
-import com.punchy.pmt.vacansee.searchJobs.JobsRvAdapter
-import com.punchy.pmt.vacansee.searchJobs.httpRequests.ReviewData
+import com.punchy.pmt.vacansee.searchJobs.httpRequests.DetailedJob
+import com.punchy.pmt.vacansee.searchJobs.httpRequests.Job
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.getJobDetails
-import com.punchy.pmt.vacansee.searchJobs.jobsList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -20,19 +19,13 @@ import kotlinx.coroutines.launch
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 
-var reviewsList = mutableListOf<ReviewData>()
+var fullJob = DetailedJob(Job(), mutableListOf(), mutableListOf())
 /**
  * A simple [Fragment] subclass.
  * Use the [JobDetailsFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
 class JobDetailsFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-
-    /*fun getJobDetails(jobID: Int, employerID: Int, employerName: String): MutableList<Job> {
-        // TODO - Add backend request here
-    }*/
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
@@ -64,10 +57,29 @@ class JobDetailsFragment : Fragment() {
             val task = async(Dispatchers.IO) {
                 getJobDetails(arguments?.getString("employerName")!!, arguments?.getInt("employerId")!!, arguments?.getInt("jobId")!!)
             }
-            val reviewsList = task.await()
+            fullJob = task.await()
 
-//            val rvAdapter = ReviewsRvAdapter(reviewsList)
-//            reviewsRecyclerView.adapter = rvAdapter
+            val rvAdapter = ReviewsRvAdapter(fullJob.reviewData)
+            reviewsRecyclerView.adapter = rvAdapter
+            rvAdapter.notifyDataSetChanged()
+
+            val reviewScoreText = detailedJobsView.findViewById<TextView>(R.id.reviewScore)
+
+
+            if (fullJob.reviewData.isEmpty()) {
+                // get average of all reviews
+                var reviewScoreAverage = 0.0f
+                val reviewCount = fullJob.reviewData.size
+
+                for (review in fullJob.reviewData)
+                    reviewScoreAverage += review.rating
+
+                reviewScoreAverage /= reviewCount
+                reviewScoreText.text = "${reviewScoreAverage} out of 5.0"
+            } else {
+                reviewScoreText.text = "No reviews."
+            }
+
         }
         loadData()
 

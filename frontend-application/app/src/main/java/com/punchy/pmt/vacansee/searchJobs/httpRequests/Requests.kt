@@ -134,8 +134,8 @@ fun getJobs(): MutableList<Job> {
 }
 
 
-fun getJobDetails(employerName: String, employerId: Int, jobId: Int): String {
-    var details: String
+fun getJobDetails(employerName: String, employerId: Int, jobId: Int): DetailedJob {
+    var details: Job
     var reviews: MutableList<ReviewData>
     var financeData: MutableList<FinanceData>
 
@@ -155,20 +155,25 @@ fun getJobDetails(employerName: String, employerId: Int, jobId: Int): String {
 
         Log.d("Requests - jobDetails", JSONObject(job).toString())
 
-        details = JSONObject(job).get("jobDetails").toString()
-//        reviews = JSONObject(jobDetail).get("reviewData").toString()
-        // TODO - handle empty reviews
+        val jobDetailsParseTemplate = object : TypeToken<Job>() {}.type
 
-//        val parseTemplate = object : TypeToken<MutableList<FinanceData>>() {}.type
-//        val financeDataString = JSONObject(job).get("financeData").toString()
-//        financeData = Gson().fromJson(financeDataString, parseTemplate)
-        // TODO - handle empty finance data
+        val detailsDataString =
+            JSONObject(job).get("jobDetails").toString().removePrefix("[").removeSuffix("]")
+        details = Gson().fromJson(detailsDataString, jobDetailsParseTemplate)
 
-        Log.d("Requests - jobDetails", details)
-//        Log.d("Requests - jobDetails", reviews!!)
-//        Log.d("Requests - jobDetails", financeData)
+        val reviewsParseTemplate = object : TypeToken<MutableList<ReviewData>>() {}.type
+        val reviewsDataString = JSONObject(job).get("reviewData").toString()
+        reviews = Gson().fromJson(reviewsDataString, reviewsParseTemplate)
 
-        return details
+        val financeParseTemplate = object : TypeToken<MutableList<FinanceData>>() {}.type
+        val financeDataString = JSONObject(job).get("financeData").toString()
+        financeData = Gson().fromJson(financeDataString, financeParseTemplate)
+
+        Log.d("Requests - jobDetails", details.toString())
+        Log.d("Requests - reviews", reviews.toString())
+        Log.d("Requests - financeData", financeData.toString())
+
+        return DetailedJob(details, financeData, reviews)
     }
 }
 
