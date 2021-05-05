@@ -28,4 +28,8 @@ class Job(
     override fun toString(): String {
         return "JobSummary [ID: ${this.jobId}, employerId: ${this.employerId}, employerName: ${this.employerName}]"
     }
+    var saved = false
+    fun setSaved(){
+        saved = true
+    }
 }
