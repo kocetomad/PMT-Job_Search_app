@@ -23,7 +23,8 @@ android:windowSoftInputMode="adjustNothing">
             android:id="@+id/userProfilePicture"
             android:layout_width="150dp"
             android:layout_height="150dp"
-            app:srcCompat="@drawable/ic_baseline_account_circle_24" />
+            app:srcCompat="@drawable/ic_baseline_account_circle_24"
+            tools:ignore="ContentDescription" />
 
         <TextView
             android:id="@+id/userFirstName"
@@ -138,13 +139,14 @@ android:windowSoftInputMode="adjustNothing">
                 android:id="@+id/imageView"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:src="@drawable/ic_baseline_error_outline_24" />
+                android:src="@drawable/ic_baseline_error_outline_24"
+                tools:ignore="ContentDescription" />
         </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/savedJobsRecyclerView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="fill_parent">
         </androidx.recyclerview.widget.RecyclerView>
     </LinearLayout>
 
