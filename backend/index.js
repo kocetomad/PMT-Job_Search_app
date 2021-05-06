@@ -258,15 +258,28 @@ app.get("/api/moreDetails", blockNotAuthenticated, cacher, async (req, res) => {
                     let financeData = responses[1].data;
                     financeData = financeData["Time Series (Daily)"];
 
-                    for (let i = 0; i < Object.keys(financeData).length; i++) {
-                        let thisDate = Object.keys(financeData)[i];
-                        summarisedFinanceData.push({
-                            date: thisDate,
-                            sharePrice: financeData[thisDate]["4. close"],
-                        });
+                    if (financeData) {
+                        // checks for AV api rate limiting
+                        for (
+                            let i = 0;
+                            i < Object.keys(financeData).length;
+                            i++
+                        ) {
+                            let thisDate = Object.keys(financeData)[i];
+                            summarisedFinanceData.push({
+                                date: thisDate,
+                                sharePrice: financeData[thisDate]["4. close"],
+                            });
+                        }
+                        moreDetailsReturn[
+                            "financeData"
+                        ] = summarisedFinanceData;
+                        console.log("finance data found!");
+                    } else {
+                        console.log(
+                            "AV Rate Limit Hit.  Finance data was found but cannot be displayed."
+                        );
                     }
-                    moreDetailsReturn["financeData"] = summarisedFinanceData;
-                    console.log("finance data found!");
                 }
 
                 let logoResponse = responses[0].data;
@@ -605,6 +618,12 @@ app.post("/api/review", blockNotAuthenticated, (req, res) => {
                         if (err) {
                             throw err;
                         }
+                        let allCache = Object.keys(cache.all());
+                        for (cacheObject in allCache) {
+                            if (String(allCache[cacheObject]).includes(empID)) {
+                                cache.removeKey(allCache[cacheObject]);
+                            }
+                        }
                         return res.send({
                             success: true,
                             msg: "Review successfully added",
@@ -620,6 +639,12 @@ app.post("/api/review", blockNotAuthenticated, (req, res) => {
                     (err, results) => {
                         if (err) {
                             throw err;
+                        }
+                        let allCache = Object.keys(cache.all());
+                        for (cacheObject in allCache) {
+                            if (String(allCache[cacheObject]).includes(empID)) {
+                                cache.removeKey(allCache[cacheObject]);
+                            }
                         }
                         return res.send({
                             success: true,
@@ -670,6 +695,12 @@ app.delete("/api/review", blockNotAuthenticated, (req, res) => {
                     if (err) {
                         throw err;
                     }
+                    let allCache = Object.keys(cache.all());
+                    for (cacheObject in allCache) {
+                        if (String(allCache[cacheObject]).includes(empID)) {
+                            cache.removeKey(allCache[cacheObject]);
+                        }
+                    }
                     return res.send({
                         success: true,
                         msg: "review successfully deleted",
@@ -680,14 +711,14 @@ app.delete("/api/review", blockNotAuthenticated, (req, res) => {
     );
 });
 
-app.get("/api/review", blockNotAuthenticated, (req, res) => {
+app.get("/api/review", blockNotAuthenticated, cacher, (req, res) => {
     let { empID } = req.query;
     let userID = req.user.user_id;
 
     if (!empID || !userID) {
         return res.send({
             success: false,
-            msg: "params empID and userID are required for this endpoint",
+            msg: "param empID is required for this endpoint",
         });
     }
 
@@ -703,11 +734,25 @@ app.get("/api/review", blockNotAuthenticated, (req, res) => {
             }
 
             if (results.rows.length == 0) {
+                cache.setKey(req.originalUrl, {
+                    date: moment(),
+                    data: {
+                        success: false,
+                        msg: `review not found for empID ${empID} and userID ${userID}`,
+                    },
+                });
                 return res.send({
                     success: false,
                     msg: `review not found for empID ${empID} and userID ${userID}`,
                 });
             }
+            cache.setKey(req.originalUrl, {
+                date: moment(),
+                data: {
+                    success: true,
+                    review: results.rows,
+                },
+            });
             res.send({
                 success: true,
                 review: results.rows,
@@ -755,6 +800,12 @@ app.put("/api/review", blockNotAuthenticated, (req, res) => {
                 (err, results) => {
                     if (err) {
                         throw err;
+                    }
+                    let allCache = Object.keys(cache.all());
+                    for (cacheObject in allCache) {
+                        if (String(allCache[cacheObject]).includes(empID)) {
+                            cache.removeKey(allCache[cacheObject]);
+                        }
                     }
                     return res.send({
                         success: true,
