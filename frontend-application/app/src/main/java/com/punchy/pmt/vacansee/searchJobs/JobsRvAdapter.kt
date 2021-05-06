@@ -87,8 +87,14 @@ class JobsRvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment
                 args.putInt("jobId", jobsList[index].jobId)
 
 
-                parentFragment.findNavController()
-                    .navigate(R.id.action_jobsFragment_to_jobDetailsFragment, args)
+                try {
+                    parentFragment.findNavController()
+                        .navigate(R.id.action_jobsFragment_to_jobDetailsFragment, args)
+                }catch (e: Exception){
+                    parentFragment.findNavController()
+                        .navigate(R.id.action_profileFragment_to_jobDetailsFragment, args)
+                }
+
             }
     }
 }

@@ -241,9 +241,9 @@ fun saveJob(jobID: String): Array<String?> {
 }
 
 fun unpinJob(jobID: String): Array<String?> {
+    Log.d("unpin", "IN")
 
     val formBody = FormBody.Builder()
-        .add("userID", userID)
         .add("jobID", jobID)
         .build()
 
