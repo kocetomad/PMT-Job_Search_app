@@ -3,6 +3,7 @@ package com.punchy.pmt.vacansee.searchJobs
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.StrictMode
+import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -52,7 +53,7 @@ class JobsRvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment
 
         view.jobTitle?.text = jobsList[index].jobTitle
         view.jobEmployerName?.text = jobsList[index].employerName
-        view.jobDescription?.text = jobsList[index].jobDescription
+        view.jobDescription?.text = Html.fromHtml(jobsList[index].jobDescription, Html.FROM_HTML_MODE_COMPACT)
         view.jobID = jobsList[index].jobId
 
         val url = URL(jobsList[index].logoUrl)

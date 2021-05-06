@@ -1,6 +1,7 @@
 package com.punchy.pmt.vacansee.searchJobs.detailedJob
 
 import android.os.Bundle
+import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,6 +21,7 @@ import kotlinx.coroutines.launch
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 
 var fullJob = DetailedJob(Job(), mutableListOf(), mutableListOf())
+
 /**
  * A simple [Fragment] subclass.
  * Use the [JobDetailsFragment.newInstance] factory method to
@@ -45,17 +47,23 @@ class JobDetailsFragment : Fragment() {
         val jobEmployer = detailedJobsView.findViewById<TextView>(R.id.employerName)
         val jobDescription = detailedJobsView.findViewById<TextView>(R.id.jobDescription)
 
+        val jobSalaryText = detailedJobsView.findViewById<TextView>(R.id.salaryText)
         val jobMinSalary = detailedJobsView.findViewById<TextView>(R.id.jobMinimumSalary)
         val jobMaxSalary = detailedJobsView.findViewById<TextView>(R.id.jobMaximumSalary)
 
         // Inflate the layout for this fragment
-        val reviewsRecyclerView = detailedJobsView.findViewById<RecyclerView>(R.id.detailedJobReviewsRecyclerView)
+        val reviewsRecyclerView =
+            detailedJobsView.findViewById<RecyclerView>(R.id.detailedJobReviewsRecyclerView)
 
 
         fun loadData() = CoroutineScope(Dispatchers.Main).launch {
 
             val task = async(Dispatchers.IO) {
-                getJobDetails(arguments?.getString("employerName")!!, arguments?.getInt("employerId")!!, arguments?.getInt("jobId")!!)
+                getJobDetails(
+                    arguments?.getString("employerName")!!,
+                    arguments?.getInt("employerId")!!,
+                    arguments?.getInt("jobId")!!
+                )
             }
             fullJob = task.await()
 
@@ -66,7 +74,7 @@ class JobDetailsFragment : Fragment() {
             val reviewScoreText = detailedJobsView.findViewById<TextView>(R.id.reviewScore)
 
 
-            if (fullJob.reviewData.isEmpty()) {
+            if (fullJob.reviewData.isNotEmpty()) {
                 // get average of all reviews
                 var reviewScoreAverage = 0.0f
                 val reviewCount = fullJob.reviewData.size
@@ -83,18 +91,13 @@ class JobDetailsFragment : Fragment() {
         }
         loadData()
 
-        // review data stuff
-        val reviewScoreText = detailedJobsView.findViewById<TextView>(R.id.reviewScore)
 
+        jobTitle.text = fullJob.jobDetails.jobTitle
+        jobEmployer.text = fullJob.jobDetails.employerName
+        jobDescription.text =
+            Html.fromHtml(fullJob.jobDetails.jobDescription, Html.FROM_HTML_MODE_COMPACT)
 
-//        val jobId = arguments?.getString("jobId")
-//        val employerId = arguments?.getString("employerId")
-//        val employerName = arguments?.getString("employerName")
-
-
-        jobTitle.text = arguments?.getString("jobTitle")
-        jobEmployer.text = arguments?.getString("employerName")
-        jobDescription.text = arguments?.getString("jobDescription")
+        jobSalaryText.text = "Salary - ${fullJob.jobDetails.salaryType}"
 
         jobMinSalary.text = "Minimum expected: £${arguments?.getFloat("minSalary")}"
         jobMaxSalary.text = "Maximum expected: £${arguments?.getFloat("maxSalary")}"

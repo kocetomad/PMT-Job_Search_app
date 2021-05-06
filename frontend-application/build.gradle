@@ -19,6 +19,12 @@ allprojects {
         google()
         mavenCentral()
         jcenter() // Warning: this repository is going to shut down soon
+        maven{
+            url "https://maven.pkg.jetbrains.space/data2viz/p/maven/dev"
+        }
+        maven{
+            url "https://maven.pkg.jetbrains.space/data2viz/p/maven/public"
+        }
     }
 }
 
