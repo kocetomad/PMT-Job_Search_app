@@ -82,13 +82,17 @@ app.get("/", (req, res) => {
 });
 
 app.get("/api/jobs", blockNotAuthenticated, cacher, (req, res) => {
-    let { search, location } = req.query;
+    let { search, location, partTime, fullTime } = req.query;
     // TODO: santisation checks
-    let url = "";
-    if (!location) {
-        url = `https://www.reed.co.uk/api/1.0/search?keywords=${search}&resultsToTake=15`;
-    } else {
-        url = `https://www.reed.co.uk/api/1.0/search?keywords=${search}&locationName=${location}&resultsToTake=15`;
+    let url = `https://www.reed.co.uk/api/1.0/search?keywords=${search}&resultsToTake=15`;
+    if (location) {
+        url += `&location=${location}`;
+    }
+    if (partTime) {
+        url += `&partTime=${partTime}`;
+    }
+    if (fullTime) {
+        url += `&fullTime=${fullTime}`;
     }
 
     let config = {
