@@ -258,15 +258,28 @@ app.get("/api/moreDetails", blockNotAuthenticated, cacher, async (req, res) => {
                     let financeData = responses[1].data;
                     financeData = financeData["Time Series (Daily)"];
 
-                    for (let i = 0; i < Object.keys(financeData).length; i++) {
-                        let thisDate = Object.keys(financeData)[i];
-                        summarisedFinanceData.push({
-                            date: thisDate,
-                            sharePrice: financeData[thisDate]["4. close"],
-                        });
+                    if (financeData) {
+                        // checks for AV api rate limiting
+                        for (
+                            let i = 0;
+                            i < Object.keys(financeData).length;
+                            i++
+                        ) {
+                            let thisDate = Object.keys(financeData)[i];
+                            summarisedFinanceData.push({
+                                date: thisDate,
+                                sharePrice: financeData[thisDate]["4. close"],
+                            });
+                        }
+                        moreDetailsReturn[
+                            "financeData"
+                        ] = summarisedFinanceData;
+                        console.log("finance data found!");
+                    } else {
+                        console.log(
+                            "AV Rate Limit Hit.  Finance data was found but cannot be displayed."
+                        );
                     }
-                    moreDetailsReturn["financeData"] = summarisedFinanceData;
-                    console.log("finance data found!");
                 }
 
                 let logoResponse = responses[0].data;
