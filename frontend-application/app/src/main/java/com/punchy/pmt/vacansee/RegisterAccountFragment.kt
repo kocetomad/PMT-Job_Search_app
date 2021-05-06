@@ -8,6 +8,8 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
+import com.punchy.pmt.vacansee.searchJobs.httpRequests.registerAccount
+
 //import com.punchy.pmt.vacansee.searchJobs.httpRequests.registerAccount
 
 // TODO: Rename parameter arguments, choose names that match
@@ -42,7 +44,7 @@ class RegisterAccountFragment : Fragment() {
 
         val createAccountButton = registerAccountView.findViewById<Button>(R.id.createAccountButton)
 
-        /*createAccountButton.setOnClickListener {
+        createAccountButton.setOnClickListener {
             val firstName = registerAccountView.findViewById<EditText>(R.id.registerFirstName)
             val lastName = registerAccountView.findViewById<EditText>(R.id.registerLastName)
             val username = registerAccountView.findViewById<EditText>(R.id.registerUsername)
@@ -80,7 +82,7 @@ class RegisterAccountFragment : Fragment() {
                     )
                 }
             }
-        }*/
+        }
         // Inflate the layout for this fragment
         return registerAccountView
     }
