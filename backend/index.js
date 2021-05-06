@@ -13,10 +13,12 @@ const flatCache = require("flat-cache");
 const cache = flatCache.load("cache1");
 const moment = require("moment");
 
-initializePassport(passport);
-
 // Initialisation
+initializePassport(passport);
 const app = express();
+const placeholderFinanceData = JSON.parse(
+    fs.readFileSync("placeholderFinanceData.json")
+);
 
 // Middleware
 app.use(express.urlencoded({ extended: false }));
@@ -279,7 +281,12 @@ app.get("/api/moreDetails", blockNotAuthenticated, cacher, async (req, res) => {
                         console.log(
                             "AV Rate Limit Hit.  Finance data was found but cannot be displayed."
                         );
+                        moreDetailsReturn[
+                            "financeData"
+                        ] = placeholderFinanceData;
                     }
+                } else {
+                    moreDetailsReturn["financeData"] = placeholderFinanceData;
                 }
 
                 let logoResponse = responses[0].data;
@@ -290,7 +297,10 @@ app.get("/api/moreDetails", blockNotAuthenticated, cacher, async (req, res) => {
                     moreDetailsReturn["jobDetails"][0]["extUrl"] =
                         logoResponse[0].domain;
                 } else {
-                    console.log("no logo found");
+                    moreDetailsReturn["jobDetails"][0]["logoUrl"] =
+                        "https://i.imgur.com/uU0G6CL.png";
+                    moreDetailsReturn["jobDetails"][0]["extUrl"] =
+                        "https://www.google.com/";
                 }
 
                 cache.setKey(req.originalUrl, {
