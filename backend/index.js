@@ -49,9 +49,6 @@ const lessThanOneHourAgo = (date) => {
 const cacher = (req, res, next) => {
     let thisCache = cache.getKey(req.originalUrl);
     if (thisCache != null) {
-        console.log(
-            `less than one hour ago bool: ${lessThanOneHourAgo(thisCache.date)}`
-        );
         if (!lessThanOneHourAgo(thisCache.date)) {
             console.log("cache too old, refetching");
             return next();
@@ -314,6 +311,7 @@ app.get("/api/pinned", blockNotAuthenticated, cacher, (req, res) => {
             let pinnedResponse = [];
 
             if (results.rows.length > 0) {
+                let reedDetailsPromises = [];
                 for (let i = 0; i < results.rows.length; i++) {
                     // Reed more details request
                     let jobDetailsConfig = {
@@ -324,53 +322,55 @@ app.get("/api/pinned", blockNotAuthenticated, cacher, (req, res) => {
                         },
                     };
 
-                    axios(jobDetailsConfig)
-                        .then((response) => {
-                            let thisJob = {};
-                            thisJob["jobId"] = response.data["jobId"];
-                            thisJob["employerId"] = response.data["employerId"];
-                            thisJob["employerName"] =
-                                response.data["employerName"];
-                            thisJob["employerProfileId"] = 0;
-                            thisJob["employerProfileName"] = "";
-                            thisJob["jobTitle"] = response.data["jobTitle"];
-                            thisJob["locationName"] =
-                                response.data["locationName"];
-                            thisJob["minimumSalary"] =
-                                response.data["minimumSalary"];
-                            thisJob["maximumSalary"] =
-                                response.data["maximumSalary"];
-                            thisJob["currency"] = response.data["currency"];
-                            thisJob["expirationDate"] =
-                                response.data["expirationDate"];
-                            thisJob["date"] = response.data["datePosted"];
-                            thisJob["jobDescription"] = response.data[
-                                "jobDescription"
-                            ].replace(/(<([^>]+)>)/gi, "");
-                            thisJob["applications"] = 0;
-                            thisJob["jobUrl"] = response.data["jobUrl"];
-                            thisJob["logoUrl"] =
-                                "https://i.imgur.com/uU0G6CL.png";
-                            thisJob["extUrl"] = "https://www.google.com/";
-                            pinnedResponse.push(thisJob);
-                            if (i == results.rows.length - 1) {
-                                cache.setKey(req.originalUrl, {
-                                    date: moment(),
-                                    data: {
-                                        success: true,
-                                        jobs: pinnedResponse,
-                                    },
-                                });
-                                res.send({
-                                    success: true,
-                                    jobs: pinnedResponse,
-                                });
-                            }
-                        })
-                        .catch((err) => {
-                            console.log(err);
-                        });
+                    const detailsPromise = axios(jobDetailsConfig);
+                    reedDetailsPromises.push(detailsPromise);
                 }
+
+                Promise.all(reedDetailsPromises).then((responses) => {
+                    for (response in responses) {
+                        let thisJob = {};
+                        thisJob["jobId"] = responses[response].data["jobId"];
+                        thisJob["employerId"] =
+                            responses[response].data["employerId"];
+                        thisJob["employerName"] =
+                            responses[response].data["employerName"];
+                        thisJob["employerProfileId"] = 0;
+                        thisJob["employerProfileName"] = "";
+                        thisJob["jobTitle"] =
+                            responses[response].data["jobTitle"];
+                        thisJob["locationName"] =
+                            responses[response].data["locationName"];
+                        thisJob["minimumSalary"] =
+                            responses[response].data["minimumSalary"];
+                        thisJob["maximumSalary"] =
+                            responses[response].data["maximumSalary"];
+                        thisJob["currency"] =
+                            responses[response].data["currency"];
+                        thisJob["expirationDate"] =
+                            responses[response].data["expirationDate"];
+                        thisJob["date"] =
+                            responses[response].data["datePosted"];
+                        thisJob["jobDescription"] = responses[response].data[
+                            "jobDescription"
+                        ].replace(/(<([^>]+)>)/gi, "");
+                        thisJob["applications"] = 0;
+                        thisJob["jobUrl"] = responses[response].data["jobUrl"];
+                        thisJob["logoUrl"] = "https://i.imgur.com/uU0G6CL.png";
+                        thisJob["extUrl"] = "https://www.google.com/";
+                        pinnedResponse.push(thisJob);
+                    }
+                    cache.setKey(req.originalUrl, {
+                        date: moment(),
+                        data: {
+                            success: true,
+                            jobs: pinnedResponse,
+                        },
+                    });
+                    res.send({
+                        success: true,
+                        jobs: pinnedResponse,
+                    });
+                });
             } else {
                 cache.setKey(req.originalUrl, {
                     date: moment(),
@@ -413,6 +413,7 @@ app.post("/api/pinned", blockNotAuthenticated, (req, res) => {
                 } else {
                     // invalidate cache
                     cache.removeKey("/api/pinned");
+                    console.log("removed key");
                     res.send({
                         success: true,
                         msg: "Pin added to db",
@@ -463,6 +464,7 @@ app.delete("/api/pinned", blockNotAuthenticated, (req, res) => {
                     }
                     // invalidate cache
                     cache.removeKey("/api/pinned");
+                    console.log("removed key");
                     res.send({
                         success: true,
                         msg: "post successfully un-pinned",
