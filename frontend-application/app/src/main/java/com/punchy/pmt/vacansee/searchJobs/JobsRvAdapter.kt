@@ -1,21 +1,27 @@
 package com.punchy.pmt.vacansee.searchJobs
 
+import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.os.StrictMode
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.punchy.pmt.vacansee.R
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.Job
+import java.net.URL
+
 
 //input parameter has to be changed to an object containing the data from the query
 class JobsRvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment) :
     RecyclerView.Adapter<JobsRvAdapter.ViewHolder>() {
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val image = itemView.findViewById<ImageView>(R.id.quality_image)
         val jobTitle = itemView.findViewById<TextView>(R.id.entryJobTitle)
         val jobEmployerName = itemView.findViewById<TextView>(R.id.entryEmployerName)
         val jobDescription = itemView.findViewById<TextView>(R.id.entryJobDescription)
@@ -41,10 +47,17 @@ class JobsRvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment
 
     //the populates the view with the data from the query. Has to be changed to get the data from the object not just a string
     override fun onBindViewHolder(view: ViewHolder, index: Int) {
+        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
+        StrictMode.setThreadPolicy(policy)
+
         view.jobTitle?.text = jobsList[index].jobTitle
         view.jobEmployerName?.text = jobsList[index].employerName
         view.jobDescription?.text = jobsList[index].jobDescription
         view.jobID = jobsList[index].jobId
+
+        val url = URL(jobsList[index].logoUrl)
+        val bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream())
+        view.image.setImageBitmap(bmp)
 
         if (jobsList[index].minimumSalary == -1f && jobsList[index].maximumSalary == -1f) {
             view.jobSalaryMin?.text = "TBD"

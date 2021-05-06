@@ -24,6 +24,7 @@ class Job(
     val partTime: Boolean,
     val fullTime: Boolean,
     val contractType: String,
+    val logoUrl: String
 ) {
     override fun toString(): String {
         return "JobSummary [ID: ${this.jobId}, employerId: ${this.employerId}, employerName: ${this.employerName}]"

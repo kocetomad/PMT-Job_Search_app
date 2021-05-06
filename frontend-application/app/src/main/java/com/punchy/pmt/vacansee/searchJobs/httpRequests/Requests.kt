@@ -179,7 +179,7 @@ fun getSavedJobs(): MutableList<Job> {
     var savedList = mutableListOf<Job>()
 
     val request = Request.Builder()
-        .url("$route/api/pinned?user=$userID")
+        .url("$route/api/pinned")
         .addHeader("Cookie", sessionCookie)
         .build()
 
@@ -211,7 +211,6 @@ fun getSavedJobs(): MutableList<Job> {
 
 fun saveJob(jobID: String): Array<String?> {
     val formBody = FormBody.Builder()
-        .add("userID", userID)
         .add("jobID", jobID)
         .build()
 

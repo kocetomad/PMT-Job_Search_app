@@ -5,5 +5,5 @@ class DetailedJob(
     val financeData: MutableList<FinanceData>,
     val reviewData: MutableList<ReviewData>
 ) {
-    constructor() : this(Job(), mutableListOf(), mutableListOf())
+    //constructor() : this(Job(), mutableListOf(), mutableListOf())
 }
