@@ -19,6 +19,9 @@ const app = express();
 const placeholderFinanceData = JSON.parse(
     fs.readFileSync("placeholderFinanceData.json")
 );
+const placeholderReviewData = JSON.parse(
+    fs.readFileSync("placeholderReviewData.json")
+);
 
 // Middleware
 app.use(express.urlencoded({ extended: false }));
@@ -204,7 +207,7 @@ app.get("/api/moreDetails", blockNotAuthenticated, cacher, async (req, res) => {
                 moreDetailsReturn["reviewData"] = results.rows;
             } else {
                 console.log(`review data not found for empID ${empID}`);
-                moreDetailsReturn["reviewData"] = [];
+                moreDetailsReturn["reviewData"] = placeholderReviewData;
             }
         }
     );
@@ -578,6 +581,7 @@ app.post("/api/register", blockAuthenticated, async (req, res) => {
                                 throw err;
                             }
                             res.send({
+                                success: true,
                                 msg: `user created, with username ${username}`,
                             });
                         }
@@ -875,7 +879,6 @@ app.get("/api/loginError", blockAuthenticated, (req, res) => {
     });
 });
 
-// this could be replaced by a more useful redirect, meaning the frontend can just call login
 app.get("/api/logoutError", blockNotAuthenticated, (req, res) => {
     res.send({
         success: false,

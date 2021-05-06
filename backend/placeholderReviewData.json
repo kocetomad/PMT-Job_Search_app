@@ -1,0 +1,23 @@
+[
+    {
+        "employer_id": "594811",
+        "user_id": 1,
+        "rating": 4,
+        "title": "Positive atmosphere",
+        "description": "nice team to work with"
+    },
+    {
+        "employer_id": "594811",
+        "user_id": 2,
+        "rating": 3,
+        "title": "Can be stressful",
+        "description": "Varied workflow makes up for it though"
+    },
+    {
+        "employer_id": "594811",
+        "user_id": 3,
+        "rating": 5,
+        "title": "Amazing work environment!",
+        "description": "Brilliant work with brilliant people."
+    }
+]
