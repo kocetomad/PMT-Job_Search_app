@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     android:transitionName="@{@string/email_card_transition_name}">
 
     <LinearLayout
@@ -189,6 +189,28 @@
                 android:textSize="24sp"
                 android:textStyle="bold" />
 
+            <TextView
+                android:id="@+id/textView3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Write a review for this company:" />
+
+            <EditText
+                android:id="@+id/jobReviewComment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:gravity="start|top"
+                android:hint="Write a review"
+                android:inputType="textMultiLine"
+                android:minHeight="125dp" />
+
+            <Button
+                android:id="@+id/button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Send Review" />
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/detailedJobReviewsRecyclerView"
                 android:layout_width="match_parent"
@@ -196,4 +218,4 @@
         </LinearLayout>
     </LinearLayout>
 
-    </ScrollView>
+</ScrollView>

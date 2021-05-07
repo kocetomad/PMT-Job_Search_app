@@ -9,6 +9,7 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import com.punchy.pmt.vacansee.R
+import com.punchy.pmt.vacansee.financeData
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.DetailedJob
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.Job
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.getJobDetails
@@ -66,6 +67,7 @@ class JobDetailsFragment : Fragment() {
                 )
             }
             fullJob = task.await()
+            financeData = fullJob.financeData
 
             val rvAdapter = ReviewsRvAdapter(fullJob.reviewData)
             reviewsRecyclerView.adapter = rvAdapter
@@ -73,8 +75,7 @@ class JobDetailsFragment : Fragment() {
 
             val reviewScoreText = detailedJobsView.findViewById<TextView>(R.id.reviewScore)
 
-
-            if (fullJob.reviewData.isNotEmpty()) {
+                if (fullJob.reviewData.isNotEmpty()) {
                 // get average of all reviews
                 var reviewScoreAverage = 0.0f
                 val reviewCount = fullJob.reviewData.size

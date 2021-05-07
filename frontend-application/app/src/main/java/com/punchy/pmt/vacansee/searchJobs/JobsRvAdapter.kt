@@ -27,6 +27,7 @@ class JobsRvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment
         val jobEmployerName = itemView.findViewById<TextView>(R.id.entryEmployerName)
         val jobDescription = itemView.findViewById<TextView>(R.id.entryJobDescription)
         var jobID = 0
+        val jobSalaryText = itemView.findViewById<TextView>(R.id.entrySalaryText)
         val jobSalaryMin = itemView.findViewById<TextView>(R.id.entrySalaryMin)
         val jobSalaryMax = itemView.findViewById<TextView>(R.id.entrySalaryMax)
     }
@@ -53,7 +54,8 @@ class JobsRvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment
 
         view.jobTitle?.text = jobsList[index].jobTitle
         view.jobEmployerName?.text = jobsList[index].employerName
-        view.jobDescription?.text = Html.fromHtml(jobsList[index].jobDescription, Html.FROM_HTML_MODE_COMPACT)
+        view.jobDescription?.text =
+            Html.fromHtml(jobsList[index].jobDescription, Html.FROM_HTML_MODE_COMPACT)
         view.jobID = jobsList[index].jobId
 
         val url = URL(jobsList[index].logoUrl)
@@ -64,33 +66,25 @@ class JobsRvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment
             view.jobSalaryMin?.text = "TBD"
             view.jobSalaryMax?.visibility = View.GONE
         } else {
+            view.jobSalaryText?.text = "Salary -${jobsList[index].salaryType}:"
             view.jobSalaryMin?.text = "Min: £${jobsList[index].minimumSalary}"
             view.jobSalaryMax?.text = "Max: £${jobsList[index].maximumSalary}"
         }
 
         view.itemView.findViewById<com.google.android.material.card.MaterialCardView>(R.id.card)
             ?.setOnClickListener {
-
-
                 // create the bundle to send to the JobDetails fragment
                 val args = Bundle()
-                args.putString("jobTitle", jobsList[index].jobTitle)
-                args.putString("employerName", jobsList[index].employerName)
-                args.putString("jobDescription", jobsList[index].jobDescription)
-
-                args.putFloat("minSalary", jobsList[index].minimumSalary)
-                args.putFloat("maxSalary", jobsList[index].maximumSalary)
 
                 // args for getting job extra details
                 args.putString("employerName", jobsList[index].employerName)
                 args.putInt("employerId", jobsList[index].employerId)
                 args.putInt("jobId", jobsList[index].jobId)
 
-
                 try {
                     parentFragment.findNavController()
                         .navigate(R.id.action_jobsFragment_to_jobDetailsFragment, args)
-                }catch (e: Exception){
+                } catch (e: Exception) {
                     parentFragment.findNavController()
                         .navigate(R.id.action_profileFragment_to_jobDetailsFragment, args)
                 }
