@@ -10,8 +10,8 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import com.punchy.pmt.vacansee.R
-import com.punchy.pmt.vacansee.financeData
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.DetailedJob
+import com.punchy.pmt.vacansee.searchJobs.httpRequests.FinanceData
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.Job
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.getJobDetails
 import kotlinx.coroutines.CoroutineScope
@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 
 var fullJob = DetailedJob(Job(), mutableListOf(), mutableListOf())
-
+var financeData = listOf<FinanceData>()
 /**
  * A simple [Fragment] subclass.
  * Use the [JobDetailsFragment.newInstance] factory method to
@@ -74,6 +74,11 @@ class JobDetailsFragment : Fragment() {
                 )
             }
             fullJob = task.await()
+            val newFragment: Fragment = FinanceGraph()
+            val fragmentTransaction = childFragmentManager.beginTransaction()
+            fragmentTransaction.replace(R.id.newGraphLayoutView, newFragment)
+            fragmentTransaction.commit()
+
             financeData = fullJob.financeData
 
             jobTitle.text = fullJob.jobDetails.jobTitle

@@ -166,11 +166,12 @@
                 android:textSize="24sp"
                 android:textStyle="bold" />
 
-            <androidx.fragment.app.FragmentContainerView
-                android:id="@+id/fragmentContainerView"
-                android:name="com.punchy.pmt.vacansee.searchJobs.detailedJob.FinanceGraph"
+            <FrameLayout
+                android:id="@+id/newGraphLayoutView"
                 android:layout_width="match_parent"
-                android:layout_height="250dp" />
+                android:layout_height="350dp">
+
+            </FrameLayout>
 
         </LinearLayout>
 

@@ -5,7 +5,6 @@ import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import com.punchy.pmt.vacansee.financeData
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.FinanceData
 import io.data2viz.charts.chart.*
 import io.data2viz.charts.chart.mark.area
