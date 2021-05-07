@@ -41,41 +41,12 @@ class ReviewsRvAdapter(private val reviewsList: MutableList<ReviewData>) :
         view.reviewScoreText?.text = "${reviewsList[index].rating} out of 5.0"
 
         when {
-            reviewsList[index].rating > 0.0f -> {
-                view.reviewStar1.setImageResource(R.drawable.ic_baseline_star_half_24)
-            }
-            reviewsList[index].rating > 0.5f -> {
-                view.reviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
-            }
-            reviewsList[index].rating > 1.0f -> {
-                view.reviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
-                view.reviewStar2.setImageResource(R.drawable.ic_baseline_star_half_24)
-            }
-            reviewsList[index].rating > 1.5f -> {
-                view.reviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
-                view.reviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
-            }
-            reviewsList[index].rating > 2.0f -> {
-                view.reviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
-                view.reviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
-                view.reviewStar3.setImageResource(R.drawable.ic_baseline_star_half_24)
-            }
-            reviewsList[index].rating > 2.5f -> {
-                view.reviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
-                view.reviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
-                view.reviewStar3.setImageResource(R.drawable.ic_baseline_star_24)
-            }
-            reviewsList[index].rating > 3.0f -> {
-                view.reviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
-                view.reviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
-                view.reviewStar3.setImageResource(R.drawable.ic_baseline_star_24)
-                view.reviewStar4.setImageResource(R.drawable.ic_baseline_star_half_24)
-            }
-            reviewsList[index].rating > 3.5f -> {
+            reviewsList[index].rating > 4.5f -> {
                 view.reviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
                 view.reviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
                 view.reviewStar3.setImageResource(R.drawable.ic_baseline_star_24)
                 view.reviewStar4.setImageResource(R.drawable.ic_baseline_star_24)
+                view.reviewStar5.setImageResource(R.drawable.ic_baseline_star_24)
             }
             reviewsList[index].rating > 4.0f -> {
                 view.reviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
@@ -84,12 +55,41 @@ class ReviewsRvAdapter(private val reviewsList: MutableList<ReviewData>) :
                 view.reviewStar4.setImageResource(R.drawable.ic_baseline_star_24)
                 view.reviewStar5.setImageResource(R.drawable.ic_baseline_star_half_24)
             }
-            reviewsList[index].rating > 4.5f -> {
+            reviewsList[index].rating > 3.5f -> {
                 view.reviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
                 view.reviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
                 view.reviewStar3.setImageResource(R.drawable.ic_baseline_star_24)
                 view.reviewStar4.setImageResource(R.drawable.ic_baseline_star_24)
-                view.reviewStar5.setImageResource(R.drawable.ic_baseline_star_24)
+            }
+            reviewsList[index].rating > 3.0f -> {
+                view.reviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                view.reviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
+                view.reviewStar3.setImageResource(R.drawable.ic_baseline_star_24)
+                view.reviewStar4.setImageResource(R.drawable.ic_baseline_star_half_24)
+            }
+            reviewsList[index].rating > 2.5f -> {
+                view.reviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                view.reviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
+                view.reviewStar3.setImageResource(R.drawable.ic_baseline_star_24)
+            }
+            reviewsList[index].rating > 2.0f -> {
+                view.reviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                view.reviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
+                view.reviewStar3.setImageResource(R.drawable.ic_baseline_star_half_24)
+            }
+            reviewsList[index].rating > 1.5f -> {
+                view.reviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                view.reviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
+            }
+            reviewsList[index].rating > 1.0f -> {
+                view.reviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                view.reviewStar2.setImageResource(R.drawable.ic_baseline_star_half_24)
+            }
+            reviewsList[index].rating > 0.5f -> {
+                view.reviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+            }
+            reviewsList[index].rating > 0.0f -> {
+                view.reviewStar1.setImageResource(R.drawable.ic_baseline_star_half_24)
             }
         }
     }
