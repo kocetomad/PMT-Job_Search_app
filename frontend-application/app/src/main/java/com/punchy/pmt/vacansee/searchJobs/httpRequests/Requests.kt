@@ -99,10 +99,6 @@ fun registerAccount(
         if (!response.isSuccessful) throw IOException("Unexpected code $response")
 
         Log.d("Requests", "Register Account Request begin:")
-        for ((name, value) in response.headers) {
-            Log.d("Requests", "$name: $value")
-        }
-
         Log.d("Requests", response.body!!.string())
     }
 }
@@ -144,10 +140,6 @@ fun getJobDetails(employerName: String, employerId: Int, jobId: Int): DetailedJo
     client.newCall(request).execute().use { response ->
         if (!response.isSuccessful) throw IOException("Unexpected code $response")
 
-        for ((name, value) in response.headers) {
-            Log.d("SavedRequests", "$name: $value")
-        }
-
         val job = response.body!!.string()
 
         Log.d("Requests - jobDetails", JSONObject(job).toString())
@@ -186,10 +178,7 @@ fun getSavedJobs(): MutableList<Job> {
     client.newCall(request).execute().use { response ->
         if (!response.isSuccessful) throw IOException("Unexpected code $response")
 
-        Log.d("SavedRequests", "Request begin:")
-        for ((name, value) in response.headers) {
-            Log.d("SavedRequests", "$name: $value")
-        }
+        Log.d("Requests", "Request \"getSavedJobs\" begin:")
 
         val gson = Gson()
         val jobsJSON = response.body!!.string()
@@ -200,7 +189,7 @@ fun getSavedJobs(): MutableList<Job> {
             savedList = gson.fromJson(JSONObject(jobsJSON).get("jobs").toString(), parseTemplate)
 
         }catch (e: Exception){
-            Log.d("SavedRequests", "exceptyion $e")
+            Log.d("SavedRequests", "exception $e")
         }
         Log.d("SavedRequests", "count"+savedList.size)
 
@@ -223,10 +212,7 @@ fun saveJob(jobID: String): Array<String?> {
     client.newCall(request).execute().use { response ->
         if (!response.isSuccessful) throw IOException("Unexpected code $response")
 
-        Log.d("SavedRequests", "Request begin:")
-        for ((name, value) in response.headers) {
-            Log.d("Requests", "$name: $value")
-        }
+        Log.d("Requests", "Request \"saveJob\" begin:")
 
         val responseJSON = response.body!!.string()
 
@@ -257,10 +243,7 @@ fun unpinJob(jobID: String): Array<String?> {
         client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) throw IOException("Unexpected code $response")
 
-            Log.d("unpin", "Request begin:")
-            for ((name, value) in response.headers) {
-                Log.d("unpin0", "$name: $value")
-            }
+            Log.d("Requests", "Request \"unpin\" begin:")
 
             val responseJSON = response.body!!.string()
 

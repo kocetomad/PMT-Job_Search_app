@@ -1,14 +1,17 @@
 package com.punchy.pmt.vacansee.searchJobs.detailedJob
 
 import android.os.Bundle
+import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import com.punchy.pmt.vacansee.R
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.DetailedJob
+import com.punchy.pmt.vacansee.searchJobs.httpRequests.FinanceData
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.Job
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.getJobDetails
 import kotlinx.coroutines.CoroutineScope
@@ -20,6 +23,7 @@ import kotlinx.coroutines.launch
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 
 var fullJob = DetailedJob(Job(), mutableListOf(), mutableListOf())
+var financeData = listOf<FinanceData>()
 /**
  * A simple [Fragment] subclass.
  * Use the [JobDetailsFragment.newInstance] factory method to
@@ -45,19 +49,48 @@ class JobDetailsFragment : Fragment() {
         val jobEmployer = detailedJobsView.findViewById<TextView>(R.id.employerName)
         val jobDescription = detailedJobsView.findViewById<TextView>(R.id.jobDescription)
 
+        val jobSalaryText = detailedJobsView.findViewById<TextView>(R.id.salaryText)
         val jobMinSalary = detailedJobsView.findViewById<TextView>(R.id.jobMinimumSalary)
         val jobMaxSalary = detailedJobsView.findViewById<TextView>(R.id.jobMaximumSalary)
 
+        val jobReviewStar1 = detailedJobsView.findViewById<ImageView>(R.id.star1)
+        val jobReviewStar2 = detailedJobsView.findViewById<ImageView>(R.id.star2)
+        val jobReviewStar3 = detailedJobsView.findViewById<ImageView>(R.id.star3)
+        val jobReviewStar4 = detailedJobsView.findViewById<ImageView>(R.id.star4)
+        val jobReviewStar5 = detailedJobsView.findViewById<ImageView>(R.id.star5)
+
         // Inflate the layout for this fragment
-        val reviewsRecyclerView = detailedJobsView.findViewById<RecyclerView>(R.id.detailedJobReviewsRecyclerView)
+        val reviewsRecyclerView =
+            detailedJobsView.findViewById<RecyclerView>(R.id.detailedJobReviewsRecyclerView)
 
 
         fun loadData() = CoroutineScope(Dispatchers.Main).launch {
 
             val task = async(Dispatchers.IO) {
-                getJobDetails(arguments?.getString("employerName")!!, arguments?.getInt("employerId")!!, arguments?.getInt("jobId")!!)
+                getJobDetails(
+                    arguments?.getString("employerName")!!,
+                    arguments?.getInt("employerId")!!,
+                    arguments?.getInt("jobId")!!
+                )
             }
             fullJob = task.await()
+            val newFragment: Fragment = FinanceGraph()
+            val fragmentTransaction = childFragmentManager.beginTransaction()
+            fragmentTransaction.replace(R.id.newGraphLayoutView, newFragment)
+            fragmentTransaction.commit()
+
+            financeData = fullJob.financeData
+
+            jobTitle.text = fullJob.jobDetails.jobTitle
+            jobEmployer.text = fullJob.jobDetails.employerName
+            jobDescription.text =
+                Html.fromHtml(fullJob.jobDetails.jobDescription, Html.FROM_HTML_MODE_COMPACT)
+
+            jobSalaryText.text = "Salary - ${fullJob.jobDetails.salaryType}"
+
+            jobMinSalary.text = "Minimum expected: £${fullJob.jobDetails.minimumSalary}"
+            jobMaxSalary.text = "Maximum expected: £${fullJob.jobDetails.maximumSalary}"
+
 
             val rvAdapter = ReviewsRvAdapter(fullJob.reviewData)
             reviewsRecyclerView.adapter = rvAdapter
@@ -65,8 +98,7 @@ class JobDetailsFragment : Fragment() {
 
             val reviewScoreText = detailedJobsView.findViewById<TextView>(R.id.reviewScore)
 
-
-            if (fullJob.reviewData.isEmpty()) {
+            if (fullJob.reviewData.isNotEmpty()) {
                 // get average of all reviews
                 var reviewScoreAverage = 0.0f
                 val reviewCount = fullJob.reviewData.size
@@ -76,32 +108,66 @@ class JobDetailsFragment : Fragment() {
 
                 reviewScoreAverage /= reviewCount
                 reviewScoreText.text = "${reviewScoreAverage} out of 5.0"
+
+                // set the stars
+                when {
+                    reviewScoreAverage > 4.5f -> {
+                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar3.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar4.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar5.setImageResource(R.drawable.ic_baseline_star_24)
+                    }
+                    reviewScoreAverage > 4.0f -> {
+                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar3.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar4.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar5.setImageResource(R.drawable.ic_baseline_star_half_24)
+                    }
+                    reviewScoreAverage > 3.5f -> {
+                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar3.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar4.setImageResource(R.drawable.ic_baseline_star_24)
+                    }
+                    reviewScoreAverage > 3.0f -> {
+                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar3.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar4.setImageResource(R.drawable.ic_baseline_star_half_24)
+                    }
+                    reviewScoreAverage > 2.5f -> {
+                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar3.setImageResource(R.drawable.ic_baseline_star_24)
+                    }
+                    reviewScoreAverage > 2.0f -> {
+                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar3.setImageResource(R.drawable.ic_baseline_star_half_24)
+                    }
+                    reviewScoreAverage > 1.5f -> {
+                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
+                    }
+                    reviewScoreAverage > 1.0f -> {
+                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_half_24)
+                    }
+                    reviewScoreAverage > 0.5f -> {
+                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                    }
+                    reviewScoreAverage > 0.0f -> {
+                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_half_24)
+                    }
+                }
             } else {
                 reviewScoreText.text = "No reviews."
             }
 
         }
         loadData()
-
-        // review data stuff
-        val reviewScoreText = detailedJobsView.findViewById<TextView>(R.id.reviewScore)
-
-
-//        val jobId = arguments?.getString("jobId")
-//        val employerId = arguments?.getString("employerId")
-//        val employerName = arguments?.getString("employerName")
-
-
-        jobTitle.text = arguments?.getString("jobTitle")
-        jobEmployer.text = arguments?.getString("employerName")
-        jobDescription.text = arguments?.getString("jobDescription")
-
-        jobMinSalary.text = "Minimum expected: £${arguments?.getFloat("minSalary")}"
-        jobMaxSalary.text = "Maximum expected: £${arguments?.getFloat("maxSalary")}"
-
-
-        val rvAdapter = ReviewsRvAdapter(fullJob.reviewData)
-        reviewsRecyclerView.adapter = rvAdapter
 
         return detailedJobsView
     }
