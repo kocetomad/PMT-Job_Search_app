@@ -17,12 +17,9 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.punchy.pmt.vacansee.searchJobs.JobsRvAdapter
-import com.punchy.pmt.vacansee.searchJobs.httpRequests.getSavedJobs
+import com.punchy.pmt.vacansee.searchJobs.*
+import com.punchy.pmt.vacansee.searchJobs.httpRequests.*
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.saveJob
-import com.punchy.pmt.vacansee.searchJobs.jobsList
-import com.punchy.pmt.vacansee.searchJobs.savedItems
-import com.punchy.pmt.vacansee.searchJobs.touchDown
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -36,6 +33,8 @@ import java.lang.Exception
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
+var savedJobsList = mutableListOf<Job>()
+var pinnedTouchDown = true
 
 /**
  * A simple [Fragment] subclass.
@@ -98,125 +97,133 @@ class ProfileFragment : Fragment() {
         }
 
         fun loadData(parentFragment: Fragment) = CoroutineScope(Dispatchers.Main).launch {
-            bottomSheetView.findViewById<TextView>(R.id.savedJobsErrorText).text =
-                "Couldn't connect to wooow"
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+
             val task = async(Dispatchers.IO) {
                 getSavedJobs()
             }
-            jobsList = task.await()
-            val rvAdapter = JobsRvAdapter(jobsList, parentFragment)
-            profileRecycler.adapter = rvAdapter
-            Log.d("jobsList","jobs" + jobsList[0].employerName)
+            savedJobsList = task.await()
 
-            val backdropTitle = bottomSheetView.findViewById<TextView>(R.id.savedJobsBackdropTitle)
-            backdropTitle.text = "Saved jobs found (${jobsList.size})"
-            bottomSheetView.findViewById<ProgressBar>(R.id.savedJobsProgressBar).visibility = View.GONE
-            rvAdapter.notifyDataSetChanged()
+                val rvAdapter = JobsRvAdapter(savedJobsList, parentFragment)
+                profileRecycler.adapter = rvAdapter
+                Log.d("savedJobsList", "jobs" + savedJobsList[0].employerName)
 
-            var saveColor = Color.rgb(3f, 218f, 198f)
-            //Save to swipe logic
-            val myCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
-                override fun onMove(
-                    recyclerView: RecyclerView,
-                    viewHolder: RecyclerView.ViewHolder,
-                    target: RecyclerView.ViewHolder
-                ): Boolean = false
+                val backdropTitle =
+                    bottomSheetView.findViewById<TextView>(R.id.savedJobsBackdropTitle)
+                backdropTitle.text = "Saved jobs found (${savedJobsList.size})"
+                bottomSheetView.findViewById<ProgressBar>(R.id.savedJobsProgressBar).visibility =
+                    View.GONE
+                rvAdapter.notifyDataSetChanged()
 
-                override fun onSwiped(
-                    viewHolder: RecyclerView.ViewHolder,
-                    direction: Int
-                ) {
-                    // More code here
-                    touchDown = false
-                    rvAdapter.notifyItemChanged(viewHolder.adapterPosition)
-                    savedItems.add(viewHolder.adapterPosition)
+                val saveColor = Color.rgb(183f, 28f, 28f)
+                //Save to swipe logic
+                val myCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
+                    override fun onMove(
+                        recyclerView: RecyclerView,
+                        viewHolder: RecyclerView.ViewHolder,
+                        target: RecyclerView.ViewHolder
+                    ): Boolean = false
 
-                    fun assSave() = CoroutineScope(Dispatchers.Main).launch {
-                        val save = async(Dispatchers.IO) {
-                            saveJob(jobsList.get(viewHolder.adapterPosition).jobId.toString())
-                        }
-                        val aSave = save.await()
-                    }
-                    assSave()
+                    override fun onSwiped(
+                        viewHolder: RecyclerView.ViewHolder,
+                        direction: Int
+                    ) {
+                        // More code here
+                        pinnedTouchDown = false
 
-
-                    Toast.makeText(context, "Job saved", Toast.LENGTH_SHORT).show()
-                    return
-                }
-
-                override fun onChildDraw(
-                    c: Canvas,
-                    recyclerView: RecyclerView,
-                    viewHolder: RecyclerView.ViewHolder,
-                    dX: Float,
-                    dY: Float,
-                    actionState: Int,
-                    isCurrentlyActive: Boolean
-                ) {
-                    // More code here
-                    for (item in savedItems) {
-                        if (viewHolder.adapterPosition == item) {
-                            if (touchDown) {
-                                touchDown = false
+                        fun assSave() = CoroutineScope(Dispatchers.Main).launch {
+                            val save = async(Dispatchers.IO) {
+                                unpinJob(savedJobsList.get(viewHolder.adapterPosition).jobId.toString())
                             }
-                            return
-                        }
-                    }
-                    c.clipRect(
-                        15f, viewHolder.itemView.top.toFloat() + 20f,
-                        dX + 50f, viewHolder.itemView.bottom.toFloat() - 20f
-                    )
+                            val aSave = save.await()
+                            //rvAdapter?.notifyItemRemoved(viewHolder.adapterPosition)
 
-                    //making the save thingy change color
-                    if (218f + (dX / 5000) <= 255f && 198f + (dX / 5000) <= 255f) {
-                        saveColor = Color.rgb(3f, 218f + (dX / 5000), 198f + (dX / 5000))
-                    }
-                    c.drawColor(saveColor)
-                    val textMargin = 100
-                    trashBinIcon.bounds = Rect(
-                        textMargin,
-                        viewHolder.itemView.top + (dX * 1.5).toInt() + textMargin,
-                        textMargin + trashBinIcon.intrinsicWidth,
-                        viewHolder.itemView.top + (dX * 1.5).toInt() + trashBinIcon.intrinsicHeight
-                                + textMargin
-                    )
-                    trashBinIcon.draw(c)
-                    if (dX >= 214) {//SAVE THRESHOLD
-                        if (touchDown) {
-                            fun assSave() = CoroutineScope(Dispatchers.Main).launch {
-                                val save = async(Dispatchers.IO) {
-                                    saveJob( jobsList.get(viewHolder.adapterPosition).jobId.toString())
-                                }
-                                val aSave = save.await()
-                            }
-                            assSave()
-
-                            println("limit hit")
-                            Toast.makeText(context, "Job saved", Toast.LENGTH_SHORT).show()
-                            touchDown = false
-                            rvAdapter.notifyItemChanged(viewHolder.adapterPosition)
-                            savedItems.add(viewHolder.adapterPosition)
                         }
+                        assSave()
+                        rvAdapter?.notifyItemChanged(viewHolder.adapterPosition)
+                        savedJobsList.removeAt(viewHolder.adapterPosition)
+                        val rvAdapter = JobsRvAdapter(savedJobsList, parentFragment)
+                        profileRecycler.adapter = rvAdapter
+
+
+                        Toast.makeText(context, "Job saved", Toast.LENGTH_SHORT).show()
                         return
+                    }
+
+                    override fun onChildDraw(
+                        c: Canvas,
+                        recyclerView: RecyclerView,
+                        viewHolder: RecyclerView.ViewHolder,
+                        dX: Float,
+                        dY: Float,
+                        actionState: Int,
+                        isCurrentlyActive: Boolean
+                    ) {
+                        // More code here
+                        if (touchDown) {
+                            touchDown = false
+                        }
+                            c.clipRect(
+                                15f, viewHolder.itemView.top.toFloat() + 20f,
+                                dX + 50f, viewHolder.itemView.bottom.toFloat() - 20f
+                            )
+
+                            //making the save thingy change color
+
+                            c.drawColor(saveColor)
+                            val textMargin = 100
+                            trashBinIcon.bounds = Rect(
+                                textMargin,
+                                viewHolder.itemView.top + (dX * 1.5).toInt() + textMargin,
+                                textMargin + trashBinIcon.intrinsicWidth,
+                                viewHolder.itemView.top + (dX * 1.5).toInt() + trashBinIcon.intrinsicHeight
+                                        + textMargin
+                            )
+                            trashBinIcon.draw(c)
+                            if (dX >= 214) {//SAVE THRESHOLD
+                                if (pinnedTouchDown) {
+                                    fun assSave() = CoroutineScope(Dispatchers.Main).launch {
+                                        val save = async(Dispatchers.IO) {
+                                            unpinJob(savedJobsList.get(viewHolder.adapterPosition).jobId.toString())
+                                        }
+                                        val aSave = save.await()
+                                    }
+                                    assSave()
+                                    rvAdapter?.notifyItemChanged(viewHolder.adapterPosition)
+                                    savedJobsList.removeAt(viewHolder.adapterPosition)
+                                    val rvAdapter = JobsRvAdapter(savedJobsList, parentFragment)
+                                    profileRecycler.adapter = rvAdapter
+
+
+
+                                    println("limit hit")
+                                    Toast.makeText(context, "Job saved", Toast.LENGTH_SHORT).show()
+                                    pinnedTouchDown = false
+
+                                }
+                                return
+
+                            }
+                            super.onChildDraw(
+                                c, recyclerView, viewHolder,
+                                dX, dY, actionState, isCurrentlyActive
+                            )
 
                     }
-                    super.onChildDraw(
-                        c, recyclerView, viewHolder,
-                        dX, dY, actionState, isCurrentlyActive
-                    )
+
+
                 }
+                val myHelper = ItemTouchHelper(myCallback)
+                myHelper.attachToRecyclerView(profileRecycler)
 
 
-            }
-            val myHelper = ItemTouchHelper(myCallback)
-            myHelper.attachToRecyclerView(profileRecycler)
+                bottomSheetView.findViewById<LinearLayout>(R.id.savedJobsErrorView).visibility =
+                    View.GONE
 
-
-            bottomSheetView.findViewById<LinearLayout>(R.id.savedJobsErrorView).visibility = View.GONE
         }
         loadData(this)
 
-        if (jobsList.isEmpty()) {
+        if (savedJobsList.isEmpty()) {
             // get progress bar and hide it after the jobs load.
             bottomSheetView.findViewById<ProgressBar>(R.id.savedJobsProgressBar).visibility = View.VISIBLE
 
@@ -230,10 +237,10 @@ class ProfileFragment : Fragment() {
         }
 
         val backdropTitle = bottomSheetView.findViewById<TextView>(R.id.savedJobsBackdropTitle)
-        backdropTitle.text = "Saved jobs found (${jobsList.size})"
+        backdropTitle.text = "Saved jobs found (${savedJobsList.size})"
 
 //        pass the values to RvAdapter
-        val rvAdapter = JobsRvAdapter(jobsList, this)
+        val rvAdapter = JobsRvAdapter(savedJobsList, this)
 
 //        set the recyclerView to the adapter
         profileRecycler.adapter = rvAdapter
@@ -241,11 +248,11 @@ class ProfileFragment : Fragment() {
         profileRecycler.setOnTouchListener({ v, event ->
             if (MotionEvent.ACTION_UP == event.action) {
                 println("Up")
-                touchDown = false
+                pinnedTouchDown = false
             }
             if (MotionEvent.ACTION_DOWN == event.action) {
                 println("Down")
-                touchDown = true
+                pinnedTouchDown = true
             }
             false // return is important...
         })

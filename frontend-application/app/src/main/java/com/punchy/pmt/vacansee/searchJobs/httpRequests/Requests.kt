@@ -145,7 +145,7 @@ fun getJobDetails(employerName: String, employerId: Int, jobId: Int): DetailedJo
         if (!response.isSuccessful) throw IOException("Unexpected code $response")
 
         for ((name, value) in response.headers) {
-            Log.d("Requests", "$name: $value")
+            Log.d("SavedRequests", "$name: $value")
         }
 
         val job = response.body!!.string()
@@ -186,9 +186,9 @@ fun getSavedJobs(): MutableList<Job> {
     client.newCall(request).execute().use { response ->
         if (!response.isSuccessful) throw IOException("Unexpected code $response")
 
-        Log.d("Requests", "Request begin:")
+        Log.d("SavedRequests", "Request begin:")
         for ((name, value) in response.headers) {
-            Log.d("Requests", "$name: $value")
+            Log.d("SavedRequests", "$name: $value")
         }
 
         val gson = Gson()
@@ -223,7 +223,7 @@ fun saveJob(jobID: String): Array<String?> {
     client.newCall(request).execute().use { response ->
         if (!response.isSuccessful) throw IOException("Unexpected code $response")
 
-        Log.d("Requests", "Request begin:")
+        Log.d("SavedRequests", "Request begin:")
         for ((name, value) in response.headers) {
             Log.d("Requests", "$name: $value")
         }
