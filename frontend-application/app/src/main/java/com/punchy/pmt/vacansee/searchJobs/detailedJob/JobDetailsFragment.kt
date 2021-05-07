@@ -5,6 +5,7 @@ import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
@@ -52,6 +53,12 @@ class JobDetailsFragment : Fragment() {
         val jobMinSalary = detailedJobsView.findViewById<TextView>(R.id.jobMinimumSalary)
         val jobMaxSalary = detailedJobsView.findViewById<TextView>(R.id.jobMaximumSalary)
 
+        val jobReviewStar1 = detailedJobsView.findViewById<ImageView>(R.id.star1)
+        val jobReviewStar2 = detailedJobsView.findViewById<ImageView>(R.id.star2)
+        val jobReviewStar3 = detailedJobsView.findViewById<ImageView>(R.id.star3)
+        val jobReviewStar4 = detailedJobsView.findViewById<ImageView>(R.id.star4)
+        val jobReviewStar5 = detailedJobsView.findViewById<ImageView>(R.id.star5)
+
         // Inflate the layout for this fragment
         val reviewsRecyclerView =
             detailedJobsView.findViewById<RecyclerView>(R.id.detailedJobReviewsRecyclerView)
@@ -75,7 +82,7 @@ class JobDetailsFragment : Fragment() {
 
             val reviewScoreText = detailedJobsView.findViewById<TextView>(R.id.reviewScore)
 
-                if (fullJob.reviewData.isNotEmpty()) {
+            if (fullJob.reviewData.isNotEmpty()) {
                 // get average of all reviews
                 var reviewScoreAverage = 0.0f
                 val reviewCount = fullJob.reviewData.size
@@ -85,6 +92,60 @@ class JobDetailsFragment : Fragment() {
 
                 reviewScoreAverage /= reviewCount
                 reviewScoreText.text = "${reviewScoreAverage} out of 5.0"
+
+                // set the stars
+                when {
+                    reviewScoreAverage > 4.5f -> {
+                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar3.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar4.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar5.setImageResource(R.drawable.ic_baseline_star_24)
+                    }
+                    reviewScoreAverage > 4.0f -> {
+                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar3.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar4.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar5.setImageResource(R.drawable.ic_baseline_star_half_24)
+                    }
+                    reviewScoreAverage > 3.5f -> {
+                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar3.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar4.setImageResource(R.drawable.ic_baseline_star_24)
+                    }
+                    reviewScoreAverage > 3.0f -> {
+                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar3.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar4.setImageResource(R.drawable.ic_baseline_star_half_24)
+                    }
+                    reviewScoreAverage > 2.5f -> {
+                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar3.setImageResource(R.drawable.ic_baseline_star_24)
+                    }
+                    reviewScoreAverage > 2.0f -> {
+                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar3.setImageResource(R.drawable.ic_baseline_star_half_24)
+                    }
+                    reviewScoreAverage > 1.5f -> {
+                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
+                    }
+                    reviewScoreAverage > 1.0f -> {
+                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                        jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_half_24)
+                    }
+                    reviewScoreAverage > 0.5f -> {
+                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                    }
+                    reviewScoreAverage > 0.0f -> {
+                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_half_24)
+                    }
+                }
             } else {
                 reviewScoreText.text = "No reviews."
             }
