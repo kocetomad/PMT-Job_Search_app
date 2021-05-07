@@ -83,8 +83,8 @@ class JobDetailsFragment : Fragment() {
 
             jobSalaryText.text = "Salary - ${fullJob.jobDetails.salaryType}"
 
-            jobMinSalary.text = "Minimum expected: £${arguments?.getFloat("minSalary")}"
-            jobMaxSalary.text = "Maximum expected: £${arguments?.getFloat("maxSalary")}"
+            jobMinSalary.text = "Minimum expected: £${fullJob.jobDetails.minimumSalary}"
+            jobMaxSalary.text = "Maximum expected: £${fullJob.jobDetails.maximumSalary}"
 
 
             val rvAdapter = ReviewsRvAdapter(fullJob.reviewData)
