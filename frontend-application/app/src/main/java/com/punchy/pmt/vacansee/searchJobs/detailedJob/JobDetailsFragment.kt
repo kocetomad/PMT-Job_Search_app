@@ -76,6 +76,17 @@ class JobDetailsFragment : Fragment() {
             fullJob = task.await()
             financeData = fullJob.financeData
 
+            jobTitle.text = fullJob.jobDetails.jobTitle
+            jobEmployer.text = fullJob.jobDetails.employerName
+            jobDescription.text =
+                Html.fromHtml(fullJob.jobDetails.jobDescription, Html.FROM_HTML_MODE_COMPACT)
+
+            jobSalaryText.text = "Salary - ${fullJob.jobDetails.salaryType}"
+
+            jobMinSalary.text = "Minimum expected: £${arguments?.getFloat("minSalary")}"
+            jobMaxSalary.text = "Maximum expected: £${arguments?.getFloat("maxSalary")}"
+
+
             val rvAdapter = ReviewsRvAdapter(fullJob.reviewData)
             reviewsRecyclerView.adapter = rvAdapter
             rvAdapter.notifyDataSetChanged()
@@ -152,21 +163,6 @@ class JobDetailsFragment : Fragment() {
 
         }
         loadData()
-
-
-        jobTitle.text = fullJob.jobDetails.jobTitle
-        jobEmployer.text = fullJob.jobDetails.employerName
-        jobDescription.text =
-            Html.fromHtml(fullJob.jobDetails.jobDescription, Html.FROM_HTML_MODE_COMPACT)
-
-        jobSalaryText.text = "Salary - ${fullJob.jobDetails.salaryType}"
-
-        jobMinSalary.text = "Minimum expected: £${arguments?.getFloat("minSalary")}"
-        jobMaxSalary.text = "Maximum expected: £${arguments?.getFloat("maxSalary")}"
-
-
-        val rvAdapter = ReviewsRvAdapter(fullJob.reviewData)
-        reviewsRecyclerView.adapter = rvAdapter
 
         return detailedJobsView
     }
