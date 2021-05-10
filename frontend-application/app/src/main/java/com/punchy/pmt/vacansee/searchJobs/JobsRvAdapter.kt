@@ -4,6 +4,7 @@ import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.StrictMode
 import android.text.Html
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,7 +14,16 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.punchy.pmt.vacansee.R
+import com.punchy.pmt.vacansee.searchJobs.detailedJob.FinanceGraph
+import com.punchy.pmt.vacansee.searchJobs.detailedJob.ReviewsRvAdapter
+import com.punchy.pmt.vacansee.searchJobs.detailedJob.financeData
+import com.punchy.pmt.vacansee.searchJobs.detailedJob.fullJob
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.Job
+import com.punchy.pmt.vacansee.searchJobs.httpRequests.getJobDetails
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import java.net.URL
 
 
@@ -59,8 +69,18 @@ class JobsRvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment
         view.jobID = jobsList[index].jobId
 
         val url = URL(jobsList[index].logoUrl)
-        val bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream())
-        view.image.setImageBitmap(bmp)
+
+//        val bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream())
+
+        fun loadImage() = CoroutineScope(Dispatchers.Main).launch {
+            val task = async(Dispatchers.IO) {
+                BitmapFactory.decodeStream(url.openConnection().getInputStream())
+            }
+
+            val bmp = task.await()
+            view.image.setImageBitmap(bmp)
+        }
+        loadImage()
 
         if (jobsList[index].minimumSalary == -1f && jobsList[index].maximumSalary == -1f) {
             view.jobSalaryMin?.text = "TBD"
