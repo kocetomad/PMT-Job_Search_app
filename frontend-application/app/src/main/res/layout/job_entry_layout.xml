@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView android:id="@+id/card"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
-    card_view:cardUseCompatPadding="true"
-    card_view:cardElevation="4dp"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:transitionName="email_card_transition_nameHOME"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:transitionName="email_card_transition_name_email.id"
+    card_view:cardElevation="4dp"
+    card_view:cardUseCompatPadding="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -27,7 +28,7 @@
         <ImageView
             android:id="@+id/quality_image"
             android:layout_width="match_parent"
-            android:layout_height="194dp"
+            android:layout_height="100dp"
             android:scaleType="centerCrop"
             app:srcCompat="@drawable/ic_baseline_android_24" />
 
@@ -38,32 +39,82 @@
             android:padding="16dp">
 
             <!-- Title, secondary and supporting text -->
-            <TextView
-                android:id="@+id/entryJobTitle"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Engineer"
-                android:textAppearance="?attr/textAppearanceHeadline6"
-                android:textSize="32sp" />
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/entryJobTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:maxLines="2"
+                        android:minLines="1"
+                        android:text="Engineer"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/entryEmployerName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:maxLines="1"
+                        android:minLines="1"
+                        android:paddingVertical="4dp"
+                        android:text="some employer"
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/entrySalaryText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Salary - per annum:"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/entrySalaryMin"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="right"
+                        android:text="Min: $500"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/entrySalaryMax"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Max: $1000"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+            </LinearLayout>
 
             <TextView
-                android:id="@+id/entryEmployerName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="some employer"
-                android:textAppearance="?attr/textAppearanceBody2"
-                android:textColor="?android:attr/textColorSecondary"
-                android:textSize="24sp" />
-
-            <TextView
+                android:id="@+id/entryJobDescription"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="other text"
-                android:textAppearance="?attr/textAppearanceBody2"
+                android:ellipsize="end"
+                android:maxLines="3"
+                android:minLines="1"
+                android:singleLine="false"
+                android:text="job description"
                 android:textColor="?android:attr/textColorSecondary"
-                android:textSize="24sp" />
+                android:textSize="12sp" />
 
         </LinearLayout>
     </LinearLayout>

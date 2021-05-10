@@ -4,23 +4,24 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.MotionEvent
-import android.view.View
-import android.view.ViewGroup
-import android.widget.LinearLayout
-import android.widget.TextView
-import android.widget.Toast
+import android.view.*
+import android.view.View.OnTouchListener
+import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.punchy.pmt.vacansee.R
-import java.net.URL
-import javax.net.ssl.HttpsURLConnection
+import com.punchy.pmt.vacansee.searchJobs.httpRequests.Job
+import com.punchy.pmt.vacansee.searchJobs.httpRequests.getJobs
+import com.punchy.pmt.vacansee.searchJobs.httpRequests.saveJob
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 
 
 // TODO: Rename parameter arguments, choose names that match
@@ -29,7 +30,9 @@ private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
 var savedItems: MutableList<Int> = mutableListOf()
 var touchDown = true
+var jobsList = mutableListOf<Job>()
 
+var searchParam = "job" // uses "job" as placeholder
 
 /**
  * A simple [Fragment] subclass.
@@ -41,12 +44,46 @@ class JobsFragment : Fragment() {
     private var param1: String? = null
     private var param2: String? = null
 
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+
+        super.onCreate(savedInstanceState);
+        setRetainInstance(true);
+
+
+        // remove action bar shadow
+        (activity as AppCompatActivity?)!!.supportActionBar?.elevation = 0f
+
+        // don't destroy the contents when switching fragments
+        retainInstance = true
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // add options menu support for action bar
+        setHasOptionsMenu(true)
+
         arguments?.let {
             param1 = it.getString(ARG_PARAM1)
             param2 = it.getString(ARG_PARAM2)
         }
+    }
+
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.profile_menu, menu)
+
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
+        R.id.profileButton -> {
+            findNavController().navigate(R.id.action_jobsFragment_to_profileFragment)
+            true
+        }
+
+        else -> super.onOptionsItemSelected(item)
     }
 
     override fun onCreateView(
@@ -60,8 +97,8 @@ class JobsFragment : Fragment() {
 
         val jobsView: View = inflater.inflate(R.layout.fragment_jobs, container, false)
 
-        val backdropView = jobsView.findViewById<LinearLayout>(R.id.jobsBackdropView)
-        val bottomSheetBehavior = BottomSheetBehavior.from(backdropView)
+        val bottomSheetView = jobsView.findViewById<LinearLayout>(R.id.jobsForegroundView)
+        val bottomSheetBehavior = BottomSheetBehavior.from(bottomSheetView)
 
         // set bottom sheet state as expanded by default
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
@@ -75,145 +112,225 @@ class JobsFragment : Fragment() {
             LinearLayoutManager.VERTICAL,
             false
         )
-        val gson = Gson()//Json converter
-        var jobsList = mutableListOf<Job>()
-        fun sendGet() {
-            val url = URL("https://56bea244b45d.ngrok.io/api/jobs?search=developer")
 
-            with(url.openConnection() as HttpsURLConnection) {
-                requestMethod = "GET"  // optional default is GET
-                println("\nSent 'GET' request to URL : $url; Response Code : $responseCode")
-                val parseTemplate = object : TypeToken<MutableList<Job>>() {}.type //https://bezkoder.com/kotlin-parse-json-gson/
-                inputStream.bufferedReader().use {
-                    it.lines().forEach { line ->
-                        println(line)
-                        jobsList = gson.fromJson(line, parseTemplate)
-                        jobsList.forEachIndexed  { idx, tut -> println("> Item ${idx}:\n${tut}") }
-                    }
-                }
+
+        fun loadData(searchParam: String, parentFragment: Fragment) = CoroutineScope(Dispatchers.Main).launch {
+            bottomSheetView.findViewById<TextView>(R.id.errorText).text =
+                "Loading jobs..."
+
+            val task = async(Dispatchers.IO) {
+                getJobs(searchParam)
             }
+            jobsList = task.await()
+            val rvAdapter = JobsRvAdapter(jobsList, parentFragment)
+            jobsRecyclerView.adapter = rvAdapter
+
+            val backdropTitle = bottomSheetView.findViewById<TextView>(R.id.jobsBackdropTitle)
+            backdropTitle.text = "Jobs found (${jobsList.size})"
+            bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility = View.GONE
+            rvAdapter.notifyDataSetChanged()
+
+            var saveColor = Color.rgb(3f, 218f, 198f)
+
+            //Save to swipe logic
+            val myCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
+                override fun onMove(
+                    recyclerView: RecyclerView,
+                    viewHolder: RecyclerView.ViewHolder,
+                    target: RecyclerView.ViewHolder
+                ): Boolean = false
+
+                override fun onSwiped(
+                    viewHolder: RecyclerView.ViewHolder,
+                    direction: Int
+                ) {
+                    // More code here
+                    touchDown = false
+                    rvAdapter.notifyItemChanged(viewHolder.adapterPosition)
+                    savedItems.add(viewHolder.adapterPosition)
+
+                    fun assSave() = CoroutineScope(Dispatchers.Main).launch {
+                        val save = async(Dispatchers.IO) {
+                            saveJob(jobsList.get(viewHolder.adapterPosition).jobId.toString())
+                        }
+                        val aSave = save.await()
+                        if(aSave != null){
+                            jobsList.get(viewHolder.adapterPosition).setSaved()
+                        }
+                    }
+                    assSave()
+
+                    if(jobsList.get(viewHolder.adapterPosition).saved == false){
+                        Toast.makeText(context, "Job saved", Toast.LENGTH_SHORT).show()
+                    }
+                    return
+                }
+
+                override fun onChildDraw(
+                    c: Canvas,
+                    recyclerView: RecyclerView,
+                    viewHolder: RecyclerView.ViewHolder,
+                    dX: Float,
+                    dY: Float,
+                    actionState: Int,
+                    isCurrentlyActive: Boolean
+                ) {
+                    // More code here
+                    for (item in savedItems) {
+                        if (viewHolder.adapterPosition == item) {
+                            if (touchDown) {
+                                touchDown = false
+                            }
+                            return
+                        }
+                    }
+                    c.clipRect(
+                        15f, viewHolder.itemView.top.toFloat() + 20f,
+                        dX + 50f, viewHolder.itemView.bottom.toFloat() - 20f
+                    )
+
+                    //making the save thingy change color
+                    if (218f + (dX / 5000) <= 255f && 198f + (dX / 5000) <= 255f) {
+                        saveColor = Color.rgb(3f, 218f + (dX / 5000), 198f + (dX / 5000))
+                    }
+                    c.drawColor(saveColor)
+                    val textMargin = 100
+                    trashBinIcon.bounds = Rect(
+                        textMargin,
+                        viewHolder.itemView.top + (dX * 1.5).toInt() + textMargin,
+                        textMargin + trashBinIcon.intrinsicWidth,
+                        viewHolder.itemView.top + (dX * 1.5).toInt() + trashBinIcon.intrinsicHeight
+                                + textMargin
+                    )
+                    trashBinIcon.draw(c)
+                    if (dX >= 214) {//SAVE THRESHOLD
+                        if (touchDown) {
+                            fun assSave() = CoroutineScope(Dispatchers.Main).launch {
+                                val save = async(Dispatchers.IO) {
+                                    saveJob(jobsList.get(viewHolder.adapterPosition).jobId.toString())
+                                }
+                                val aSave = save.await()
+                                if(aSave != null){
+                                    jobsList.get(viewHolder.adapterPosition).setSaved()
+                                }
+                            }
+                            assSave()
+
+                            println("limit hit")
+                            if(jobsList.get(viewHolder.adapterPosition).saved == false){
+                                Toast.makeText(context, "Job saved", Toast.LENGTH_SHORT).show()
+                            }
+                            touchDown = false
+                            rvAdapter.notifyItemChanged(viewHolder.adapterPosition)
+                            savedItems.add(viewHolder.adapterPosition)
+                        }
+                        return
+
+                    }
+                    super.onChildDraw(
+                        c, recyclerView, viewHolder,
+                        dX, dY, actionState, isCurrentlyActive
+                    )
+                }
+
+
+            }
+            val myHelper = ItemTouchHelper(myCallback)
+            myHelper.attachToRecyclerView(jobsRecyclerView)
+
+
+            bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility = View.GONE
         }
-        sendGet()
+        loadData(searchParam,this)
 
 
+        if (jobsList.isEmpty()) {
+            // get progress bar and hide it after the jobs load.
+            bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility =
+                View.VISIBLE
 
+            // get error view and make it visible if the fetching fails
+            bottomSheetView.findViewById<TextView>(R.id.errorText).text =
+                "Couldn't connect to endpoint"
+            bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility = View.VISIBLE
+        } else {
+            // get progress bar and hide it after the jobs load.
+            bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility = View.GONE
+        }
 
-
-//        Create an arraylist
-//        jobsList.add(Job("Junior Software Engineer", "Berzerker Electronics", 1500f, "Job desc job desc job desc job desc"))
-//        jobsList.add(Job("Hammer-Time worker", "The Old Fashion", 3500f, "Job desc job desc job desc job desc"))
-//        jobsList.add(Job("Professional Wanker", "WhoKnowsUs", 500f, "Job desc job desc job desc job desc"))
-
-        val backdropTitle = backdropView.findViewById<TextView>(R.id.jobsBackdropTitle)
+        val backdropTitle = bottomSheetView.findViewById<TextView>(R.id.jobsBackdropTitle)
         backdropTitle.text = "Jobs found (${jobsList.size})"
 
 //        pass the values to RvAdapter
-        val rvAdapter = RvAdapter(jobsList, this)
+        val rvAdapter = JobsRvAdapter(jobsList, this)
 
 //        set the recyclerView to the adapter
         jobsRecyclerView.adapter = rvAdapter
 
         jobsRecyclerView.setOnTouchListener({ v, event ->
             if (MotionEvent.ACTION_UP == event.action) {
-                println("Up")
                 touchDown = false
             }
             if (MotionEvent.ACTION_DOWN == event.action) {
-                println("Down")
                 touchDown = true
             }
             false // return is important...
         })
-        val saveColor = Color.parseColor("#03DAC6")
-        val myCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
-            override fun onMove(
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-                target: RecyclerView.ViewHolder
-            ): Boolean = false
 
-            override fun onSwiped(
-                viewHolder: RecyclerView.ViewHolder,
-                direction: Int
-            ) {
-                println(direction)
-                // More code here
-                touchDown = false
-                rvAdapter?.notifyItemChanged(viewHolder.adapterPosition)
-                savedItems.add(viewHolder.adapterPosition)
-                Toast.makeText(context, "Job saved", Toast.LENGTH_SHORT).show()
-                return
-            }
+        // add ENTER listener on Search EditText
+        val searchBox = jobsView.findViewById<EditText>(R.id.searchJobsBox)
+        searchBox.setOnKeyListener(View.OnKeyListener { v, keyCode, event ->
+            if (keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_UP) {
+                    if(searchBox.text.isNotBlank()) {
+                        jobsList = mutableListOf()
+                        rvAdapter.notifyDataSetChanged()
 
-            override fun onChildDraw(
-                c: Canvas,
-                recyclerView: RecyclerView,
-                viewHolder: RecyclerView.ViewHolder,
-                dX: Float,
-                dY: Float,
-                actionState: Int,
-                isCurrentlyActive: Boolean
-            ) {
-                // More code here
-                for (item in savedItems) {
-                    if (viewHolder.adapterPosition == item) {
-                        if (touchDown) {
-                            touchDown = false
-                        }
-                        return
+                        bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility =
+                            View.VISIBLE
+
+                        bottomSheetView.findViewById<TextView>(R.id.errorText).text =
+                            "Loading jobs..."
+                        bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility = View.VISIBLE
+
+                        bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+
+                        loadData(searchBox.text.toString(), this)
                     }
-                }
-                c.clipRect(
-                    15f, viewHolder.itemView.top.toFloat() + 20f,
-                    dX + 50f, viewHolder.itemView.bottom.toFloat() - 20f
-                )
-
-                c.drawColor(saveColor)
-                val textMargin = 100
-                trashBinIcon.bounds = Rect(
-                    textMargin,
-                    viewHolder.itemView.top + textMargin,
-                    textMargin + trashBinIcon.intrinsicWidth,
-                    viewHolder.itemView.top + trashBinIcon.intrinsicHeight
-                            + textMargin
-                )
-                trashBinIcon.draw(c)
-                if (dX >= 214) {//SAVE THRESHOLD
-                    if (touchDown) {
-                        println("limit hit")
-                        Toast.makeText(context, "Job saved", Toast.LENGTH_SHORT).show()
-                        touchDown = false
-                        rvAdapter?.notifyItemChanged(viewHolder.adapterPosition)
-                        savedItems.add(viewHolder.adapterPosition)
-                    }
-                    return
-
-                }
-                super.onChildDraw(
-                    c, recyclerView, viewHolder,
-                    dX, dY, actionState, isCurrentlyActive
-                )
+                return@OnKeyListener true
             }
+            false
+        })
+        searchBox.setOnTouchListener(OnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_UP) {
+                if (event.rawX >= (searchBox.right - searchBox.compoundDrawables[2].bounds.width())) {
+                    // your action for drawable click event
+                    if(searchBox.text.isNotBlank()) {
+                        jobsList = mutableListOf()
+                        rvAdapter.notifyDataSetChanged()
 
+                        bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility =
+                            View.VISIBLE
 
-        }
-        val myHelper = ItemTouchHelper(myCallback)
-        myHelper.attachToRecyclerView(jobsRecyclerView)
+                        bottomSheetView.findViewById<TextView>(R.id.errorText).text =
+                            "Loading jobs..."
+                        bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility = View.VISIBLE
+
+                        bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+
+                        loadData(searchBox.text.toString(), this)
+                    }
+
+                    return@OnTouchListener true
+                }
+            }
+            false
+        })
+
 
         return jobsView
     }
 
-    // TODO - Petrov - this function is not used. I just commented it out just in case.
-    /*fun savedCheck(viewHolder: RvAdapter.ViewHolder){
-        for(item in savedItems){
-            if(viewHolder.adapterPosition == item){
-                if(touchDown){
-                    touchDown = false
-                }
-                //return
-            }
-        }
-    }*/
+
 
     companion object {
         /**

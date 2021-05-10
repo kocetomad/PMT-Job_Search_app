@@ -13,24 +13,31 @@
         <action
             android:id="@+id/action_jobsFragment_to_profileFragment"
             app:destination="@id/profileFragment"
-            app:enterAnim="@anim/fragment_fade_enter"
-            app:exitAnim="@anim/fragment_fade_exit"
-            app:popEnterAnim="@anim/fragment_fade_enter"
-            app:popExitAnim="@anim/fragment_fade_enter" />
+            app:enterAnim="@android:anim/slide_out_right"
+            app:exitAnim="@android:anim/slide_in_left"
+            app:popEnterAnim="@android:anim/slide_out_right"
+            app:popExitAnim="@android:anim/slide_in_left" />
         <action
             android:id="@+id/action_jobsFragment_to_jobDetailsFragment"
-            app:destination="@id/jobDetailsFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim" />
+            app:destination="@id/jobDetailsFragment" />
     </fragment>
     <fragment
         android:id="@+id/profileFragment"
         android:name="com.punchy.pmt.vacansee.ProfileFragment"
         android:label="fragment_profile"
-        tools:layout="@layout/fragment_profile" />
+        tools:layout="@layout/fragment_profile" >
+        <action
+            android:id="@+id/action_profileFragment_to_jobsFragment"
+            app:destination="@id/jobsFragment"
+            app:enterAnim="@anim/fragment_fade_enter"
+            app:exitAnim="@anim/fragment_fade_exit" />
+        <action
+            android:id="@+id/action_profileFragment_to_jobDetailsFragment"
+            app:destination="@id/jobDetailsFragment" />
+    </fragment>
     <fragment
         android:id="@+id/jobDetailsFragment"
-        android:name="com.punchy.pmt.vacansee.searchJobs.JobDetailsFragment"
+        android:name="com.punchy.pmt.vacansee.searchJobs.detailedJob.JobDetailsFragment"
         android:label="fragment_job_details"
         tools:layout="@layout/fragment_job_details" >
         <argument

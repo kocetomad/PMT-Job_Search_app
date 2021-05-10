@@ -30,22 +30,24 @@
             app:layout_constraintTop_toTopOf="parent">
 
             <EditText
-                android:id="@+id/usernameBox"
+                android:id="@+id/loginEmail"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:ems="12"
-                android:hint="Username"
-                android:inputType="textPersonName" />
+                android:hint="Email"
+                android:inputType="textPersonName"
+                android:text="test@test.com" />
 
             <EditText
-                android:id="@+id/passwordBox"
+                android:id="@+id/loginPassword"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginVertical="16dp"
                 android:ems="12"
                 android:hint="Password"
-                android:inputType="textPassword" />
+                android:inputType="textPassword"
+                android:text="myPass1" />
 
             <LinearLayout
                 android:layout_width="wrap_content"

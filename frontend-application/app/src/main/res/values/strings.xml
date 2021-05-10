@@ -2,6 +2,14 @@
     <string name="app_name">VacanSEE</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="email_card_transition_name" />
     <string name="email_card_transition_nameHOME" />
+    <string
+        name="email_card_transition_name_email.id"
+        >@{@string/email_card_transition_name(email.id)}</string>
+    <string
+        name="email_card_transition_name"
+        >@{@string/email_card_transition_name}</string>
+
+
+
 </resources>

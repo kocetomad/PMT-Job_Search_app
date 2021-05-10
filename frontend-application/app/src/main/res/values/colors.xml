@@ -7,4 +7,27 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!--  Delete card  -->
+    <color name="red_900">#B71C1C</color>
+
+    <!--  VacanSEE color theme  -->
+    <color name="light_blue_500">#03A9F4</color>
+    <color name="light_blue_500_dark">#007AC1</color>
+
+    <color name="light_blue_700">#0288D1</color>
+    <color name="light_blue_700_dark">#005B9F</color>
+
+    <color name="light_blue_900">#01579B</color>
+    <color name="light_blue_900_dark">#002F6C</color>
+
+    <color name="cyan_500">#00BCD4</color>
+    <color name="cyan_500_dark">#008BA3</color>
+
+    <color name="cyan_700">#0097A7</color>
+    <color name="cyan_700_dark">#006978</color>
+
+    <color name="cyan_900">#006064</color>
+    <color name="cyan_900_dark">#00363A</color>
+
 </resources>

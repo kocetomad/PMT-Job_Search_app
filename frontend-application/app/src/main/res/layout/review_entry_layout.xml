@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/reviewTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="review title"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/reviewDescription"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="review description" />
+
+    <LinearLayout
+        android:id="@+id/reviewScoreLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingVertical="4dp">
+
+        <ImageView
+            android:id="@+id/reviewStar1"
+            app:srcCompat="@drawable/ic_baseline_star_outline_24"
+            app:tint="#FFEB3B"
+            tools:ignore="ContentDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <ImageView
+            android:id="@+id/reviewStar2"
+            app:srcCompat="@drawable/ic_baseline_star_outline_24"
+            app:tint="#FFEB3B"
+            tools:ignore="ContentDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <ImageView
+            android:id="@+id/reviewStar3"
+            app:srcCompat="@drawable/ic_baseline_star_outline_24"
+            app:tint="#FFEB3B"
+            tools:ignore="ContentDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <ImageView
+            android:id="@+id/reviewStar4"
+            app:srcCompat="@drawable/ic_baseline_star_outline_24"
+            app:tint="#FFEB3B"
+            tools:ignore="ContentDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <ImageView
+            android:id="@+id/reviewStar5"
+            app:srcCompat="@drawable/ic_baseline_star_outline_24"
+            app:tint="#FFEB3B"
+            tools:ignore="ContentDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/reviewScore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:paddingHorizontal="8dp"
+            android:text="--.-- out of --.--"
+            android:textAlignment="center" />
+
+    </LinearLayout>
+</LinearLayout>
