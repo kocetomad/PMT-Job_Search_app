@@ -104,11 +104,14 @@ fun registerAccount(
 }
 
 
-fun getJobs(searchParam: String): MutableList<Job> {
+fun getJobs(searchParam: String, locationParam: String?): MutableList<Job> {
     var jobsList: MutableList<Job>
-
+    var locationText = ""
+    if (!locationParam.isNullOrEmpty()) {
+        locationText = locationParam
+    }
     val request = Request.Builder()
-        .url("$route/api/jobs?search=$searchParam")
+        .url("$route/api/jobs?search=$searchParam+$locationText")
         .addHeader("Cookie", sessionCookie)
         .build()
 

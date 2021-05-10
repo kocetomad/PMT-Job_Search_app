@@ -26,6 +26,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.io.FileNotFoundException
+import java.net.MalformedURLException
 import java.net.URL
 
 
@@ -70,14 +71,20 @@ class JobsRvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment
             Html.fromHtml(jobsList[index].jobDescription, Html.FROM_HTML_MODE_COMPACT)
         view.jobID = jobsList[index].jobId
 
-        val url = URL(jobsList[index].logoUrl)
+        var url: URL? = null
+        try {
+            url = URL(jobsList[index].logoUrl)
+        } catch (e: MalformedURLException) {
+            Log.d("JobsRvAdapter", "Image url is empty")
+        }
+
 
 //        val bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream())
 
         fun loadImage() = CoroutineScope(Dispatchers.Main).launch {
             val task = async(Dispatchers.IO) {
                 try {
-                    BitmapFactory.decodeStream(url.openConnection().getInputStream())
+                    BitmapFactory.decodeStream(url?.openConnection()?.getInputStream())
                 } catch (e: FileNotFoundException) {
                     Log.e("JobsRvAdapter - Icon grab", "$e for URL: ${jobsList[index].jobUrl}")
                     null
