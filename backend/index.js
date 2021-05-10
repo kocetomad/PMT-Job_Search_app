@@ -513,6 +513,7 @@ app.post("/api/register", blockAuthenticated, async (req, res) => {
         firstName,
         lastName,
         dob,
+        profilePic,
     } = req.body;
 
     let errors = [];
@@ -563,9 +564,13 @@ app.post("/api/register", blockAuthenticated, async (req, res) => {
                     });
                     res.send(errors);
                 } else {
+                    if (!profilePic) {
+                        profilePic =
+                            "https://image.flaticon.com/icons/png/128/1946/1946429.png";
+                    }
                     pool.query(
-                        `INSERT INTO user_tbl (first_name, last_name, email, dob, password_hash, username) 
-                        VALUES ($1, $2, $3, $4, $5, $6) 
+                        `INSERT INTO user_tbl (first_name, last_name, email, dob, password_hash, username, profile_url) 
+                        VALUES ($1, $2, $3, $4, $5, $6, $7) 
                         RETURNING username, password_hash`,
                         [
                             firstName,
@@ -574,6 +579,7 @@ app.post("/api/register", blockAuthenticated, async (req, res) => {
                             dob,
                             hashedPassword,
                             username,
+                            profilePic,
                         ],
                         (err, results) => {
                             if (err) {
@@ -830,11 +836,11 @@ app.put("/api/review", blockNotAuthenticated, (req, res) => {
     );
 });
 
-app.get("/api/profile", blockNotAuthenticated, cacher, (req, res) => {
+app.get("/api/profile", blockNotAuthenticated, (req, res) => {
     let userID = req.user.user_id;
 
     pool.query(
-        `SELECT first_name, last_name, email, dob, username
+        `SELECT first_name, last_name, email, dob, username, profile_url
 	FROM user_tbl 
 	WHERE user_id=$1;`,
         [userID],
@@ -846,10 +852,13 @@ app.get("/api/profile", blockNotAuthenticated, cacher, (req, res) => {
                 success: true,
                 profile: results.rows,
             };
-            cache.setKey(req.originalUrl, {
-                date: moment(),
-                data: profileReturn,
-            });
+            if (
+                profileReturn.profile[0]["profile_url"] == "" ||
+                !profileReturn.profile[0]["profile_url"]
+            ) {
+                profileReturn.profile[0]["profile_url"] =
+                    "https://image.flaticon.com/icons/png/128/1946/1946429.png";
+            }
             res.send(profileReturn);
         }
     );
@@ -882,7 +891,7 @@ app.post(
     (req, res) => {
         // send userID to frontend
         pool.query(
-            `SELECT user_id
+            `SELECT user_id, profile_url
 	FROM user_tbl
 	WHERE email=$1;`,
             [req.body.email],
@@ -897,10 +906,16 @@ app.post(
                             "login worked, but cant find userID for that email",
                     });
                 }
+                let profileImage =
+                    "https://image.flaticon.com/icons/png/128/1946/1946429.png";
+                if (results.rows[0]["profile_url"]) {
+                    profileImage = results.rows[0]["profile_url"];
+                }
                 res.send({
                     success: true,
                     msg: "logged in",
                     userID: results.rows[0]["user_id"],
+                    profilePic: profileImage,
                 });
             }
         );
