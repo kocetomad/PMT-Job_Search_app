@@ -1,5 +1,6 @@
 package com.punchy.pmt.vacansee.searchJobs
 
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.StrictMode
@@ -24,6 +25,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import java.io.FileNotFoundException
 import java.net.URL
 
 
@@ -74,11 +76,18 @@ class JobsRvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment
 
         fun loadImage() = CoroutineScope(Dispatchers.Main).launch {
             val task = async(Dispatchers.IO) {
-                BitmapFactory.decodeStream(url.openConnection().getInputStream())
+                try {
+                    BitmapFactory.decodeStream(url.openConnection().getInputStream())
+                } catch (e: FileNotFoundException) {
+                    Log.e("JobsRvAdapter - Icon grab", "Not found: $e")
+                    null
+                }
             }
 
             val bmp = task.await()
-            view.image.setImageBitmap(bmp)
+            if (bmp != null) {
+                view.image.setImageBitmap(bmp)
+                }
         }
         loadImage()
 
@@ -86,7 +95,11 @@ class JobsRvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment
             view.jobSalaryMin?.text = "TBD"
             view.jobSalaryMax?.visibility = View.GONE
         } else {
-            view.jobSalaryText?.text = "Salary -${jobsList[index].salaryType}:"
+            if (jobsList[index].salaryType.isEmpty())
+                view.jobSalaryText?.text = "Salary type: UNKNWN"
+            else
+                view.jobSalaryText?.text = "Salary type: ${jobsList[index].salaryType}:"
+
             view.jobSalaryMin?.text = "Min: £${jobsList[index].minimumSalary}"
             view.jobSalaryMax?.text = "Max: £${jobsList[index].maximumSalary}"
         }
