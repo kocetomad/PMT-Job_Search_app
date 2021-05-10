@@ -87,7 +87,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/api/jobs", blockNotAuthenticated, cacher, (req, res) => {
-    let { search, location, partTime, fullTime } = req.query;
+    let { search, location, partTime, fullTime, distance } = req.query;
     let url = `https://www.reed.co.uk/api/1.0/search?keywords=${search}&resultsToTake=15`;
     if (location) {
         url += `&location=${location}`;
@@ -97,6 +97,9 @@ app.get("/api/jobs", blockNotAuthenticated, cacher, (req, res) => {
     }
     if (fullTime) {
         url += `&fullTime=${fullTime}`;
+    }
+    if (distance) {
+        url += `&distanceFromLocation=${distance}`;
     }
 
     let config = {
@@ -132,8 +135,7 @@ app.get("/api/jobs", blockNotAuthenticated, cacher, (req, res) => {
                         responseData.results[response]["extUrl"] =
                             responses[response].data[0].domain;
                     } else {
-                        responseData.results[response]["logoUrl"] =
-                            "https://i.imgur.com/uU0G6CL.png";
+                        responseData.results[response]["logoUrl"] = "";
                         responseData.results[response]["extUrl"] =
                             "https://www.google.com/";
                     }
@@ -159,8 +161,15 @@ app.get("/api/jobs", blockNotAuthenticated, cacher, (req, res) => {
 app.get("/api/moreDetails", blockNotAuthenticated, cacher, async (req, res) => {
     let { empName, empID, jobID } = req.query;
 
-    if (empName == "" || empID == "" || jobID == "") {
-        res.send({
+    if (
+        empName == "" ||
+        !empName ||
+        empID == "" ||
+        !empID ||
+        jobID == "" ||
+        !jobID
+    ) {
+        return res.send({
             success: "false",
             msg:
                 "request must include ?empName=employerName&empID=1234&jobID=5678",
@@ -299,8 +308,7 @@ app.get("/api/moreDetails", blockNotAuthenticated, cacher, async (req, res) => {
                     moreDetailsReturn["jobDetails"][0]["extUrl"] =
                         logoResponse[0].domain;
                 } else {
-                    moreDetailsReturn["jobDetails"][0]["logoUrl"] =
-                        "https://i.imgur.com/uU0G6CL.png";
+                    moreDetailsReturn["jobDetails"][0]["logoUrl"] = "";
                     moreDetailsReturn["jobDetails"][0]["extUrl"] =
                         "https://www.google.com/";
                 }
@@ -513,6 +521,7 @@ app.post("/api/register", blockAuthenticated, async (req, res) => {
         firstName,
         lastName,
         dob,
+        profilePic,
     } = req.body;
 
     let errors = [];
@@ -544,7 +553,10 @@ app.post("/api/register", blockAuthenticated, async (req, res) => {
     }
 
     if (errors.length > 0) {
-        res.send(errors);
+        res.send({
+            success: false,
+            errors: errors,
+        });
     } else {
         // validation passed
         let hashedPassword = await bcrypt.hash(password, 10);
@@ -561,11 +573,18 @@ app.post("/api/register", blockAuthenticated, async (req, res) => {
                     errors.push({
                         msg: "Email already registered",
                     });
-                    res.send(errors);
+                    res.send({
+                        success: false,
+                        errors: errors,
+                    });
                 } else {
+                    if (!profilePic) {
+                        profilePic =
+                            "https://image.flaticon.com/icons/png/128/1946/1946429.png";
+                    }
                     pool.query(
-                        `INSERT INTO user_tbl (first_name, last_name, email, dob, password_hash, username) 
-                        VALUES ($1, $2, $3, $4, $5, $6) 
+                        `INSERT INTO user_tbl (first_name, last_name, email, dob, password_hash, username, profile_url) 
+                        VALUES ($1, $2, $3, $4, $5, $6, $7) 
                         RETURNING username, password_hash`,
                         [
                             firstName,
@@ -574,6 +593,7 @@ app.post("/api/register", blockAuthenticated, async (req, res) => {
                             dob,
                             hashedPassword,
                             username,
+                            profilePic,
                         ],
                         (err, results) => {
                             if (err) {
@@ -830,11 +850,11 @@ app.put("/api/review", blockNotAuthenticated, (req, res) => {
     );
 });
 
-app.get("/api/profile", blockNotAuthenticated, cacher, (req, res) => {
+app.get("/api/profile", blockNotAuthenticated, (req, res) => {
     let userID = req.user.user_id;
 
     pool.query(
-        `SELECT first_name, last_name, email, dob, username
+        `SELECT first_name, last_name, email, dob, username, profile_url
 	FROM user_tbl 
 	WHERE user_id=$1;`,
         [userID],
@@ -846,10 +866,13 @@ app.get("/api/profile", blockNotAuthenticated, cacher, (req, res) => {
                 success: true,
                 profile: results.rows,
             };
-            cache.setKey(req.originalUrl, {
-                date: moment(),
-                data: profileReturn,
-            });
+            if (
+                profileReturn.profile[0]["profile_url"] == "" ||
+                !profileReturn.profile[0]["profile_url"]
+            ) {
+                profileReturn.profile[0]["profile_url"] =
+                    "https://image.flaticon.com/icons/png/128/1946/1946429.png";
+            }
             res.send(profileReturn);
         }
     );
@@ -882,7 +905,7 @@ app.post(
     (req, res) => {
         // send userID to frontend
         pool.query(
-            `SELECT user_id
+            `SELECT user_id, profile_url
 	FROM user_tbl
 	WHERE email=$1;`,
             [req.body.email],
@@ -897,10 +920,16 @@ app.post(
                             "login worked, but cant find userID for that email",
                     });
                 }
+                let profileImage =
+                    "https://image.flaticon.com/icons/png/128/1946/1946429.png";
+                if (results.rows[0]["profile_url"]) {
+                    profileImage = results.rows[0]["profile_url"];
+                }
                 res.send({
                     success: true,
                     msg: "logged in",
                     userID: results.rows[0]["user_id"],
+                    profilePic: profileImage,
                 });
             }
         );
