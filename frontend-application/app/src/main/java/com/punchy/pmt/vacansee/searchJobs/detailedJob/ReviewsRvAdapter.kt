@@ -26,13 +26,13 @@ class ReviewsRvAdapter(private val reviewsList: MutableList<ReviewData>) :
     }
 
     override fun onCreateViewHolder(view: ViewGroup, index: Int): ViewHolder {
-        val v = LayoutInflater.from(view.context).inflate(R.layout.job_entry_layout, view, false)
+        val v = LayoutInflater.from(view.context).inflate(R.layout.review_entry_layout, view, false)
 
         return ViewHolder(v)
     }
 
     override fun getItemCount(): Int {
-        return jobsList.size
+        return reviewsList.size
     }
 
     override fun onBindViewHolder(view: ViewHolder, index: Int) {

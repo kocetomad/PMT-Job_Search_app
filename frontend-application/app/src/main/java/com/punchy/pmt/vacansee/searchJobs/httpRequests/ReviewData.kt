@@ -6,4 +6,8 @@ class ReviewData(
     val rating: Float,
     val title: String,
     val description: String
-)
+) {
+    override fun toString(): String {
+        return "{title: ${this.title}, rating: ${this.rating}}"
+    }
+}

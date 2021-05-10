@@ -2,18 +2,17 @@ package com.punchy.pmt.vacansee.searchJobs.detailedJob
 
 import android.os.Bundle
 import android.text.Html
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.punchy.pmt.vacansee.R
-import com.punchy.pmt.vacansee.searchJobs.httpRequests.DetailedJob
-import com.punchy.pmt.vacansee.searchJobs.httpRequests.FinanceData
-import com.punchy.pmt.vacansee.searchJobs.httpRequests.Job
-import com.punchy.pmt.vacansee.searchJobs.httpRequests.getJobDetails
+import com.punchy.pmt.vacansee.searchJobs.httpRequests.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -63,9 +62,13 @@ class JobDetailsFragment : Fragment() {
         val reviewsRecyclerView =
             detailedJobsView.findViewById<RecyclerView>(R.id.detailedJobReviewsRecyclerView)
 
+        reviewsRecyclerView.layoutManager = LinearLayoutManager(
+            context,
+            LinearLayoutManager.VERTICAL,
+            false
+        )
 
         fun loadData() = CoroutineScope(Dispatchers.Main).launch {
-
             val task = async(Dispatchers.IO) {
                 getJobDetails(
                     arguments?.getString("employerName")!!,
@@ -73,6 +76,7 @@ class JobDetailsFragment : Fragment() {
                     arguments?.getInt("jobId")!!
                 )
             }
+
             fullJob = task.await()
             val newFragment: Fragment = FinanceGraph()
             val fragmentTransaction = childFragmentManager.beginTransaction()
@@ -92,6 +96,7 @@ class JobDetailsFragment : Fragment() {
             jobMaxSalary.text = "Maximum expected: £${fullJob.jobDetails.maximumSalary}"
 
 
+            Log.d("JobDetails - reviewData", fullJob.reviewData.toString())
             val rvAdapter = ReviewsRvAdapter(fullJob.reviewData)
             reviewsRecyclerView.adapter = rvAdapter
             rvAdapter.notifyDataSetChanged()
