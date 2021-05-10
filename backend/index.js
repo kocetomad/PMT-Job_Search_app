@@ -81,6 +81,37 @@ const blockNotAuthenticated = (req, res, next) => {
     res.redirect("/api/loginError");
 };
 
+// cached joblist style details requests
+let getDetails = async (jobID) => {
+    let cacheKey = `/api/hidden/details/${jobID}`;
+    let currCache = cache.getKey(cacheKey);
+
+    if (currCache != null) {
+        console.log("getDetails cache return");
+        return currCache;
+    }
+
+    console.log("getDetails reed request");
+
+    let jobDetailsConfig = {
+        method: "get",
+        url: `https://www.reed.co.uk/api/1.0/jobs/${jobID}`,
+        headers: {
+            Authorization: process.env.REED_AUTH,
+        },
+    };
+
+    try {
+        const detailsResponse = await axios(jobDetailsConfig);
+        cache.setKey(cacheKey, detailsResponse);
+        return new Promise((resolve, reject) => {
+            resolve(detailsResponse);
+        });
+    } catch (e) {
+        return console.log(e);
+    }
+};
+
 // Routes
 app.get("/", (req, res) => {
     res.send({ success: "true" });
@@ -325,7 +356,7 @@ app.get("/api/moreDetails", blockNotAuthenticated, cacher, async (req, res) => {
         });
 });
 
-app.get("/api/pinned", blockNotAuthenticated, cacher, (req, res) => {
+app.get("/api/pinned", blockNotAuthenticated, async (req, res) => {
     let userID = req.user.user_id;
 
     if (!userID) {
@@ -350,17 +381,8 @@ app.get("/api/pinned", blockNotAuthenticated, cacher, (req, res) => {
             if (results.rows.length > 0) {
                 let reedDetailsPromises = [];
                 for (let i = 0; i < results.rows.length; i++) {
-                    // Reed more details request
-                    let jobDetailsConfig = {
-                        method: "get",
-                        url: `https://www.reed.co.uk/api/1.0/jobs/${results.rows[i].job_id}`,
-                        headers: {
-                            Authorization: process.env.REED_AUTH,
-                        },
-                    };
-
-                    const detailsPromise = axios(jobDetailsConfig);
-                    reedDetailsPromises.push(detailsPromise);
+                    thisResponse = getDetails(results.rows[i].job_id);
+                    reedDetailsPromises.push(thisResponse);
                 }
 
                 Promise.all(reedDetailsPromises).then((responses) => {
@@ -553,7 +575,7 @@ app.post("/api/register", blockAuthenticated, async (req, res) => {
     }
 
     if (errors.length > 0) {
-        res.send({
+        return res.send({
             success: false,
             errors: errors,
         });
@@ -573,7 +595,7 @@ app.post("/api/register", blockAuthenticated, async (req, res) => {
                     errors.push({
                         msg: "Email already registered",
                     });
-                    res.send({
+                    return res.send({
                         success: false,
                         errors: errors,
                     });
