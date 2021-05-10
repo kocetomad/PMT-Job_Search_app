@@ -87,7 +87,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/api/jobs", blockNotAuthenticated, cacher, (req, res) => {
-    let { search, location, partTime, fullTime } = req.query;
+    let { search, location, partTime, fullTime, distance } = req.query;
     let url = `https://www.reed.co.uk/api/1.0/search?keywords=${search}&resultsToTake=15`;
     if (location) {
         url += `&location=${location}`;
@@ -97,6 +97,9 @@ app.get("/api/jobs", blockNotAuthenticated, cacher, (req, res) => {
     }
     if (fullTime) {
         url += `&fullTime=${fullTime}`;
+    }
+    if (distance) {
+        url += `&distanceFromLocation=${distance}`;
     }
 
     let config = {
@@ -132,8 +135,7 @@ app.get("/api/jobs", blockNotAuthenticated, cacher, (req, res) => {
                         responseData.results[response]["extUrl"] =
                             responses[response].data[0].domain;
                     } else {
-                        responseData.results[response]["logoUrl"] =
-                            "https://i.imgur.com/uU0G6CL.png";
+                        responseData.results[response]["logoUrl"] = "";
                         responseData.results[response]["extUrl"] =
                             "https://www.google.com/";
                     }
@@ -306,8 +308,7 @@ app.get("/api/moreDetails", blockNotAuthenticated, cacher, async (req, res) => {
                     moreDetailsReturn["jobDetails"][0]["extUrl"] =
                         logoResponse[0].domain;
                 } else {
-                    moreDetailsReturn["jobDetails"][0]["logoUrl"] =
-                        "https://i.imgur.com/uU0G6CL.png";
+                    moreDetailsReturn["jobDetails"][0]["logoUrl"] = "";
                     moreDetailsReturn["jobDetails"][0]["extUrl"] =
                         "https://www.google.com/";
                 }
@@ -552,7 +553,10 @@ app.post("/api/register", blockAuthenticated, async (req, res) => {
     }
 
     if (errors.length > 0) {
-        res.send(errors);
+        res.send({
+            success: false,
+            errors: errors,
+        });
     } else {
         // validation passed
         let hashedPassword = await bcrypt.hash(password, 10);
@@ -569,7 +573,10 @@ app.post("/api/register", blockAuthenticated, async (req, res) => {
                     errors.push({
                         msg: "Email already registered",
                     });
-                    res.send(errors);
+                    res.send({
+                        success: false,
+                        errors: errors,
+                    });
                 } else {
                     if (!profilePic) {
                         profilePic =
