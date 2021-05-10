@@ -7,7 +7,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.FinanceData
 import io.data2viz.charts.chart.*
-import io.data2viz.charts.chart.mark.line
+import io.data2viz.charts.chart.mark.area
 import io.data2viz.geom.Size
 import io.data2viz.viz.VizContainerView
 
@@ -61,7 +61,7 @@ class FinanceGraph : Fragment() {
             }
 
             // Using a discrete dimension for the X-axis and a continuous one for the Y-axis
-            line(year, population)
+            area(year, population)
         }
 
         override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
