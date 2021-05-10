@@ -159,8 +159,15 @@ app.get("/api/jobs", blockNotAuthenticated, cacher, (req, res) => {
 app.get("/api/moreDetails", blockNotAuthenticated, cacher, async (req, res) => {
     let { empName, empID, jobID } = req.query;
 
-    if (empName == "" || empID == "" || jobID == "") {
-        res.send({
+    if (
+        empName == "" ||
+        !empName ||
+        empID == "" ||
+        !empID ||
+        jobID == "" ||
+        !jobID
+    ) {
+        return res.send({
             success: "false",
             msg:
                 "request must include ?empName=employerName&empID=1234&jobID=5678",
