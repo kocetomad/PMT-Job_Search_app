@@ -79,7 +79,7 @@ class JobsRvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment
                 try {
                     BitmapFactory.decodeStream(url.openConnection().getInputStream())
                 } catch (e: FileNotFoundException) {
-                    Log.e("JobsRvAdapter - Icon grab", "Not found: $e")
+                    Log.e("JobsRvAdapter - Icon grab", "$e for URL: ${jobsList[index].jobUrl}")
                     null
                 }
             }

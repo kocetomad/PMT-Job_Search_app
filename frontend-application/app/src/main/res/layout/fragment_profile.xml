@@ -7,149 +7,148 @@ android:layout_height="match_parent"
 tools:context=".searchJobs.JobsFragment"
 android:windowSoftInputMode="adjustNothing">
 
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="?attr/colorPrimary">
-
-    <LinearLayout
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_width="match_parent"
-        android:gravity="center_horizontal"
-        android:orientation="vertical"
-        android:paddingTop="14dp">
-
-        <ImageView
-            android:id="@+id/userProfilePicture"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
-            app:srcCompat="@drawable/ic_baseline_account_circle_24"
-            tools:ignore="ContentDescription" />
-
-        <TextView
-            android:id="@+id/userFirstName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="First name"
-            android:textColor="?attr/colorOnPrimary"
-            android:textSize="24sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/userLastName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Last name"
-            android:textColor="?attr/colorOnPrimary"
-            android:textSize="24sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/userEmail"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingVertical="4dp"
-            android:text="emailaddress@server.com"
-            android:textColor="?attr/colorOnPrimary" />
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingVertical="28dp">
-
-            <Button
-                android:id="@+id/goToJobsSearch"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:backgroundTint="?attr/colorPrimaryVariant"
-                android:drawableEnd="@drawable/ic_baseline_search_24"
-                android:drawableTint="?attr/colorOnPrimary"
-                android:text="Search for a job" />
-
-            <Button
-                android:id="@+id/goToSavedJobs"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:backgroundTint="?attr/colorPrimaryVariant"
-                android:drawableEnd="@drawable/ic_baseline_archive_24"
-                android:drawableTint="?attr/colorOnPrimary"
-                android:text="See your saved jobs" />
-        </LinearLayout>
-
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/savedJobsBackdrop"
-        android:layout_width="match_parent"
-        android:layout_height="fill_parent"
-
-        android:background="@drawable/rounded_backdrop"
-
-        android:orientation="vertical"
-
-        app:behavior_hideable="false"
-        app:behavior_peekHeight="48dp"
-        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:background="@drawable/faded_bg">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/savedJobsBackdropTitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingStart="14dp"
-                android:paddingTop="14dp"
-                android:paddingEnd="14dp"
-                android:text="Saved jobs"
-                android:textStyle="bold" />
-
-            <ProgressBar
-                android:id="@+id/savedJobsProgressBar"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:indeterminate="true"
-                android:visibility="visible" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/savedJobsErrorView"
-            android:layout_width="match_parent"
-            android:layout_height="fill_parent"
-            android:gravity="center_horizontal|center_vertical"
+            android:layout_height="match_parent"
+            android:gravity="center_horizontal"
             android:orientation="vertical"
-            android:visibility="gone">
-
-            <TextView
-                android:id="@+id/savedJobsErrorText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Failed to get jobs" />
+            android:paddingTop="14dp">
 
             <ImageView
-                android:id="@+id/imageView"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:src="@drawable/ic_baseline_error_outline_24"
+                android:id="@+id/userProfilePicture"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+                app:srcCompat="@drawable/ic_baseline_account_circle_24"
                 tools:ignore="ContentDescription" />
+
+            <TextView
+                android:id="@+id/userFirstName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="First name"
+                android:textColor="?attr/colorOnPrimary"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/userLastName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Last name"
+                android:textColor="?attr/colorOnPrimary"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/userEmail"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingVertical="4dp"
+                android:text="emailaddress@server.com"
+                android:textColor="?attr/colorOnPrimary" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingVertical="28dp">
+
+                <Button
+                    android:id="@+id/goToJobsSearch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="?attr/colorPrimaryVariant"
+                    android:drawableEnd="@drawable/ic_baseline_search_24"
+                    android:drawableTint="?attr/colorOnPrimary"
+                    android:text="Search for a job" />
+
+                <Button
+                    android:id="@+id/goToSavedJobs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="?attr/colorPrimaryVariant"
+                    android:drawableEnd="@drawable/ic_baseline_archive_24"
+                    android:drawableTint="?attr/colorOnPrimary"
+                    android:text="See your saved jobs" />
+            </LinearLayout>
+
+
         </LinearLayout>
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/savedJobsRecyclerView"
+        <LinearLayout
+            android:id="@+id/savedJobsBackdrop"
             android:layout_width="match_parent"
-            android:layout_height="fill_parent">
-        </androidx.recyclerview.widget.RecyclerView>
-    </LinearLayout>
+            android:layout_height="fill_parent"
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+            android:background="@drawable/rounded_backdrop"
+
+            android:orientation="vertical"
+
+            app:behavior_hideable="false"
+            app:behavior_peekHeight="48dp"
+            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/savedJobsBackdropTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="14dp"
+                    android:paddingTop="14dp"
+                    android:paddingEnd="14dp"
+                    android:text="Saved jobs"
+                    android:textStyle="bold" />
+
+                <ProgressBar
+                    android:id="@+id/savedJobsProgressBar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:indeterminate="true"
+                    android:visibility="visible" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/savedJobsErrorView"
+                android:layout_width="match_parent"
+                android:layout_height="fill_parent"
+                android:gravity="center_horizontal|center_vertical"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/savedJobsErrorText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Failed to get jobs" />
+
+                <ImageView
+                    android:id="@+id/imageView"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/ic_baseline_error_outline_24"
+                    tools:ignore="ContentDescription" />
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/savedJobsRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="fill_parent"></androidx.recyclerview.widget.RecyclerView>
+        </LinearLayout>
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
 </FrameLayout>
