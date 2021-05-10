@@ -1,6 +1,7 @@
 package com.punchy.pmt.vacansee
 
 import android.os.Bundle
+import android.text.format.DateFormat
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -9,6 +10,8 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.registerAccount
+import java.text.ParseException
+import java.text.SimpleDateFormat
 
 //import com.punchy.pmt.vacansee.searchJobs.httpRequests.registerAccount
 
@@ -66,22 +69,39 @@ class RegisterAccountFragment : Fragment() {
                 }
             }
 
-            if (firstName.text.isEmpty() || lastName.text.isEmpty() || username.text.isEmpty() || dateOfBirth.text.isEmpty() || email.text.isEmpty()) {
+            if (firstName.text.isNotEmpty() && lastName.text.isNotEmpty() && username.text.isNotEmpty() && dateOfBirth.text.isNotEmpty() && email.text.isNotEmpty() && password.text.isNotEmpty() && confirmPassword.text.isNotEmpty())
                 if (password.text.toString() != confirmPassword.text.toString()) {
                     confirmPassword.error = "Passwords don't match"
                 } else {
-                    confirmPassword.error = null
+                    val dateTemplate = SimpleDateFormat("dd/MM/yyyy")
+                    dateTemplate.isLenient = false
+                    try {
+                        val date = dateTemplate.parse(dateOfBirth.text.toString())
 
-                    registerAccount(
-                        username.text.toString(),
-                        email.text.toString(),
-                        password.text.toString(),
-                        confirmPassword.text.toString(),
-                        firstName.text.toString(),
-                        lastName.text.toString()
-                    )
+                        val day = DateFormat.format("dd", date)
+                        val month = DateFormat.format("MM", date)
+                        val year = DateFormat.format("yyyy", date)
+
+                        if (Integer.parseInt(day.toString()) !in 1..31)
+                            dateOfBirth.error = "Invalid day range"
+                        else if (Integer.parseInt(month.toString()) !in 1..12)
+                            dateOfBirth.error = "Invalid month range"
+                        else if (Integer.parseInt(year.toString()) < 1920)
+                            dateOfBirth.error = "Invalid year range"
+                        else
+                            registerAccount(
+                                username.text.toString(),
+                                email.text.toString(),
+                                password.text.toString(),
+                                confirmPassword.text.toString(),
+                                firstName.text.toString(),
+                                lastName.text.toString(),
+                                "$year-$month-$day"
+                            )
+                    } catch (e: ParseException) {
+                        dateOfBirth.error = "Date is invalid."
+                    }
                 }
-            }
         }
         // Inflate the layout for this fragment
         return registerAccountView

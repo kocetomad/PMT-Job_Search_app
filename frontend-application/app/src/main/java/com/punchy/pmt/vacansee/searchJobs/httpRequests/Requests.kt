@@ -77,8 +77,8 @@ fun registerAccount(
     password: String,
     password2: String,
     firstName: String,
-    lastName: String
-    // TODO - add Date of Birth
+    lastName: String,
+    dateOfBirth: String // example 2000-12-12 / year-month-day
 ) {
     val formBody = FormBody.Builder()
         .add("username", username)
@@ -87,7 +87,7 @@ fun registerAccount(
         .add("password2", password2)
         .add("firstName", firstName)
         .add("lastName", lastName)
-        .add("dob", "2000-12-12")
+        .add("dob", dateOfBirth)
         .build()
 
     val request = Request.Builder()
