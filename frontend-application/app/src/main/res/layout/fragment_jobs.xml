@@ -124,6 +124,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:buttonTint="?attr/colorSecondary"
+                android:checked="false"
                 android:text="Part-time"
                 android:textColor="?attr/colorOnPrimary" />
 
@@ -133,6 +134,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:buttonTint="?attr/colorSecondary"
+                android:checked="false"
                 android:text="Full-time"
                 android:textColor="?attr/colorOnPrimary" />
 

@@ -35,6 +35,9 @@ var jobsList = mutableListOf<Job>()
 var searchParam = "job" // uses "job" as placeholder
 var locationParam: String? = null
 
+var partTimeParam: Boolean? = null
+var fullTimeParam: Boolean? = null
+
 /**
  * A simple [Fragment] subclass.
  * Use the [JobsFragment.newInstance] factory method to
@@ -115,13 +118,13 @@ class JobsFragment : Fragment() {
         )
 
 
-        fun loadData(searchParam: String, locationParam: String?, parentFragment: Fragment) =
+        fun loadData(searchParam: String, locationParam: String?, partTimeParam: Boolean?, fullTimeParam: Boolean?, parentFragment: Fragment) =
             CoroutineScope(Dispatchers.Main).launch {
                 bottomSheetView.findViewById<TextView>(R.id.errorText).text =
                     "Loading jobs..."
 
                 val task = async(Dispatchers.IO) {
-                    getJobs(searchParam, locationParam)
+                    getJobs(searchParam, locationParam, partTimeParam, fullTimeParam)
                 }
                 jobsList = task.await()
                 val rvAdapter = JobsRvAdapter(jobsList, parentFragment)
@@ -244,7 +247,7 @@ class JobsFragment : Fragment() {
 
                 bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility = View.GONE
             }
-        loadData(searchParam, locationParam, this)
+        loadData(searchParam, locationParam, partTimeParam, fullTimeParam,this)
 
 
         if (jobsList.isEmpty()) {
@@ -264,10 +267,7 @@ class JobsFragment : Fragment() {
         val backdropTitle = bottomSheetView.findViewById<TextView>(R.id.jobsBackdropTitle)
         backdropTitle.text = "Jobs found (${jobsList.size})"
 
-//        pass the values to RvAdapter
         val rvAdapter = JobsRvAdapter(jobsList, this)
-
-//        set the recyclerView to the adapter
         jobsRecyclerView.adapter = rvAdapter
 
         jobsRecyclerView.setOnTouchListener({ v, event ->
@@ -283,11 +283,48 @@ class JobsFragment : Fragment() {
         val searchBox = jobsView.findViewById<EditText>(R.id.searchJobsBox)
         val locationBox = jobsView.findViewById<EditText>(R.id.locationSearchBox)
 
+        val partTimeCheckbox = jobsView.findViewById<CheckBox>(R.id.partTimeCheckbox)
+        val fullTimeCheckbox = jobsView.findViewById<CheckBox>(R.id.fullTimeCheckbox)
+
+        partTimeCheckbox.setOnClickListener {
+            partTimeParam = partTimeCheckbox.isChecked
+        }
+
+        fullTimeCheckbox.setOnClickListener {
+            fullTimeParam = fullTimeCheckbox.isChecked
+        }
+
         searchBox.setOnKeyListener(View.OnKeyListener { v, keyCode, event ->
             if (keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_UP) {
-                if (searchBox.text.isNotBlank()) {
-                    searchParam = searchBox.text.toString()
+                searchParam = searchBox.text.toString()
 
+                if (locationBox.text.isNotBlank()) {
+                    locationParam = locationBox.text.toString()
+                }
+
+                jobsList = mutableListOf()
+                rvAdapter.notifyDataSetChanged()
+
+                bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility =
+                    View.VISIBLE
+
+                bottomSheetView.findViewById<TextView>(R.id.errorText).text =
+                    "Loading jobs..."
+                bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility =
+                    View.VISIBLE
+
+                bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+
+                loadData(searchParam, locationParam, partTimeParam, fullTimeParam,this)
+
+                return@OnKeyListener true
+            }
+            false
+        })
+        searchBox.setOnTouchListener(OnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_UP) {
+                if (event.rawX >= (searchBox.right - searchBox.compoundDrawables[2].bounds.width())) {
+                    // your action for drawable click event
                     if (locationBox.text.isNotBlank()) {
                         locationParam = locationBox.text.toString()
                     }
@@ -305,36 +342,7 @@ class JobsFragment : Fragment() {
 
                     bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
 
-                    loadData(searchParam, locationParam, this)
-                }
-                return@OnKeyListener true
-            }
-            false
-        })
-        searchBox.setOnTouchListener(OnTouchListener { v, event ->
-            if (event.action == MotionEvent.ACTION_UP) {
-                if (event.rawX >= (searchBox.right - searchBox.compoundDrawables[2].bounds.width())) {
-                    // your action for drawable click event
-                    if (searchBox.text.isNotBlank()) {
-                        if (locationBox.text.isNotBlank()) {
-                            locationParam = locationBox.text.toString()
-                        }
-
-                        jobsList = mutableListOf()
-                        rvAdapter.notifyDataSetChanged()
-
-                        bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility =
-                            View.VISIBLE
-
-                        bottomSheetView.findViewById<TextView>(R.id.errorText).text =
-                            "Loading jobs..."
-                        bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility =
-                            View.VISIBLE
-
-                        bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
-
-                        loadData(searchParam, locationParam, this)
-                    }
+                    loadData(searchParam, locationParam, partTimeParam, fullTimeParam,this)
 
                     return@OnTouchListener true
                 }
@@ -344,24 +352,23 @@ class JobsFragment : Fragment() {
 
         locationBox.setOnKeyListener(View.OnKeyListener { v, keyCode, event ->
             if (keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_UP) {
-                if (locationBox.text.isNotBlank()) {
-                    locationParam = locationBox.text.toString()
+                locationParam = locationBox.text.toString()
 
-                    jobsList = mutableListOf()
-                    rvAdapter.notifyDataSetChanged()
+                jobsList = mutableListOf()
+                rvAdapter.notifyDataSetChanged()
 
-                    bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility =
-                        View.VISIBLE
+                bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility =
+                    View.VISIBLE
 
-                    bottomSheetView.findViewById<TextView>(R.id.errorText).text =
-                        "Loading jobs..."
-                    bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility =
-                        View.VISIBLE
+                bottomSheetView.findViewById<TextView>(R.id.errorText).text =
+                    "Loading jobs..."
+                bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility =
+                    View.VISIBLE
 
-                    bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+                bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
 
-                    loadData(searchParam, locationParam, this)
-                }
+                loadData(searchParam, locationParam, partTimeParam, fullTimeParam, this)
+
                 return@OnKeyListener true
             }
             false
