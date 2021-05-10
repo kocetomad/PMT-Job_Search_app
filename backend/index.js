@@ -88,7 +88,6 @@ app.get("/", (req, res) => {
 
 app.get("/api/jobs", blockNotAuthenticated, cacher, (req, res) => {
     let { search, location, partTime, fullTime } = req.query;
-    // TODO: santisation checks
     let url = `https://www.reed.co.uk/api/1.0/search?keywords=${search}&resultsToTake=15`;
     if (location) {
         url += `&location=${location}`;
@@ -827,6 +826,51 @@ app.put("/api/review", blockNotAuthenticated, (req, res) => {
                     });
                 }
             );
+        }
+    );
+});
+
+app.get("/api/profile", blockNotAuthenticated, cacher, (req, res) => {
+    let userID = req.user.user_id;
+
+    pool.query(
+        `SELECT first_name, last_name, email, dob, username
+	FROM user_tbl 
+	WHERE user_id=$1;`,
+        [userID],
+        (err, results) => {
+            if (err) {
+                throw err;
+            }
+            let profileReturn = {
+                success: true,
+                profile: results.rows,
+            };
+            cache.setKey(req.originalUrl, {
+                date: moment(),
+                data: profileReturn,
+            });
+            res.send(profileReturn);
+        }
+    );
+});
+
+app.delete("/api/profile", blockNotAuthenticated, (req, res) => {
+    let userID = req.user.user_id;
+
+    pool.query(
+        `DELETE FROM public.user_tbl
+	WHERE user_id=$1;`,
+        [userID],
+        (err, results) => {
+            if (err) {
+                throw err;
+            }
+            req.logOut();
+            res.send({
+                success: true,
+                msg: "profile successfully deleted",
+            });
         }
     );
 });
