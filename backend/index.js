@@ -87,11 +87,8 @@ let getDetails = async (jobID) => {
     let currCache = cache.getKey(cacheKey);
 
     if (currCache != null) {
-        console.log("getDetails cache return");
         return currCache;
     }
-
-    console.log("getDetails reed request");
 
     let jobDetailsConfig = {
         method: "get",
@@ -106,6 +103,29 @@ let getDetails = async (jobID) => {
         cache.setKey(cacheKey, detailsResponse);
         return new Promise((resolve, reject) => {
             resolve(detailsResponse);
+        });
+    } catch (e) {
+        return console.log(e);
+    }
+};
+
+// Cached logo lookup
+let getLogo = async (searchTerm) => {
+    let thisCache = cache.getKey(`/api/hidden/logo/${searchTerm}`);
+    if (thisCache != null) {
+        return thisCache;
+    }
+
+    let logoConfig = {
+        method: "get",
+        url: `https://autocomplete.clearbit.com/v1/companies/suggest?query=${searchTerm}`,
+    };
+
+    try {
+        let logoResponse = await axios(logoConfig);
+        cache.setKey(`/api/hidden/logo/${searchTerm}`, logoResponse);
+        return new Promise((resolve, reject) => {
+            resolve(logoResponse);
         });
     } catch (e) {
         return console.log(e);
@@ -148,13 +168,9 @@ app.get("/api/jobs", blockNotAuthenticated, cacher, (req, res) => {
             let logoPromises = [];
 
             for (let i = 0; i < responseData.results.length; i++) {
-                let empName = responseData.results[i]["employerName"];
-                let logoConfig = {
-                    method: "get",
-                    url: `https://autocomplete.clearbit.com/v1/companies/suggest?query=${empName}`,
-                };
-
-                let thisPromise = axios(logoConfig);
+                let thisPromise = getLogo(
+                    responseData.results[i]["employerName"]
+                );
                 logoPromises.push(thisPromise);
             }
 
@@ -202,8 +218,7 @@ app.get("/api/moreDetails", blockNotAuthenticated, cacher, async (req, res) => {
     ) {
         return res.send({
             success: "false",
-            msg:
-                "request must include ?empName=employerName&empID=1234&jobID=5678",
+            msg: "request must include ?empName=employerName&empID=1234&jobID=5678",
         });
     }
 
@@ -315,17 +330,15 @@ app.get("/api/moreDetails", blockNotAuthenticated, cacher, async (req, res) => {
                                 sharePrice: financeData[thisDate]["4. close"],
                             });
                         }
-                        moreDetailsReturn[
-                            "financeData"
-                        ] = summarisedFinanceData;
+                        moreDetailsReturn["financeData"] =
+                            summarisedFinanceData;
                         console.log("finance data found!");
                     } else {
                         console.log(
                             "AV Rate Limit Hit.  Finance data was found but cannot be displayed."
                         );
-                        moreDetailsReturn[
-                            "financeData"
-                        ] = placeholderFinanceData;
+                        moreDetailsReturn["financeData"] =
+                            placeholderFinanceData;
                     }
                 } else {
                     moreDetailsReturn["financeData"] = placeholderFinanceData;
@@ -640,8 +653,7 @@ app.post("/api/review", blockNotAuthenticated, (req, res) => {
     if (!empID || !userID || !rating || !title) {
         return res.send({
             success: false,
-            msg:
-                "empID, userID, rating and title are all required in request body, desc is optional",
+            msg: "empID, userID, rating and title are all required in request body, desc is optional",
         });
     }
 
@@ -823,8 +835,7 @@ app.put("/api/review", blockNotAuthenticated, (req, res) => {
     if (!rating || !title || !desc || !empID || !userID) {
         return res.send({
             success: false,
-            msg:
-                "params rating, title, desc and empID are all required for this endpoint",
+            msg: "params rating, title, desc and empID are all required for this endpoint",
         });
     }
 
@@ -938,8 +949,7 @@ app.post(
                 if (results.rows.length == 0) {
                     return res.send({
                         success: false,
-                        msg:
-                            "login worked, but cant find userID for that email",
+                        msg: "login worked, but cant find userID for that email",
                     });
                 }
                 let profileImage =
@@ -969,16 +979,14 @@ app.get("/api/logout", blockNotAuthenticated, (req, res) => {
 app.get("/api/loginError", blockAuthenticated, (req, res) => {
     res.send({
         success: false,
-        msg:
-            "you need to be logged in to access this endpoint.  please log in or make an account",
+        msg: "you need to be logged in to access this endpoint.  please log in or make an account",
     });
 });
 
 app.get("/api/logoutError", blockNotAuthenticated, (req, res) => {
     res.send({
         success: false,
-        msg:
-            "you do not need to access this endpoint as you are already logged in.",
+        msg: "you do not need to access this endpoint as you are already logged in.",
     });
 });
 
