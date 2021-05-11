@@ -1,9 +1,3 @@
-/* 
-TODO: change all setKey's to custom ones rather than req.originalURL
-TODO: sanitise all inputs for all endpoints
-TODO: remove urls from endpoints. 
-*/
-
 // Imports
 require("dotenv").config();
 const express = require("express");
@@ -146,7 +140,12 @@ let getLogo = async (searchTerm) => {
 
 // Sanitisation
 let removeHTML = (strIn) => {
-    return strIn.replace(/<.*.*<\/.*>/, "");
+    strIn = strIn.replace(/<.*.*<\/.*>/, "");
+
+    // add spaces after period if no space is present.  deliberately breaks links.
+    strIn = strIn.replace(/(?<=[.,])(?=[^\s])/, " ");
+
+    return strIn;
 };
 
 // Routes
@@ -157,7 +156,6 @@ app.get("/", (req, res) => {
 app.get(
     "/api/jobs",
     blockNotAuthenticated,
-    cacher,
 
     check("search")
         .customSanitizer((value) => removeHTML(value))
@@ -195,6 +193,16 @@ app.get(
             url += `&distanceFromLocation=${distance}`;
         }
 
+        let thisCache = cache.getKey(url);
+        if (thisCache) {
+            if (!lessThanOneHourAgo(thisCache.date)) {
+                console.log("cache too old, refetching");
+            } else {
+                console.log("cache worked");
+                return res.send(thisCache.data);
+            }
+        }
+
         let config = {
             method: "get",
             url: url,
@@ -229,7 +237,7 @@ app.get(
                                 "https://www.google.com/";
                         }
                     }
-                    cache.setKey(req.originalUrl, {
+                    cache.setKey(url, {
                         date: moment(),
                         data: {
                             success: true,
@@ -251,7 +259,6 @@ app.get(
 app.get(
     "/api/moreDetails",
     blockNotAuthenticated,
-    cacher,
 
     check("empName")
         .customSanitizer((value) => removeHTML(value))
@@ -275,6 +282,18 @@ app.get(
                 success: "false",
                 msg: "request must include ?empName=employerName&empID=1234&jobID=5678",
             });
+        }
+
+        let thisCache = cache.getKey(
+            `/api/hidden/moreDetails/${empName}/${empID}/${jobID}`
+        );
+
+        if (thisCache) {
+            if (!lessThanOneHourAgo(thisCache.date)) {
+                console.log("cache too old, refetching");
+            } else {
+                return res.send(thisCache.data);
+            }
         }
 
         let moreDetailsReturn = {};
@@ -418,10 +437,13 @@ app.get(
                             "https://www.google.com/";
                     }
 
-                    cache.setKey(req.originalUrl, {
-                        date: moment(),
-                        data: moreDetailsReturn,
-                    });
+                    cache.setKey(
+                        `/api/hidden/moreDetails/${empName}/${empID}/${jobID}`,
+                        {
+                            date: moment(),
+                            data: moreDetailsReturn,
+                        }
+                    );
                     res.send(moreDetailsReturn);
                 });
             })
@@ -493,26 +515,12 @@ app.get("/api/pinned", blockNotAuthenticated, async (req, res) => {
                         thisJob["extUrl"] = "https://www.google.com/";
                         pinnedResponse.push(thisJob);
                     }
-                    cache.setKey(req.originalUrl, {
-                        date: moment(),
-                        data: {
-                            success: true,
-                            jobs: pinnedResponse,
-                        },
-                    });
-                    res.send({
+                    return res.send({
                         success: true,
                         jobs: pinnedResponse,
                     });
                 });
             } else {
-                cache.setKey(req.originalUrl, {
-                    date: moment(),
-                    data: {
-                        success: false,
-                        msg: "there are no pinned jobs for this user",
-                    },
-                });
                 res.send({
                     success: false,
                     msg: "there are no pinned jobs for this user",
@@ -549,9 +557,6 @@ app.post(
                             msg: `error adding pinned job to database.  either post is already pinned to that user, or user with userID ${userID} does not exist in db`,
                         });
                     } else {
-                        // invalidate cache
-                        cache.removeKey("/api/pinned");
-                        console.log("removed key");
                         res.send({
                             success: true,
                             msg: "Pin added to db",
@@ -605,9 +610,6 @@ app.delete(
                         if (err) {
                             throw err;
                         }
-                        // invalidate cache
-                        cache.removeKey("/api/pinned");
-                        console.log("removed key");
                         res.send({
                             success: true,
                             msg: "post successfully un-pinned",
@@ -802,242 +804,322 @@ app.post(
     }
 );
 
-app.post("/api/review", blockNotAuthenticated, (req, res) => {
-    let { empID, rating, title, desc } = req.body;
-    let userID = req.user.user_id;
+app.post(
+    "/api/review",
+    blockNotAuthenticated,
 
-    if (!empID || !userID || !rating || !title) {
-        return res.send({
-            success: false,
-            msg: "empID, userID, rating and title are all required in request body, desc is optional",
-        });
-    }
+    check("empID").toInt(),
 
-    pool.query(
-        `SELECT employer_id, user_id, rating, title, description
+    check("rating").toInt(),
+
+    check("title")
+        .customSanitizer((value) => removeHTML(value))
+        .trim()
+        .escape(),
+
+    check("desc")
+        .customSanitizer((value) => removeHTML(value))
+        .trim()
+        .escape(),
+
+    (req, res) => {
+        let { empID, rating, title, desc } = req.body;
+        let userID = req.user.user_id;
+
+        if (!empID || !userID || !rating || !title) {
+            return res.send({
+                success: false,
+                msg: "empID, userID, rating and title are all required in request body, desc is optional",
+            });
+        }
+
+        if (!(rating > 0 && rating < 6)) {
+            return res.send({
+                success: false,
+                msg: "rating needs to be between 1 and 5 inclusive",
+            });
+        }
+
+        pool.query(
+            `SELECT employer_id, user_id, rating, title, description
 	FROM review_tbl
 	WHERE employer_id=$1
     AND user_id=$2`,
-        [empID, userID],
-        (err, results) => {
-            if (err) {
-                throw err;
-            }
-            if (results.rows.length != 0) {
-                // user already left review for that employer
-                return res.send({
-                    success: false,
-                    msg: "user already left review for that employer",
-                });
-            }
-
-            if (desc) {
-                pool.query(
-                    `INSERT INTO review_tbl(
-	        employer_id, user_id, rating, title, description)
-	        VALUES ($1, $2, $3, $4, $5);`,
-                    [empID, userID, rating, title, desc],
-                    (err, results) => {
-                        if (err) {
-                            throw err;
-                        }
-                        let allCache = Object.keys(cache.all());
-                        for (cacheObject in allCache) {
-                            if (String(allCache[cacheObject]).includes(empID)) {
-                                cache.removeKey(allCache[cacheObject]);
-                            }
-                        }
-                        return res.send({
-                            success: true,
-                            msg: "Review successfully added",
-                        });
-                    }
-                );
-            } else {
-                pool.query(
-                    `INSERT INTO review_tbl(
-	        employer_id, user_id, rating, title)
-	        VALUES ($1, $2, $3, $4);`,
-                    [empID, userID, rating, title],
-                    (err, results) => {
-                        if (err) {
-                            throw err;
-                        }
-                        let allCache = Object.keys(cache.all());
-                        for (cacheObject in allCache) {
-                            if (String(allCache[cacheObject]).includes(empID)) {
-                                cache.removeKey(allCache[cacheObject]);
-                            }
-                        }
-                        return res.send({
-                            success: true,
-                            msg: "Review successfully added",
-                        });
-                    }
-                );
-            }
-        }
-    );
-});
-
-app.delete("/api/review", blockNotAuthenticated, (req, res) => {
-    let { empID } = req.body;
-    let userID = req.user.user_id;
-
-    if (!empID || !userID) {
-        return res.send({
-            success: false,
-            msg: "params empID and userID are required for this endpoint",
-        });
-    }
-
-    pool.query(
-        `SELECT employer_id, user_id, rating, title, description
-	FROM review_tbl
-	WHERE employer_id=$1
-	AND user_id=$2;`,
-        [empID, userID],
-        (err, results) => {
-            if (err) {
-                throw err;
-            }
-
-            if (results.rows.length == 0) {
-                return res.send({
-                    success: false,
-                    msg: `review not found for empID ${empID} and userID ${userID}`,
-                });
-            }
-
-            pool.query(
-                `DELETE FROM review_tbl
-		        WHERE employer_id=$1
-	            AND user_id=$2;`,
-                [empID, userID],
-                (err, results) => {
-                    if (err) {
-                        throw err;
-                    }
-                    let allCache = Object.keys(cache.all());
-                    for (cacheObject in allCache) {
-                        if (String(allCache[cacheObject]).includes(empID)) {
-                            cache.removeKey(allCache[cacheObject]);
-                        }
-                    }
+            [empID, userID],
+            (err, results) => {
+                if (err) {
+                    throw err;
+                }
+                if (results.rows.length != 0) {
+                    // user already left review for that employer
                     return res.send({
-                        success: true,
-                        msg: "review successfully deleted",
+                        success: false,
+                        msg: "user already left review for that employer",
                     });
                 }
-            );
-        }
-    );
-});
 
-app.get("/api/review", blockNotAuthenticated, cacher, (req, res) => {
-    let { empID } = req.query;
-    let userID = req.user.user_id;
-
-    if (!empID || !userID) {
-        return res.send({
-            success: false,
-            msg: "param empID is required for this endpoint",
-        });
+                if (desc) {
+                    pool.query(
+                        `INSERT INTO review_tbl(
+	        employer_id, user_id, rating, title, description)
+	        VALUES ($1, $2, $3, $4, $5);`,
+                        [empID, userID, rating, title, desc],
+                        (err, results) => {
+                            if (err) {
+                                throw err;
+                            }
+                            let allCache = Object.keys(cache.all());
+                            for (cacheObject in allCache) {
+                                if (
+                                    String(allCache[cacheObject]).includes(
+                                        empID
+                                    )
+                                ) {
+                                    cache.removeKey(allCache[cacheObject]);
+                                }
+                            }
+                            return res.send({
+                                success: true,
+                                msg: "Review successfully added",
+                            });
+                        }
+                    );
+                } else {
+                    pool.query(
+                        `INSERT INTO review_tbl(
+	        employer_id, user_id, rating, title)
+	        VALUES ($1, $2, $3, $4);`,
+                        [empID, userID, rating, title],
+                        (err, results) => {
+                            if (err) {
+                                throw err;
+                            }
+                            let allCache = Object.keys(cache.all());
+                            for (cacheObject in allCache) {
+                                if (
+                                    String(allCache[cacheObject]).includes(
+                                        empID
+                                    )
+                                ) {
+                                    cache.removeKey(allCache[cacheObject]);
+                                }
+                            }
+                            return res.send({
+                                success: true,
+                                msg: "Review successfully added",
+                            });
+                        }
+                    );
+                }
+            }
+        );
     }
+);
 
-    pool.query(
-        `SELECT employer_id, user_id, rating, title, description
+app.delete(
+    "/api/review",
+    blockNotAuthenticated,
+    check("empID").toInt(),
+    (req, res) => {
+        let { empID } = req.body;
+        let userID = req.user.user_id;
+
+        if (!empID || !userID) {
+            return res.send({
+                success: false,
+                msg: "params empID and userID are required for this endpoint",
+            });
+        }
+
+        pool.query(
+            `SELECT employer_id, user_id, rating, title, description
 	FROM review_tbl
 	WHERE employer_id=$1
 	AND user_id=$2;`,
-        [empID, userID],
-        (err, results) => {
-            if (err) {
-                throw err;
-            }
+            [empID, userID],
+            (err, results) => {
+                if (err) {
+                    throw err;
+                }
 
-            if (results.rows.length == 0) {
-                cache.setKey(req.originalUrl, {
-                    date: moment(),
-                    data: {
+                if (results.rows.length == 0) {
+                    return res.send({
                         success: false,
                         msg: `review not found for empID ${empID} and userID ${userID}`,
-                    },
-                });
-                return res.send({
-                    success: false,
-                    msg: `review not found for empID ${empID} and userID ${userID}`,
-                });
+                    });
+                }
+
+                pool.query(
+                    `DELETE FROM review_tbl
+		        WHERE employer_id=$1
+	            AND user_id=$2;`,
+                    [empID, userID],
+                    (err, results) => {
+                        if (err) {
+                            throw err;
+                        }
+                        let allCache = Object.keys(cache.all());
+                        for (cacheObject in allCache) {
+                            if (String(allCache[cacheObject]).includes(empID)) {
+                                cache.removeKey(allCache[cacheObject]);
+                            }
+                        }
+                        return res.send({
+                            success: true,
+                            msg: "review successfully deleted",
+                        });
+                    }
+                );
             }
-            cache.setKey(req.originalUrl, {
-                date: moment(),
-                data: {
-                    success: true,
-                    review: results.rows,
-                },
-            });
-            res.send({
-                success: true,
-                review: results.rows,
+        );
+    }
+);
+
+app.get(
+    "/api/review",
+    blockNotAuthenticated,
+    check("empID").toInt(),
+    (req, res) => {
+        let { empID } = req.query;
+        let userID = req.user.user_id;
+
+        if (!empID || !userID) {
+            return res.send({
+                success: false,
+                msg: "param empID is required for this endpoint",
             });
         }
-    );
-});
 
-app.put("/api/review", blockNotAuthenticated, (req, res) => {
-    let { rating, title, desc, empID } = req.body;
-    let userID = req.user.user_id;
+        let thisCache = cache.getKey(`/api/hidden/review/${empID}/${userID}`);
 
-    if (!rating || !title || !desc || !empID || !userID) {
-        return res.send({
-            success: false,
-            msg: "params rating, title, desc and empID are all required for this endpoint",
-        });
-    }
+        if (thisCache) {
+            if (!lessThanOneHourAgo(thisCache.date)) {
+                console.log("cache too old, refetching");
+            } else {
+                return res.send(thisCache.data);
+            }
+        }
 
-    pool.query(
-        `SELECT employer_id, user_id, rating, title, description
+        pool.query(
+            `SELECT employer_id, user_id, rating, title, description
 	FROM review_tbl
 	WHERE employer_id=$1
 	AND user_id=$2;`,
-        [empID, userID],
-        (err, results) => {
-            if (err) {
-                throw err;
-            }
+            [empID, userID],
+            (err, results) => {
+                if (err) {
+                    throw err;
+                }
 
-            if (results.rows.length == 0) {
-                return res.send({
-                    success: false,
-                    msg: `review not found for empID ${empID} and userID ${userID}`,
+                if (results.rows.length == 0) {
+                    cache.setKey(`/api/hidden/review/${empID}/${userID}`, {
+                        date: moment(),
+                        data: {
+                            success: false,
+                            msg: `review not found for empID ${empID} and userID ${userID}`,
+                        },
+                    });
+                    return res.send({
+                        success: false,
+                        msg: `review not found for empID ${empID} and userID ${userID}`,
+                    });
+                }
+                cache.setKey(`/api/hidden/review/${empID}/${userID}`, {
+                    date: moment(),
+                    data: {
+                        success: true,
+                        review: results.rows,
+                    },
+                });
+                res.send({
+                    success: true,
+                    review: results.rows,
                 });
             }
+        );
+    }
+);
 
-            pool.query(
-                `UPDATE review_tbl
+app.put(
+    "/api/review",
+    blockNotAuthenticated,
+
+    check("empID").toInt(),
+
+    check("rating").toInt(),
+
+    check("title")
+        .customSanitizer((value) => removeHTML(value))
+        .trim()
+        .escape(),
+
+    check("desc")
+        .customSanitizer((value) => removeHTML(value))
+        .trim()
+        .escape(),
+
+    (req, res) => {
+        let { rating, title, desc, empID } = req.body;
+        let userID = req.user.user_id;
+
+        if (!rating || !title || !desc || !empID || !userID) {
+            return res.send({
+                success: false,
+                msg: "params rating, title, desc and empID are all required for this endpoint",
+            });
+        }
+
+        if (!(rating > 0 && rating < 6)) {
+            return res.send({
+                success: false,
+                msg: "rating needs to be between 1 and 5 inclusive",
+            });
+        }
+
+        pool.query(
+            `SELECT employer_id, user_id, rating, title, description
+	FROM review_tbl
+	WHERE employer_id=$1
+	AND user_id=$2;`,
+            [empID, userID],
+            (err, results) => {
+                if (err) {
+                    throw err;
+                }
+
+                if (results.rows.length == 0) {
+                    return res.send({
+                        success: false,
+                        msg: `review not found for empID ${empID} and userID ${userID}`,
+                    });
+                }
+
+                pool.query(
+                    `UPDATE review_tbl
 	            SET rating=$1, title=$2, description=$3
 	            WHERE employer_id=$4
 	            AND user_id=$5;`,
-                [rating, title, desc, empID, userID],
-                (err, results) => {
-                    if (err) {
-                        throw err;
-                    }
-                    let allCache = Object.keys(cache.all());
-                    for (cacheObject in allCache) {
-                        if (String(allCache[cacheObject]).includes(empID)) {
-                            cache.removeKey(allCache[cacheObject]);
+                    [rating, title, desc, empID, userID],
+                    (err, results) => {
+                        if (err) {
+                            throw err;
                         }
+                        let allCache = Object.keys(cache.all());
+                        for (cacheObject in allCache) {
+                            if (String(allCache[cacheObject]).includes(empID)) {
+                                cache.removeKey(allCache[cacheObject]);
+                            }
+                        }
+                        return res.send({
+                            success: true,
+                            msg: "review successfully updated",
+                        });
                     }
-                    return res.send({
-                        success: true,
-                        msg: "review successfully updated",
-                    });
-                }
-            );
-        }
-    );
-});
+                );
+            }
+        );
+    }
+);
 
 app.get("/api/profile", blockNotAuthenticated, (req, res) => {
     let userID = req.user.user_id;
@@ -1090,6 +1172,14 @@ app.delete("/api/profile", blockNotAuthenticated, (req, res) => {
 app.post(
     "/api/login",
     blockAuthenticated,
+
+    check("email").isEmail().normalizeEmail(),
+
+    check("password")
+        .customSanitizer((value) => removeHTML(value))
+        .trim()
+        .escape(),
+
     passport.authenticate("local"),
     (req, res) => {
         // send userID to frontend
