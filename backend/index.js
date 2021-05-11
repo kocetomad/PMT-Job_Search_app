@@ -1,3 +1,9 @@
+/* 
+TODO: change all setKey's to custom ones rather than req.originalURL
+TODO: sanitise all inputs for all endpoints
+TODO: remove urls from endpoints. 
+*/
+
 // Imports
 require("dotenv").config();
 const express = require("express");
@@ -12,6 +18,12 @@ const initializePassport = require("./passportConfig");
 const flatCache = require("flat-cache");
 const cache = flatCache.load("cache1");
 const moment = require("moment");
+const {
+    body,
+    validationResult,
+    check,
+    sanitize,
+} = require("express-validator");
 
 // Initialisation
 initializePassport(passport);
@@ -132,242 +144,292 @@ let getLogo = async (searchTerm) => {
     }
 };
 
+// Sanitisation
+let removeHTML = (strIn) => {
+    return strIn.replace(/<.*.*<\/.*>/, "");
+};
+
 // Routes
 app.get("/", (req, res) => {
     res.send({ success: "true" });
 });
 
-app.get("/api/jobs", blockNotAuthenticated, cacher, (req, res) => {
-    let { search, location, partTime, fullTime, distance } = req.query;
-    let url = `https://www.reed.co.uk/api/1.0/search?keywords=${search}&resultsToTake=15`;
-    if (location) {
-        url += `&location=${location}`;
-    }
-    if (partTime) {
-        url += `&partTime=${partTime}`;
-    }
-    if (fullTime) {
-        url += `&fullTime=${fullTime}`;
-    }
-    if (distance) {
-        url += `&distanceFromLocation=${distance}`;
-    }
+app.get(
+    "/api/jobs",
+    blockNotAuthenticated,
+    cacher,
 
-    let config = {
-        method: "get",
-        url: url,
-        headers: {
-            Authorization: process.env.REED_AUTH,
-        },
-    };
+    check("search")
+        .customSanitizer((value) => removeHTML(value))
+        .trim()
+        .escape(),
 
-    axios(config)
-        .then(function (response) {
-            let responseData = response.data;
+    check("location")
+        .customSanitizer((value) => removeHTML(value))
+        .trim()
+        .escape(),
 
-            let logoPromises = [];
+    check("distance").toInt(),
 
-            for (let i = 0; i < responseData.results.length; i++) {
-                let thisPromise = getLogo(
-                    responseData.results[i]["employerName"]
-                );
-                logoPromises.push(thisPromise);
-            }
-
-            Promise.all(logoPromises).then((responses) => {
-                for (response in responses) {
-                    if (responses[response].data[0]) {
-                        responseData.results[response]["logoUrl"] =
-                            responses[response].data[0].logo;
-                        responseData.results[response]["extUrl"] =
-                            responses[response].data[0].domain;
-                    } else {
-                        responseData.results[response]["logoUrl"] = "";
-                        responseData.results[response]["extUrl"] =
-                            "https://www.google.com/";
-                    }
-                }
-                cache.setKey(req.originalUrl, {
-                    date: moment(),
-                    data: {
-                        success: true,
-                        jobs: responseData.results,
-                    },
-                });
-                res.send({
-                    success: true,
-                    jobs: responseData.results,
-                });
-            });
-        })
-        .catch(function (error) {
-            console.log(error);
-        });
-});
-
-app.get("/api/moreDetails", blockNotAuthenticated, cacher, async (req, res) => {
-    let { empName, empID, jobID } = req.query;
-
-    if (
-        empName == "" ||
-        !empName ||
-        empID == "" ||
-        !empID ||
-        jobID == "" ||
-        !jobID
-    ) {
-        return res.send({
-            success: "false",
-            msg: "request must include ?empName=employerName&empID=1234&jobID=5678",
-        });
-    }
-
-    let moreDetailsReturn = {};
-
-    // Financial data requests
-    let symbolSearchConfig = {
-        method: "get",
-        url: `https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${empName}&apikey=${process.env.ALPHA_AUTH}`,
-        headers: {},
-    };
-
-    let summarisedFinanceData = [];
-    const symbolSearchCall = axios(symbolSearchConfig).catch(function (error) {
-        console.log(error);
-    });
-
-    // Reed more details request
-    let jobDetailsConfig = {
-        method: "get",
-        url: `https://www.reed.co.uk/api/1.0/jobs/${jobID}`,
-        headers: {
-            Authorization: process.env.REED_AUTH,
-        },
-    };
-
-    const jobDetailsCall = axios(jobDetailsConfig);
-
-    const reviewDataCall = pool.query(
-        `SELECT employer_id, user_id, rating, title, description
-	FROM review_tbl
-	WHERE employer_id=$1;`,
-        [empID],
-        (err, results) => {
-            if (err) {
-                throw err;
-            }
-
-            if (results.rows.length > 0) {
-                moreDetailsReturn["reviewData"] = results.rows;
+    (req, res) => {
+        let { search, location, partTime, fullTime, distance } = req.query;
+        let url = `https://www.reed.co.uk/api/1.0/search?keywords=${search}&resultsToTake=15`;
+        if (location) {
+            url += `&location=${location}`;
+        }
+        if (partTime) {
+            if (partTime != "true" && partTime != "false") {
+                console.log("partTime sanitation failed");
             } else {
-                console.log(`review data not found for empID ${empID}`);
-                moreDetailsReturn["reviewData"] = placeholderReviewData;
+                url += `&partTime=${partTime}`;
             }
         }
-    );
-
-    Promise.all([symbolSearchCall, jobDetailsCall, reviewDataCall])
-        .then((responses) => {
-            // initialise phase 2 requests promises
-            const promises = [];
-
-            // handle jobDetails data response
-            const jobDetailsResponse = responses[1];
-            moreDetailsReturn["jobDetails"] = [jobDetailsResponse.data];
-
-            let logoConfig = {
-                method: "get",
-                url: `https://autocomplete.clearbit.com/v1/companies/suggest?query=${empName}`,
-            };
-
-            let logoPromise = axios(logoConfig);
-            promises.push(logoPromise);
-
-            // handle reviewDataresponse
-            const reviewResponse = responses[2];
-
-            // handle finance data response
-            const symbolResponse = responses[0];
-            let symbol;
-            if (symbolResponse.data.bestMatches[0]) {
-                symbol = JSON.stringify(
-                    symbolResponse.data.bestMatches[0]["1. symbol"]
-                );
-                symbol = symbol.replace(/['"]+/g, "");
+        if (fullTime) {
+            if (fullTime != "true" && fullTime != "false") {
+                console.log("fullTime sanitation failed");
+            } else {
+                url += `&fullTime=${fullTime}`;
             }
+        }
+        if (distance) {
+            url += `&distanceFromLocation=${distance}`;
+        }
 
-            if (symbol) {
-                // financial data found, 2nd request start
-                let fincancialDataConfig = {
+        let config = {
+            method: "get",
+            url: url,
+            headers: {
+                Authorization: process.env.REED_AUTH,
+            },
+        };
+
+        axios(config)
+            .then(function (response) {
+                let responseData = response.data;
+
+                let logoPromises = [];
+
+                for (let i = 0; i < responseData.results.length; i++) {
+                    let thisPromise = getLogo(
+                        responseData.results[i]["employerName"]
+                    );
+                    logoPromises.push(thisPromise);
+                }
+
+                Promise.all(logoPromises).then((responses) => {
+                    for (response in responses) {
+                        if (responses[response].data[0]) {
+                            responseData.results[response]["logoUrl"] =
+                                responses[response].data[0].logo;
+                            responseData.results[response]["extUrl"] =
+                                responses[response].data[0].domain;
+                        } else {
+                            responseData.results[response]["logoUrl"] = "";
+                            responseData.results[response]["extUrl"] =
+                                "https://www.google.com/";
+                        }
+                    }
+                    cache.setKey(req.originalUrl, {
+                        date: moment(),
+                        data: {
+                            success: true,
+                            jobs: responseData.results,
+                        },
+                    });
+                    res.send({
+                        success: true,
+                        jobs: responseData.results,
+                    });
+                });
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+    }
+);
+
+app.get(
+    "/api/moreDetails",
+    blockNotAuthenticated,
+    cacher,
+
+    check("empName")
+        .customSanitizer((value) => removeHTML(value))
+        .trim()
+        .escape(),
+    check("jobID").toInt(),
+    check("empID").toInt(),
+
+    async (req, res) => {
+        let { empName, empID, jobID } = req.query;
+
+        if (
+            empName == "" ||
+            !empName ||
+            empID == "" ||
+            !empID ||
+            jobID == "" ||
+            !jobID
+        ) {
+            return res.send({
+                success: "false",
+                msg: "request must include ?empName=employerName&empID=1234&jobID=5678",
+            });
+        }
+
+        let moreDetailsReturn = {};
+
+        // Financial data requests
+        let symbolSearchConfig = {
+            method: "get",
+            url: `https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=${empName}&apikey=${process.env.ALPHA_AUTH}`,
+            headers: {},
+        };
+
+        let summarisedFinanceData = [];
+        const symbolSearchCall = axios(symbolSearchConfig).catch(function (
+            error
+        ) {
+            console.log(error);
+        });
+
+        // Reed more details request
+        let jobDetailsConfig = {
+            method: "get",
+            url: `https://www.reed.co.uk/api/1.0/jobs/${jobID}`,
+            headers: {
+                Authorization: process.env.REED_AUTH,
+            },
+        };
+
+        const jobDetailsCall = axios(jobDetailsConfig);
+
+        const reviewDataCall = pool.query(
+            `SELECT employer_id, user_id, rating, title, description
+	FROM review_tbl
+	WHERE employer_id=$1;`,
+            [empID],
+            (err, results) => {
+                if (err) {
+                    throw err;
+                }
+
+                if (results.rows.length > 0) {
+                    moreDetailsReturn["reviewData"] = results.rows;
+                } else {
+                    console.log(`review data not found for empID ${empID}`);
+                    moreDetailsReturn["reviewData"] = placeholderReviewData;
+                }
+            }
+        );
+
+        Promise.all([symbolSearchCall, jobDetailsCall, reviewDataCall])
+            .then((responses) => {
+                // initialise phase 2 requests promises
+                const promises = [];
+
+                // handle jobDetails data response
+                const jobDetailsResponse = responses[1];
+                moreDetailsReturn["jobDetails"] = [jobDetailsResponse.data];
+
+                let logoConfig = {
                     method: "get",
-                    url: `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${process.env.ALPHA_AUTH}`,
-                    headers: {},
+                    url: `https://autocomplete.clearbit.com/v1/companies/suggest?query=${empName}`,
                 };
 
-                const financialDataPromise = axios(fincancialDataConfig);
-                promises.push(financialDataPromise);
-                // end of 2nd request
-            } else {
-                console.log("finance data not found for company of that name");
-                moreDetailsReturn["financeData"] = [];
-            }
-            Promise.all(promises).then((responses) => {
-                if (responses.length > 1) {
-                    // finance data request was made
-                    let financeData = responses[1].data;
-                    financeData = financeData["Time Series (Daily)"];
+                let logoPromise = axios(logoConfig);
+                promises.push(logoPromise);
 
-                    if (financeData) {
-                        // checks for AV api rate limiting
-                        for (
-                            let i = 0;
-                            i < Object.keys(financeData).length;
-                            i++
-                        ) {
-                            let thisDate = Object.keys(financeData)[i];
-                            summarisedFinanceData.push({
-                                date: thisDate,
-                                sharePrice: financeData[thisDate]["4. close"],
-                            });
+                // handle reviewDataresponse
+                const reviewResponse = responses[2];
+
+                // handle finance data response
+                const symbolResponse = responses[0];
+                let symbol;
+                if (symbolResponse.data.bestMatches[0]) {
+                    symbol = JSON.stringify(
+                        symbolResponse.data.bestMatches[0]["1. symbol"]
+                    );
+                    symbol = symbol.replace(/['"]+/g, "");
+                }
+
+                if (symbol) {
+                    // financial data found, 2nd request start
+                    let fincancialDataConfig = {
+                        method: "get",
+                        url: `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${process.env.ALPHA_AUTH}`,
+                        headers: {},
+                    };
+
+                    const financialDataPromise = axios(fincancialDataConfig);
+                    promises.push(financialDataPromise);
+                    // end of 2nd request
+                } else {
+                    console.log(
+                        "finance data not found for company of that name"
+                    );
+                    moreDetailsReturn["financeData"] = [];
+                }
+                Promise.all(promises).then((responses) => {
+                    if (responses.length > 1) {
+                        // finance data request was made
+                        let financeData = responses[1].data;
+                        financeData = financeData["Time Series (Daily)"];
+
+                        if (financeData) {
+                            // checks for AV api rate limiting
+                            for (
+                                let i = 0;
+                                i < Object.keys(financeData).length;
+                                i++
+                            ) {
+                                let thisDate = Object.keys(financeData)[i];
+                                summarisedFinanceData.push({
+                                    date: thisDate,
+                                    sharePrice:
+                                        financeData[thisDate]["4. close"],
+                                });
+                            }
+                            moreDetailsReturn["financeData"] =
+                                summarisedFinanceData;
+                            console.log("finance data found!");
+                        } else {
+                            console.log(
+                                "AV Rate Limit Hit.  Finance data was found but cannot be displayed."
+                            );
+                            moreDetailsReturn["financeData"] =
+                                placeholderFinanceData;
                         }
-                        moreDetailsReturn["financeData"] =
-                            summarisedFinanceData;
-                        console.log("finance data found!");
                     } else {
-                        console.log(
-                            "AV Rate Limit Hit.  Finance data was found but cannot be displayed."
-                        );
                         moreDetailsReturn["financeData"] =
                             placeholderFinanceData;
                     }
-                } else {
-                    moreDetailsReturn["financeData"] = placeholderFinanceData;
-                }
 
-                let logoResponse = responses[0].data;
+                    let logoResponse = responses[0].data;
 
-                if (logoResponse.length != 0) {
-                    moreDetailsReturn["jobDetails"][0]["logoUrl"] =
-                        logoResponse[0].logo;
-                    moreDetailsReturn["jobDetails"][0]["extUrl"] =
-                        logoResponse[0].domain;
-                } else {
-                    moreDetailsReturn["jobDetails"][0]["logoUrl"] = "";
-                    moreDetailsReturn["jobDetails"][0]["extUrl"] =
-                        "https://www.google.com/";
-                }
+                    if (logoResponse.length != 0) {
+                        moreDetailsReturn["jobDetails"][0]["logoUrl"] =
+                            logoResponse[0].logo;
+                        moreDetailsReturn["jobDetails"][0]["extUrl"] =
+                            logoResponse[0].domain;
+                    } else {
+                        moreDetailsReturn["jobDetails"][0]["logoUrl"] = "";
+                        moreDetailsReturn["jobDetails"][0]["extUrl"] =
+                            "https://www.google.com/";
+                    }
 
-                cache.setKey(req.originalUrl, {
-                    date: moment(),
-                    data: moreDetailsReturn,
+                    cache.setKey(req.originalUrl, {
+                        date: moment(),
+                        data: moreDetailsReturn,
+                    });
+                    res.send(moreDetailsReturn);
                 });
-                res.send(moreDetailsReturn);
+            })
+            .catch((errors) => {
+                console.log(errors);
             });
-        })
-        .catch((errors) => {
-            console.log(errors);
-        });
-});
+    }
+);
 
 app.get("/api/pinned", blockNotAuthenticated, async (req, res) => {
     let userID = req.user.user_id;
@@ -460,208 +522,285 @@ app.get("/api/pinned", blockNotAuthenticated, async (req, res) => {
     );
 });
 
-app.post("/api/pinned", blockNotAuthenticated, (req, res) => {
-    let { jobID } = req.body;
-    let userID = req.user.user_id;
+app.post(
+    "/api/pinned",
+    blockNotAuthenticated,
+    check("jobID").toInt(),
+    (req, res) => {
+        let { jobID } = req.body;
+        let userID = req.user.user_id;
 
-    if (!userID || !jobID) {
-        res.send({
-            success: false,
-            msg: "please include params userID and jobID",
-        });
-    } else {
-        pool.query(
-            `INSERT INTO pinned_tbl(
+        if (!userID || !jobID) {
+            res.send({
+                success: false,
+                msg: "please include params userID and jobID",
+            });
+        } else {
+            pool.query(
+                `INSERT INTO pinned_tbl(
 	job_id, user_id)
 	VALUES ($1, $2) RETURNING job_id, user_id;`,
-            [jobID, userID],
-            (err, results) => {
-                if (err) {
-                    console.log(err);
-                    res.send({
-                        success: false,
-                        msg: `error adding pinned job to database.  either post is already pinned to that user, or user with userID ${userID} does not exist in db`,
-                    });
-                } else {
-                    // invalidate cache
-                    cache.removeKey("/api/pinned");
-                    console.log("removed key");
-                    res.send({
-                        success: true,
-                        msg: "Pin added to db",
-                    });
-                }
-            }
-        );
-    }
-});
-
-app.delete("/api/pinned", blockNotAuthenticated, (req, res) => {
-    let { jobID } = req.body;
-    let userID = req.user.user_id;
-
-    if (!jobID || !userID) {
-        return res.send({
-            success: false,
-            msg: "Please include jobID and userID as params",
-        });
-    }
-
-    pool.query(
-        `SELECT job_id, user_id
-	FROM public.pinned_tbl
-	WHERE job_id=$1
-	AND user_id=$2;`,
-        [jobID, userID],
-        (err, results) => {
-            if (err) {
-                throw err;
-            }
-
-            if (results.rows.length == 0) {
-                return res.send({
-                    success: false,
-                    msg: `Pinned post with user id ${userID} and job id ${jobID} not found in db.`,
-                });
-            }
-
-            pool.query(
-                `DELETE FROM public.pinned_tbl
-	            WHERE job_id=$1
-	            AND user_id=$2;`,
                 [jobID, userID],
                 (err, results) => {
                     if (err) {
-                        throw err;
+                        console.log(err);
+                        res.send({
+                            success: false,
+                            msg: `error adding pinned job to database.  either post is already pinned to that user, or user with userID ${userID} does not exist in db`,
+                        });
+                    } else {
+                        // invalidate cache
+                        cache.removeKey("/api/pinned");
+                        console.log("removed key");
+                        res.send({
+                            success: true,
+                            msg: "Pin added to db",
+                        });
                     }
-                    // invalidate cache
-                    cache.removeKey("/api/pinned");
-                    console.log("removed key");
-                    res.send({
-                        success: true,
-                        msg: "post successfully un-pinned",
-                    });
                 }
             );
         }
-    );
-});
-
-app.post("/api/register", blockAuthenticated, async (req, res) => {
-    let {
-        username,
-        email,
-        password,
-        password2,
-        firstName,
-        lastName,
-        dob,
-        profilePic,
-    } = req.body;
-
-    let errors = [];
-
-    if (
-        !username ||
-        !email ||
-        !password ||
-        !password2 ||
-        !firstName ||
-        !lastName ||
-        !dob
-    ) {
-        errors.push({
-            msg: "1 or more fields left empty",
-        });
     }
+);
 
-    if (password.length < 6) {
-        errors.push({
-            msg: "Password should be at least 6 characters",
-        });
-    }
+app.delete(
+    "/api/pinned",
+    blockNotAuthenticated,
+    check("jobID").toInt(),
+    (req, res) => {
+        let { jobID } = req.body;
+        let userID = req.user.user_id;
 
-    if (password != password2) {
-        errors.push({
-            msg: "Passwords do not match",
-        });
-    }
+        if (!jobID || !userID) {
+            return res.send({
+                success: false,
+                msg: "Please include jobID and userID as params",
+            });
+        }
 
-    if (errors.length > 0) {
-        return res.send({
-            success: false,
-            errors: errors,
-        });
-    } else {
-        // validation passed
-        let hashedPassword = await bcrypt.hash(password, 10);
         pool.query(
-            `SELECT * FROM user_tbl WHERE email = $1`,
-            [email],
+            `SELECT job_id, user_id
+	FROM public.pinned_tbl
+	WHERE job_id=$1
+	AND user_id=$2;`,
+            [jobID, userID],
             (err, results) => {
                 if (err) {
                     throw err;
                 }
 
-                if (results.rows.length > 0) {
-                    // user already registered
-                    errors.push({
-                        msg: "Email already registered",
-                    });
+                if (results.rows.length == 0) {
                     return res.send({
                         success: false,
-                        errors: errors,
+                        msg: `Pinned post with user id ${userID} and job id ${jobID} not found in db.`,
                     });
                 }
 
                 pool.query(
-                    `SELECT * FROM user_tbl WHERE username = $1`,
-                    [username],
+                    `DELETE FROM public.pinned_tbl
+	            WHERE job_id=$1
+	            AND user_id=$2;`,
+                    [jobID, userID],
                     (err, results) => {
                         if (err) {
                             throw err;
                         }
-
-                        if (results.rows.length > 0) {
-                            return res.send({
-                                success: false,
-                                msg: "username already taken",
-                            });
-                        }
-
-                        if (!profilePic) {
-                            profilePic =
-                                "https://image.flaticon.com/icons/png/128/1946/1946429.png";
-                        }
-                        pool.query(
-                            `INSERT INTO user_tbl (first_name, last_name, email, dob, password_hash, username, profile_url) 
-                        VALUES ($1, $2, $3, $4, $5, $6, $7) 
-                        RETURNING username, password_hash`,
-                            [
-                                firstName,
-                                lastName,
-                                email,
-                                dob,
-                                hashedPassword,
-                                username,
-                                profilePic,
-                            ],
-                            (err, results) => {
-                                if (err) {
-                                    throw err;
-                                }
-                                res.send({
-                                    success: true,
-                                    msg: `user created, with username ${username}`,
-                                });
-                            }
-                        );
+                        // invalidate cache
+                        cache.removeKey("/api/pinned");
+                        console.log("removed key");
+                        res.send({
+                            success: true,
+                            msg: "post successfully un-pinned",
+                        });
                     }
                 );
             }
         );
     }
-});
+);
+
+app.post(
+    "/api/register",
+    blockAuthenticated,
+
+    check("username")
+        .customSanitizer((value) => removeHTML(value))
+        .trim()
+        .escape(),
+
+    check("email").isEmail().normalizeEmail(),
+
+    check("password")
+        .customSanitizer((value) => removeHTML(value))
+        .trim()
+        .escape(),
+
+    check("password2")
+        .customSanitizer((value) => removeHTML(value))
+        .trim()
+        .escape(),
+
+    check("firstName")
+        .customSanitizer((value) => removeHTML(value))
+        .trim()
+        .escape(),
+
+    check("lastName")
+        .customSanitizer((value) => removeHTML(value))
+        .trim()
+        .escape(),
+
+    check("dob")
+        .customSanitizer((value) => removeHTML(value))
+        .trim()
+        .escape(),
+
+    async (req, res) => {
+        let {
+            username,
+            email,
+            password,
+            password2,
+            firstName,
+            lastName,
+            dob,
+            profilePic,
+        } = req.body;
+
+        // dob validation
+        let dobDate = Date.parse(dob);
+
+        if (isNaN(dobDate)) {
+            return res.send({
+                success: false,
+                msg: "date in wrong format",
+            });
+        }
+
+        let momentDob = moment(dob, "YYYY-MM-DD");
+
+        if (momentDob.isAfter(moment().subtract(16, "years"))) {
+            return res.send({
+                success: false,
+                msg: "You need to be 16 or older to register with this app.",
+            });
+        }
+
+        // profilePic validation
+        if (profilePic) {
+            profilePic = removeHTML(profilePic);
+            if (!/d*\.jpg$|\.jpeg$|\.png$|\.gif$|\.bmp$/.test(profilePic)) {
+                return res.send({
+                    success: false,
+                    msg: "profilePic is not image link",
+                });
+            }
+        }
+
+        let errors = [];
+
+        if (
+            !username ||
+            !email ||
+            !password ||
+            !password2 ||
+            !firstName ||
+            !lastName ||
+            !dob
+        ) {
+            errors.push({
+                msg: "1 or more fields left empty",
+            });
+        }
+
+        if (password.length < 6) {
+            errors.push({
+                msg: "Password should be at least 6 characters",
+            });
+        }
+
+        if (password != password2) {
+            errors.push({
+                msg: "Passwords do not match",
+            });
+        }
+
+        if (errors.length > 0) {
+            return res.send({
+                success: false,
+                errors: errors,
+            });
+        } else {
+            // validation passed
+            let hashedPassword = await bcrypt.hash(password, 10);
+            pool.query(
+                `SELECT * FROM user_tbl WHERE email = $1`,
+                [email],
+                (err, results) => {
+                    if (err) {
+                        throw err;
+                    }
+
+                    if (results.rows.length > 0) {
+                        // user already registered
+                        errors.push({
+                            msg: "Email already registered",
+                        });
+                        return res.send({
+                            success: false,
+                            errors: errors,
+                        });
+                    }
+
+                    pool.query(
+                        `SELECT * FROM user_tbl WHERE username = $1`,
+                        [username],
+                        (err, results) => {
+                            if (err) {
+                                throw err;
+                            }
+
+                            if (results.rows.length > 0) {
+                                return res.send({
+                                    success: false,
+                                    msg: "username already taken",
+                                });
+                            }
+
+                            if (!profilePic) {
+                                profilePic =
+                                    "https://image.flaticon.com/icons/png/128/1946/1946429.png";
+                            }
+                            pool.query(
+                                `INSERT INTO user_tbl (first_name, last_name, email, dob, password_hash, username, profile_url) 
+                        VALUES ($1, $2, $3, $4, $5, $6, $7) 
+                        RETURNING username, password_hash`,
+                                [
+                                    firstName,
+                                    lastName,
+                                    email,
+                                    dob,
+                                    hashedPassword,
+                                    username,
+                                    profilePic,
+                                ],
+                                (err, results) => {
+                                    if (err) {
+                                        throw err;
+                                    }
+                                    res.send({
+                                        success: true,
+                                        msg: `user created, with username ${username}`,
+                                    });
+                                }
+                            );
+                        }
+                    );
+                }
+            );
+        }
+    }
+);
 
 app.post("/api/review", blockNotAuthenticated, (req, res) => {
     let { empID, rating, title, desc } = req.body;
