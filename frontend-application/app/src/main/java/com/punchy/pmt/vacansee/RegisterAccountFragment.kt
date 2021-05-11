@@ -2,6 +2,7 @@ package com.punchy.pmt.vacansee
 
 import android.os.Bundle
 import android.text.format.DateFormat
+import android.util.Patterns
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -13,6 +14,7 @@ import android.widget.Toast
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.registerAccount
 import java.text.ParseException
 import java.text.SimpleDateFormat
+import java.util.*
 
 //import com.punchy.pmt.vacansee.searchJobs.httpRequests.registerAccount
 
@@ -30,6 +32,8 @@ class RegisterAccountFragment : Fragment() {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
+
+    private val ageRequirement = 16
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,7 +75,10 @@ class RegisterAccountFragment : Fragment() {
             }
 
             if (firstName.text.isNotEmpty() && lastName.text.isNotEmpty() && username.text.isNotEmpty() && dateOfBirth.text.isNotEmpty() && email.text.isNotEmpty() && password.text.isNotEmpty() && confirmPassword.text.isNotEmpty())
-                if (password.text.toString() != confirmPassword.text.toString()) {
+                if (!Patterns.EMAIL_ADDRESS.matcher(email.text).matches()){
+                    email.error = "Invalid email address"
+                }
+                else if (password.text.toString() != confirmPassword.text.toString()) {
                     confirmPassword.error = "Passwords don't match"
                 } else {
                     val dateTemplate = SimpleDateFormat("dd/MM/yyyy")
@@ -83,12 +90,16 @@ class RegisterAccountFragment : Fragment() {
                         val month = DateFormat.format("MM", date)
                         val year = DateFormat.format("yyyy", date)
 
+                        val currentYear = DateFormat.format("yyyy", Calendar.getInstance().time)
+
                         if (Integer.parseInt(day.toString()) !in 1..31)
                             dateOfBirth.error = "Invalid day range"
                         else if (Integer.parseInt(month.toString()) !in 1..12)
                             dateOfBirth.error = "Invalid month range"
                         else if (Integer.parseInt(year.toString()) < 1920)
                             dateOfBirth.error = "Invalid year range"
+                        else if(Integer.parseInt(year.toString()) >= Integer.parseInt(currentYear.toString()) - ageRequirement)
+                            dateOfBirth.error = "You must be over $ageRequirement to sign up"
                         else
                             if (checkWIFI(context)) {
                                 registerAccount(
