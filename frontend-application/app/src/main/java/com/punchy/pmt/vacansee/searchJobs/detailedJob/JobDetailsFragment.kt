@@ -8,10 +8,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.punchy.pmt.vacansee.R
+import com.punchy.pmt.vacansee.checkWIFI
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -69,109 +71,113 @@ class JobDetailsFragment : Fragment() {
         )
 
         fun loadData() = CoroutineScope(Dispatchers.Main).launch {
-            val task = async(Dispatchers.IO) {
-                getJobDetails(
-                    arguments?.getString("employerName")!!,
-                    arguments?.getInt("employerId")!!,
-                    arguments?.getInt("jobId")!!
-                )
-            }
+            if (checkWIFI(context)) {
+                val task = async(Dispatchers.IO) {
+                    getJobDetails(
+                        arguments?.getString("employerName")!!,
+                        arguments?.getInt("employerId")!!,
+                        arguments?.getInt("jobId")!!
+                    )
+                }
 
-            fullJob = task.await()
-            val newFragment: Fragment = FinanceGraph()
-            val fragmentTransaction = childFragmentManager.beginTransaction()
-            fragmentTransaction.replace(R.id.newGraphLayoutView, newFragment)
-            fragmentTransaction.commit()
+                fullJob = task.await()
+                val newFragment: Fragment = FinanceGraph()
+                val fragmentTransaction = childFragmentManager.beginTransaction()
+                fragmentTransaction.replace(R.id.newGraphLayoutView, newFragment)
+                fragmentTransaction.commit()
 
-            financeData = fullJob.financeData
+                financeData = fullJob.financeData
 
-            jobTitle.text = fullJob.jobDetails.jobTitle
-            jobEmployer.text = fullJob.jobDetails.employerName
-            jobDescription.text =
-                Html.fromHtml(fullJob.jobDetails.jobDescription, Html.FROM_HTML_MODE_COMPACT)
+                jobTitle.text = fullJob.jobDetails.jobTitle
+                jobEmployer.text = fullJob.jobDetails.employerName
+                jobDescription.text =
+                    Html.fromHtml(fullJob.jobDetails.jobDescription, Html.FROM_HTML_MODE_COMPACT)
 
-            jobSalaryText.text = "Salary - ${fullJob.jobDetails.salaryType}"
+                jobSalaryText.text = "Salary - ${fullJob.jobDetails.salaryType}"
 
-            jobMinSalary.text = "Minimum expected: £${fullJob.jobDetails.minimumSalary}"
-            jobMaxSalary.text = "Maximum expected: £${fullJob.jobDetails.maximumSalary}"
+                jobMinSalary.text = "Minimum expected: £${fullJob.jobDetails.minimumSalary}"
+                jobMaxSalary.text = "Maximum expected: £${fullJob.jobDetails.maximumSalary}"
 
 
-            Log.d("JobDetails - reviewData", fullJob.reviewData.toString())
-            val rvAdapter = ReviewsRvAdapter(fullJob.reviewData)
-            reviewsRecyclerView.adapter = rvAdapter
-            rvAdapter.notifyDataSetChanged()
+                Log.d("JobDetails - reviewData", fullJob.reviewData.toString())
+                val rvAdapter = ReviewsRvAdapter(fullJob.reviewData)
+                reviewsRecyclerView.adapter = rvAdapter
+                rvAdapter.notifyDataSetChanged()
 
-            val reviewScoreText = detailedJobsView.findViewById<TextView>(R.id.reviewScore)
+                val reviewScoreText = detailedJobsView.findViewById<TextView>(R.id.reviewScore)
 
-            if (fullJob.reviewData.isNotEmpty()) {
-                // get average of all reviews
-                var reviewScoreAverage = 0.0f
-                val reviewCount = fullJob.reviewData.size
+                if (fullJob.reviewData.isNotEmpty()) {
+                    // get average of all reviews
+                    var reviewScoreAverage = 0.0f
+                    val reviewCount = fullJob.reviewData.size
 
-                for (review in fullJob.reviewData)
-                    reviewScoreAverage += review.rating
+                    for (review in fullJob.reviewData)
+                        reviewScoreAverage += review.rating
 
-                reviewScoreAverage /= reviewCount
-                reviewScoreText.text = "${reviewScoreAverage} out of 5.0"
+                    reviewScoreAverage /= reviewCount
+                    reviewScoreText.text = "${reviewScoreAverage} out of 5.0"
 
-                // set the stars
-                when {
-                    reviewScoreAverage > 4.5f -> {
-                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
-                        jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
-                        jobReviewStar3.setImageResource(R.drawable.ic_baseline_star_24)
-                        jobReviewStar4.setImageResource(R.drawable.ic_baseline_star_24)
-                        jobReviewStar5.setImageResource(R.drawable.ic_baseline_star_24)
+                    // set the stars
+                    when {
+                        reviewScoreAverage > 4.5f -> {
+                            jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                            jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
+                            jobReviewStar3.setImageResource(R.drawable.ic_baseline_star_24)
+                            jobReviewStar4.setImageResource(R.drawable.ic_baseline_star_24)
+                            jobReviewStar5.setImageResource(R.drawable.ic_baseline_star_24)
+                        }
+                        reviewScoreAverage > 4.0f -> {
+                            jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                            jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
+                            jobReviewStar3.setImageResource(R.drawable.ic_baseline_star_24)
+                            jobReviewStar4.setImageResource(R.drawable.ic_baseline_star_24)
+                            jobReviewStar5.setImageResource(R.drawable.ic_baseline_star_half_24)
+                        }
+                        reviewScoreAverage > 3.5f -> {
+                            jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                            jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
+                            jobReviewStar3.setImageResource(R.drawable.ic_baseline_star_24)
+                            jobReviewStar4.setImageResource(R.drawable.ic_baseline_star_24)
+                        }
+                        reviewScoreAverage > 3.0f -> {
+                            jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                            jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
+                            jobReviewStar3.setImageResource(R.drawable.ic_baseline_star_24)
+                            jobReviewStar4.setImageResource(R.drawable.ic_baseline_star_half_24)
+                        }
+                        reviewScoreAverage > 2.5f -> {
+                            jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                            jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
+                            jobReviewStar3.setImageResource(R.drawable.ic_baseline_star_24)
+                        }
+                        reviewScoreAverage > 2.0f -> {
+                            jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                            jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
+                            jobReviewStar3.setImageResource(R.drawable.ic_baseline_star_half_24)
+                        }
+                        reviewScoreAverage > 1.5f -> {
+                            jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                            jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
+                        }
+                        reviewScoreAverage > 1.0f -> {
+                            jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                            jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_half_24)
+                        }
+                        reviewScoreAverage > 0.5f -> {
+                            jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
+                        }
+                        reviewScoreAverage > 0.0f -> {
+                            jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_half_24)
+                        }
                     }
-                    reviewScoreAverage > 4.0f -> {
-                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
-                        jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
-                        jobReviewStar3.setImageResource(R.drawable.ic_baseline_star_24)
-                        jobReviewStar4.setImageResource(R.drawable.ic_baseline_star_24)
-                        jobReviewStar5.setImageResource(R.drawable.ic_baseline_star_half_24)
-                    }
-                    reviewScoreAverage > 3.5f -> {
-                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
-                        jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
-                        jobReviewStar3.setImageResource(R.drawable.ic_baseline_star_24)
-                        jobReviewStar4.setImageResource(R.drawable.ic_baseline_star_24)
-                    }
-                    reviewScoreAverage > 3.0f -> {
-                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
-                        jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
-                        jobReviewStar3.setImageResource(R.drawable.ic_baseline_star_24)
-                        jobReviewStar4.setImageResource(R.drawable.ic_baseline_star_half_24)
-                    }
-                    reviewScoreAverage > 2.5f -> {
-                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
-                        jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
-                        jobReviewStar3.setImageResource(R.drawable.ic_baseline_star_24)
-                    }
-                    reviewScoreAverage > 2.0f -> {
-                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
-                        jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
-                        jobReviewStar3.setImageResource(R.drawable.ic_baseline_star_half_24)
-                    }
-                    reviewScoreAverage > 1.5f -> {
-                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
-                        jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_24)
-                    }
-                    reviewScoreAverage > 1.0f -> {
-                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
-                        jobReviewStar2.setImageResource(R.drawable.ic_baseline_star_half_24)
-                    }
-                    reviewScoreAverage > 0.5f -> {
-                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_24)
-                    }
-                    reviewScoreAverage > 0.0f -> {
-                        jobReviewStar1.setImageResource(R.drawable.ic_baseline_star_half_24)
-                    }
+                } else {
+                    reviewScoreText.text = "No reviews."
                 }
             } else {
-                reviewScoreText.text = "No reviews."
+                Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
             }
-
         }
+
         loadData()
 
         return detailedJobsView

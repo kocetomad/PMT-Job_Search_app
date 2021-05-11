@@ -97,12 +97,13 @@ class ProfileFragment : Fragment() {
         }
 
         fun loadData(parentFragment: Fragment) = CoroutineScope(Dispatchers.Main).launch {
-            bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+            if(checkWIFI(context)) {
+                bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
 
-            val task = async(Dispatchers.IO) {
-                getSavedJobs()
-            }
-            savedJobsList = task.await()
+                val task = async(Dispatchers.IO) {
+                    getSavedJobs()
+                }
+                savedJobsList = task.await()
 
                 val rvAdapter = JobsRvAdapter(savedJobsList, parentFragment)
                 profileRecycler.adapter = rvAdapter
@@ -163,51 +164,51 @@ class ProfileFragment : Fragment() {
                         if (touchDown) {
                             touchDown = false
                         }
-                            c.clipRect(
-                                15f, viewHolder.itemView.top.toFloat() + 20f,
-                                dX + 50f, viewHolder.itemView.bottom.toFloat() - 20f
-                            )
+                        c.clipRect(
+                            15f, viewHolder.itemView.top.toFloat() + 20f,
+                            dX + 50f, viewHolder.itemView.bottom.toFloat() - 20f
+                        )
 
-                            //making the save thingy change color
+                        //making the save thingy change color
 
-                            c.drawColor(saveColor)
-                            val textMargin = 100
-                            trashBinIcon.bounds = Rect(
-                                textMargin,
-                                viewHolder.itemView.top + (dX * 1.5).toInt() + textMargin,
-                                textMargin + trashBinIcon.intrinsicWidth,
-                                viewHolder.itemView.top + (dX * 1.5).toInt() + trashBinIcon.intrinsicHeight
-                                        + textMargin
-                            )
-                            trashBinIcon.draw(c)
-                            if (dX >= 214) {//SAVE THRESHOLD
-                                if (pinnedTouchDown) {
-                                    fun assSave() = CoroutineScope(Dispatchers.Main).launch {
-                                        val save = async(Dispatchers.IO) {
-                                            unpinJob(savedJobsList.get(viewHolder.adapterPosition).jobId.toString())
-                                        }
-                                        val aSave = save.await()
+                        c.drawColor(saveColor)
+                        val textMargin = 100
+                        trashBinIcon.bounds = Rect(
+                            textMargin,
+                            viewHolder.itemView.top + (dX * 1.5).toInt() + textMargin,
+                            textMargin + trashBinIcon.intrinsicWidth,
+                            viewHolder.itemView.top + (dX * 1.5).toInt() + trashBinIcon.intrinsicHeight
+                                    + textMargin
+                        )
+                        trashBinIcon.draw(c)
+                        if (dX >= 214) {//SAVE THRESHOLD
+                            if (pinnedTouchDown) {
+                                fun assSave() = CoroutineScope(Dispatchers.Main).launch {
+                                    val save = async(Dispatchers.IO) {
+                                        unpinJob(savedJobsList.get(viewHolder.adapterPosition).jobId.toString())
                                     }
-                                    assSave()
-                                    rvAdapter?.notifyItemChanged(viewHolder.adapterPosition)
-                                    savedJobsList.removeAt(viewHolder.adapterPosition)
-                                    val rvAdapter = JobsRvAdapter(savedJobsList, parentFragment)
-                                    profileRecycler.adapter = rvAdapter
-
-
-
-                                    println("limit hit")
-                                    Toast.makeText(context, "Job saved", Toast.LENGTH_SHORT).show()
-                                    pinnedTouchDown = false
-
+                                    val aSave = save.await()
                                 }
-                                return
+                                assSave()
+                                rvAdapter?.notifyItemChanged(viewHolder.adapterPosition)
+                                savedJobsList.removeAt(viewHolder.adapterPosition)
+                                val rvAdapter = JobsRvAdapter(savedJobsList, parentFragment)
+                                profileRecycler.adapter = rvAdapter
+
+
+
+                                println("limit hit")
+                                Toast.makeText(context, "Job saved", Toast.LENGTH_SHORT).show()
+                                pinnedTouchDown = false
 
                             }
-                            super.onChildDraw(
-                                c, recyclerView, viewHolder,
-                                dX, dY, actionState, isCurrentlyActive
-                            )
+                            return
+
+                        }
+                        super.onChildDraw(
+                            c, recyclerView, viewHolder,
+                            dX, dY, actionState, isCurrentlyActive
+                        )
 
                     }
 
@@ -219,6 +220,10 @@ class ProfileFragment : Fragment() {
 
                 bottomSheetView.findViewById<LinearLayout>(R.id.savedJobsErrorView).visibility =
                     View.GONE
+            } else {
+                Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
+            }
+
 
         }
         loadData(this)

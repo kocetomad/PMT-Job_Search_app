@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.Toast
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.registerAccount
 import java.text.ParseException
 import java.text.SimpleDateFormat
@@ -89,15 +90,19 @@ class RegisterAccountFragment : Fragment() {
                         else if (Integer.parseInt(year.toString()) < 1920)
                             dateOfBirth.error = "Invalid year range"
                         else
-                            registerAccount(
-                                username.text.toString(),
-                                email.text.toString(),
-                                password.text.toString(),
-                                confirmPassword.text.toString(),
-                                firstName.text.toString(),
-                                lastName.text.toString(),
-                                "$year-$month-$day"
-                            )
+                            if (checkWIFI(context)) {
+                                registerAccount(
+                                    username.text.toString(),
+                                    email.text.toString(),
+                                    password.text.toString(),
+                                    confirmPassword.text.toString(),
+                                    firstName.text.toString(),
+                                    lastName.text.toString(),
+                                    "$year-$month-$day"
+                                )
+                            } else {
+                                Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
+                            }
                     } catch (e: ParseException) {
                         dateOfBirth.error = "Date is invalid."
                     }
