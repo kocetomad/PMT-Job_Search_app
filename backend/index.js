@@ -612,35 +612,52 @@ app.post("/api/register", blockAuthenticated, async (req, res) => {
                         success: false,
                         errors: errors,
                     });
-                } else {
-                    if (!profilePic) {
-                        profilePic =
-                            "https://image.flaticon.com/icons/png/128/1946/1946429.png";
-                    }
-                    pool.query(
-                        `INSERT INTO user_tbl (first_name, last_name, email, dob, password_hash, username, profile_url) 
-                        VALUES ($1, $2, $3, $4, $5, $6, $7) 
-                        RETURNING username, password_hash`,
-                        [
-                            firstName,
-                            lastName,
-                            email,
-                            dob,
-                            hashedPassword,
-                            username,
-                            profilePic,
-                        ],
-                        (err, results) => {
-                            if (err) {
-                                throw err;
-                            }
-                            res.send({
-                                success: true,
-                                msg: `user created, with username ${username}`,
+                }
+
+                pool.query(
+                    `SELECT * FROM user_tbl WHERE username = $1`,
+                    [username],
+                    (err, results) => {
+                        if (err) {
+                            throw err;
+                        }
+
+                        if (results.rows.length > 0) {
+                            return res.send({
+                                success: false,
+                                msg: "username already taken",
                             });
                         }
-                    );
-                }
+
+                        if (!profilePic) {
+                            profilePic =
+                                "https://image.flaticon.com/icons/png/128/1946/1946429.png";
+                        }
+                        pool.query(
+                            `INSERT INTO user_tbl (first_name, last_name, email, dob, password_hash, username, profile_url) 
+                        VALUES ($1, $2, $3, $4, $5, $6, $7) 
+                        RETURNING username, password_hash`,
+                            [
+                                firstName,
+                                lastName,
+                                email,
+                                dob,
+                                hashedPassword,
+                                username,
+                                profilePic,
+                            ],
+                            (err, results) => {
+                                if (err) {
+                                    throw err;
+                                }
+                                res.send({
+                                    success: true,
+                                    msg: `user created, with username ${username}`,
+                                });
+                            }
+                        );
+                    }
+                );
             }
         );
     }
