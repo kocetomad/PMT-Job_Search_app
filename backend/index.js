@@ -57,20 +57,6 @@ const lessThanOneHourAgo = (date) => {
     return moment(date).isAfter(now.subtract(2, "h")); // temp increased to 2
 };
 
-const cacher = (req, res, next) => {
-    let thisCache = cache.getKey(req.originalUrl);
-    if (thisCache != null) {
-        if (!lessThanOneHourAgo(thisCache.date)) {
-            console.log("cache too old, refetching");
-            return next();
-        }
-        console.log("data fetched from cache");
-        return res.send(thisCache.data);
-    }
-    console.log("no cache, fetching");
-    next();
-};
-
 // Auth check helper functions
 const blockAuthenticated = (req, res, next) => {
     if (req.isAuthenticated()) {
@@ -171,11 +157,23 @@ app.get(
 
     check("distance").optional().toInt(),
 
+    check("minimumSalary").optional().toInt(),
+
+    check("maximumSalary").optional().toInt(),
+
     (req, res) => {
-        let { search, location, partTime, fullTime, distance } = req.query;
-        let url = `https://www.reed.co.uk/api/1.0/search?keywords=${search}&resultsToTake=15`;
+        let {
+            search,
+            location,
+            partTime,
+            fullTime,
+            distance,
+            minimumSalary,
+            maximumSalary,
+        } = req.query;
+        let url = `https://www.reed.co.uk/api/1.0/search?keywords=${search}&resultsToTake=30`;
         if (location) {
-            url += `&location=${location}`;
+            url += `&locationName=${location}`;
         }
         if (partTime) {
             if (partTime != "true" && partTime != "false") {
@@ -193,6 +191,12 @@ app.get(
         }
         if (distance) {
             url += `&distanceFromLocation=${distance}`;
+        }
+        if (minimumSalary) {
+            url += `&minimumSalary=${minimumSalary}`;
+        }
+        if (maximumSalary) {
+            url += `&maximumSalary=${maximumSalary}`;
         }
 
         let thisCache = cache.getKey(url);
@@ -238,6 +242,35 @@ app.get(
                             responseData.results[response]["extUrl"] =
                                 "https://www.google.com/";
                         }
+                    }
+                    // add adverts
+                    const advert = {
+                        jobId: 0,
+                        employerId: 0,
+                        employerName: "ad",
+                        employerProfileId: null,
+                        employerProfileName: null,
+                        jobTitle: "ad",
+                        locationName: "ad",
+                        minimumSalary: 0,
+                        maximumSalary: 0,
+                        currency: "ad",
+                        expirationDate: "ad",
+                        date: "ad",
+                        jobDescription: "ad",
+                        applications: 0,
+                        jobUrl: "ad",
+                        logoUrl: "https://i.imgur.com/zvNSlTo.jpg",
+                        extUrl: "ad",
+                    };
+                    for (let i = 0; i < responseData.results.length; i += 5) {
+                        if (i == 0) {
+                            continue;
+                        }
+                        responseData.results.splice(i, 0, advert);
+                    }
+                    if (responseData.results.length < 4) {
+                        responseData.results.push(advert);
                     }
                     cache.setKey(url, {
                         date: moment(),
