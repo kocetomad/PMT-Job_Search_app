@@ -345,6 +345,25 @@ class JobsFragment : Fragment() {
 
                 loadData(searchParam, locationParam, partTimeParam, fullTimeParam, this)
 
+                if (jobsList.isEmpty()) {
+                    // get progress bar and hide it after the jobs load.
+                    bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility =
+                        View.INVISIBLE
+
+                    // get error view and make it visible if the fetching fails
+                    bottomSheetView.findViewById<TextView>(R.id.errorText).text =
+                        "Error loading jobs."
+                    bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility = View.VISIBLE
+                } else {
+                    // get progress bar and hide it after the jobs load.
+                    bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility = View.GONE
+
+                    val backdropTitle = bottomSheetView.findViewById<TextView>(R.id.jobsBackdropTitle)
+                    backdropTitle.text = "Jobs found (${jobsList.size})"
+
+                    bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility =
+                        View.GONE
+                }
                 return@OnKeyListener true
             }
             false
@@ -372,6 +391,25 @@ class JobsFragment : Fragment() {
 
                     loadData(searchParam, locationParam, partTimeParam, fullTimeParam, this)
 
+                    if (jobsList.isEmpty()) {
+                        // get progress bar and hide it after the jobs load.
+                        bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility =
+                            View.INVISIBLE
+
+                        // get error view and make it visible if the fetching fails
+                        bottomSheetView.findViewById<TextView>(R.id.errorText).text =
+                            "Error loading jobs."
+                        bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility = View.VISIBLE
+                    } else {
+                        // get progress bar and hide it after the jobs load.
+                        bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility = View.GONE
+
+                        val backdropTitle = bottomSheetView.findViewById<TextView>(R.id.jobsBackdropTitle)
+                        backdropTitle.text = "Jobs found (${jobsList.size})"
+
+                        bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility =
+                            View.GONE
+                    }
                     return@OnTouchListener true
                 }
             }
@@ -397,6 +435,25 @@ class JobsFragment : Fragment() {
 
                 loadData(searchParam, locationParam, partTimeParam, fullTimeParam, this)
 
+                if (jobsList.isEmpty()) {
+                    // get progress bar and hide it after the jobs load.
+                    bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility =
+                        View.INVISIBLE
+
+                    // get error view and make it visible if the fetching fails
+                    bottomSheetView.findViewById<TextView>(R.id.errorText).text =
+                        "Error loading jobs."
+                    bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility = View.VISIBLE
+                } else {
+                    // get progress bar and hide it after the jobs load.
+                    bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility = View.GONE
+
+                    val backdropTitle = bottomSheetView.findViewById<TextView>(R.id.jobsBackdropTitle)
+                    backdropTitle.text = "Jobs found (${jobsList.size})"
+
+                    bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility =
+                        View.GONE
+                }
                 return@OnKeyListener true
             }
             false
