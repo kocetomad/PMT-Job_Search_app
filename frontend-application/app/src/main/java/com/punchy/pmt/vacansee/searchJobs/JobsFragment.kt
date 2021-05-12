@@ -128,19 +128,19 @@ class JobsFragment : Fragment() {
         ) =
             CoroutineScope(Dispatchers.Main).launch {
                 if (checkWIFI(context)) {
-                    bottomSheetView.findViewById<TextView>(R.id.errorText).text =
-                        "Loading jobs..."
 
                     val task = async(Dispatchers.IO) {
                         getJobs(searchParam, locationParam, partTimeParam, fullTimeParam)
                     }
                     jobsList = task.await()
+
                     val rvAdapter = JobsRvAdapter(jobsList, parentFragment)
                     jobsRecyclerView.adapter = rvAdapter
 
                     val backdropTitle =
                         bottomSheetView.findViewById<TextView>(R.id.jobsBackdropTitle)
                     backdropTitle.text = "Jobs found (${jobsList.size})"
+
                     bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility =
                         View.GONE
                     rvAdapter.notifyDataSetChanged()
@@ -255,10 +255,6 @@ class JobsFragment : Fragment() {
                         }
                     val myHelper = ItemTouchHelper(myCallback)
                     myHelper.attachToRecyclerView(jobsRecyclerView)
-
-
-                    bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility =
-                        View.GONE
                 } else {
                     // get progress bar and hide it after the jobs load.
                     bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility =
@@ -273,6 +269,9 @@ class JobsFragment : Fragment() {
                 }
 
             }
+
+        bottomSheetView.findViewById<TextView>(R.id.errorText).text =
+            "Loading jobs..."
         loadData(searchParam, locationParam, partTimeParam, fullTimeParam, this)
 
 
@@ -283,15 +282,18 @@ class JobsFragment : Fragment() {
 
             // get error view and make it visible if the fetching fails
             bottomSheetView.findViewById<TextView>(R.id.errorText).text =
-                "Couldn't connect to endpoint"
+                "Error loading jobs."
             bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility = View.VISIBLE
         } else {
             // get progress bar and hide it after the jobs load.
             bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility = View.GONE
-        }
 
-        val backdropTitle = bottomSheetView.findViewById<TextView>(R.id.jobsBackdropTitle)
-        backdropTitle.text = "Jobs found (${jobsList.size})"
+            val backdropTitle = bottomSheetView.findViewById<TextView>(R.id.jobsBackdropTitle)
+            backdropTitle.text = "Jobs found (${jobsList.size})"
+
+            bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility =
+                View.GONE
+        }
 
         val rvAdapter = JobsRvAdapter(jobsList, this)
         jobsRecyclerView.adapter = rvAdapter
@@ -399,7 +401,6 @@ class JobsFragment : Fragment() {
             }
             false
         })
-
 
         return jobsView
     }
