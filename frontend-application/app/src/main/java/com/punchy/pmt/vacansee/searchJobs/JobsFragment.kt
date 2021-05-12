@@ -14,6 +14,8 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.punchy.pmt.vacansee.R
 import com.punchy.pmt.vacansee.checkWIFI
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.Job
@@ -29,13 +31,14 @@ import kotlinx.coroutines.launch
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
+
 var savedItems: MutableList<Int> = mutableListOf()
 var touchDown = true
 var jobsList = mutableListOf<Job>()
 
 var searchParam = "job" // uses "job" as placeholder
-var locationParam: String? = null
 
+var locationParam: String? = null
 var partTimeParam: Boolean? = null
 var fullTimeParam: Boolean? = null
 
@@ -132,7 +135,25 @@ class JobsFragment : Fragment() {
                     val task = async(Dispatchers.IO) {
                         getJobs(searchParam, locationParam, partTimeParam, fullTimeParam)
                     }
-                    jobsList = task.await()
+                    val response = task.await()
+
+                    if(response[0] == "200") {
+                        val gson = Gson()
+                        val parseTemplate = object : TypeToken<MutableList<Job>>() {}.type
+
+                        jobsList = gson.fromJson(response[1], parseTemplate)
+                    } else {
+                        // get progress bar and hide it after the jobs load.
+                        bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility =
+                            View.INVISIBLE
+
+                        // get error view and make it visible if the fetching fails
+                        bottomSheetView.findViewById<TextView>(R.id.errorText).text =
+                            "Error loading jobs."
+                        bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility = View.VISIBLE
+                    }
+
+
 
                     val rvAdapter = JobsRvAdapter(jobsList, parentFragment)
                     jobsRecyclerView.adapter = rvAdapter
@@ -275,16 +296,7 @@ class JobsFragment : Fragment() {
         loadData(searchParam, locationParam, partTimeParam, fullTimeParam, this)
 
 
-        if (jobsList.isEmpty()) {
-            // get progress bar and hide it after the jobs load.
-            bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility =
-                View.INVISIBLE
-
-            // get error view and make it visible if the fetching fails
-            bottomSheetView.findViewById<TextView>(R.id.errorText).text =
-                "Error loading jobs."
-            bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility = View.VISIBLE
-        } else {
+        if (jobsList.isNotEmpty()) {
             // get progress bar and hide it after the jobs load.
             bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility = View.GONE
 

@@ -14,6 +14,14 @@ private val client = OkHttpClient()
 // val parseTemplate = object : TypeToken<MutableList<Job>>() {}.type
 // put here just in case it's ever needed in the future
 
+/* Might be worth to add to all requests a "code" attribute which is returned by the backend
+*   so for example you have arrayOf("200", jobsList)
+*   and you can do
+*   if(response[0] == "200") {
+*     proceed with rest of code
+*   } else if (response[0] == "404") {
+*     show a toast user not found
+*   } */
 
 fun login(email: String, password: String): Array<String?> {
     val formBody = FormBody.Builder()
@@ -111,22 +119,20 @@ fun getJobs(
     locationParam: String?,
     partTime: Boolean?,
     fullTime: Boolean?
-): MutableList<Job> {
+): List<String> {
     var jobsList: MutableList<Job>
-    var locationText = ""
-    var partTimeText = ""
-    var fullTimeText = ""
 
+    var locationText = ""
     if (!locationParam.isNullOrEmpty()) {
         locationText = "&location=$locationParam"
     }
 
-    partTimeText = if (partTime == true) {
+    val partTimeText: String = if (partTime == true) {
         "&partTime=true"
     } else
         "&partTime=false"
 
-    fullTimeText = if (fullTime == true) {
+    val fullTimeText: String = if (fullTime == true) {
         "&fullTime=true"
     } else {
         "&fullTime=false"
@@ -144,18 +150,18 @@ fun getJobs(
         if (!response.isSuccessful) {
             Log.e("Requests", response.toString())
 
-            return mutableListOf()
+            return listOf(response.code.toString(), "")
             // throw IOException("Unexpected code $response")
+        } else {
+            val gson = Gson()
+            val jobsJSON = response.body!!.string()
+
+            val parseTemplate = object : TypeToken<MutableList<Job>>() {}.type
+            jobsList = gson.fromJson(JSONObject(jobsJSON).get("jobs").toString(), parseTemplate)
+            Log.d("Requests - getJobs", jobsList.toString())
+
+            return listOf(response.code.toString(), JSONObject(jobsJSON).get("jobs").toString())
         }
-
-        val gson = Gson()
-        val jobsJSON = response.body!!.string()
-        val parseTemplate = object : TypeToken<MutableList<Job>>() {}.type
-
-        jobsList = gson.fromJson(JSONObject(jobsJSON).get("jobs").toString(), parseTemplate)
-
-        Log.d("Requests - getJobs", jobsList.toString())
-        return jobsList
     }
 }
 
