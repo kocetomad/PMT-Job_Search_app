@@ -134,14 +134,14 @@ class ProfileFragment : Fragment() {
 
                         fun assSave() = CoroutineScope(Dispatchers.Main).launch {
                             val save = async(Dispatchers.IO) {
-                                unpinJob(savedJobsList.get(viewHolder.adapterPosition).jobId.toString())
+                                unpinJob(savedJobsList[viewHolder.adapterPosition].jobId.toString())
                             }
                             val aSave = save.await()
                             //rvAdapter?.notifyItemRemoved(viewHolder.adapterPosition)
 
                         }
                         assSave()
-                        rvAdapter?.notifyItemChanged(viewHolder.adapterPosition)
+                        rvAdapter.notifyItemChanged(viewHolder.adapterPosition)
                         savedJobsList.removeAt(viewHolder.adapterPosition)
                         val rvAdapter = JobsRvAdapter(savedJobsList, parentFragment)
                         profileRecycler.adapter = rvAdapter
@@ -185,12 +185,12 @@ class ProfileFragment : Fragment() {
                             if (pinnedTouchDown) {
                                 fun assSave() = CoroutineScope(Dispatchers.Main).launch {
                                     val save = async(Dispatchers.IO) {
-                                        unpinJob(savedJobsList.get(viewHolder.adapterPosition).jobId.toString())
+                                        unpinJob(savedJobsList[viewHolder.adapterPosition].jobId.toString())
                                     }
                                     val aSave = save.await()
                                 }
                                 assSave()
-                                rvAdapter?.notifyItemChanged(viewHolder.adapterPosition)
+                                rvAdapter.notifyItemChanged(viewHolder.adapterPosition)
                                 savedJobsList.removeAt(viewHolder.adapterPosition)
                                 val rvAdapter = JobsRvAdapter(savedJobsList, parentFragment)
                                 profileRecycler.adapter = rvAdapter
@@ -250,7 +250,7 @@ class ProfileFragment : Fragment() {
 //        set the recyclerView to the adapter
         profileRecycler.adapter = rvAdapter
 
-        profileRecycler.setOnTouchListener({ v, event ->
+        profileRecycler.setOnTouchListener { _, event ->
             if (MotionEvent.ACTION_UP == event.action) {
                 println("Up")
                 pinnedTouchDown = false
@@ -260,7 +260,7 @@ class ProfileFragment : Fragment() {
                 pinnedTouchDown = true
             }
             false // return is important...
-        })
+        }
 
 
         return profileView
