@@ -158,16 +158,18 @@ app.get(
     blockNotAuthenticated,
 
     check("search")
+        .optional()
         .customSanitizer((value) => removeHTML(value))
         .trim()
         .escape(),
 
     check("location")
+        .optional()
         .customSanitizer((value) => removeHTML(value))
         .trim()
         .escape(),
 
-    check("distance").toInt(),
+    check("distance").optional().toInt(),
 
     (req, res) => {
         let { search, location, partTime, fullTime, distance } = req.query;
