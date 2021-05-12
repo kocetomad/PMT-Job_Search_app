@@ -482,8 +482,11 @@ app.get("/api/pinned", blockNotAuthenticated, async (req, res) => {
                     reedDetailsPromises.push(thisResponse);
                 }
 
-                Promise.all(reedDetailsPromises).then((responses) => {
+                Promise.all(reedDetailsPromises).then(async (responses) => {
                     for (response in responses) {
+                        let thisJobLogo = await getLogo(
+                            responses[response].data["employerName"]
+                        );
                         let thisJob = {};
                         thisJob["jobId"] = responses[response].data["jobId"];
                         thisJob["employerId"] =
@@ -511,7 +514,16 @@ app.get("/api/pinned", blockNotAuthenticated, async (req, res) => {
                         ].replace(/(<([^>]+)>)/gi, "");
                         thisJob["applications"] = 0;
                         thisJob["jobUrl"] = responses[response].data["jobUrl"];
-                        thisJob["logoUrl"] = "https://i.imgur.com/uU0G6CL.png";
+                        if (
+                            thisJobLogo.data != null &&
+                            thisJobLogo.data != "" &&
+                            thisJobLogo.data != []
+                        ) {
+                            thisJob["logoUrl"] = thisJobLogo.data[0].logo;
+                        } else {
+                            thisJob["logoUrl"] =
+                                "https://i.imgur.com/uU0G6CL.png";
+                        }
                         thisJob["extUrl"] = "https://www.google.com/";
                         pinnedResponse.push(thisJob);
                     }
