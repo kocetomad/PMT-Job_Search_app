@@ -4,7 +4,6 @@ import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.punchy.pmt.vacansee.sessionCookie
-import com.punchy.pmt.vacansee.userID
 import okhttp3.*
 import org.json.JSONObject
 import java.io.IOException
@@ -28,7 +27,10 @@ fun login(email: String, password: String): Array<String?> {
         .build()
 
     client.newCall(request).execute().use { response ->
-        if (!response.isSuccessful) throw IOException("Unexpected code $response")
+//        if (!response.isSuccessful) throw IOException("Unexpected code $response")
+        if (!response.isSuccessful) {
+            return arrayOf("false", "", "")
+        }
 
         Log.d("Requests", "Login Request begin:")
         for ((name, value) in response.headers) {
