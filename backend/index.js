@@ -175,7 +175,7 @@ app.get(
         let { search, location, partTime, fullTime, distance } = req.query;
         let url = `https://www.reed.co.uk/api/1.0/search?keywords=${search}&resultsToTake=15`;
         if (location) {
-            url += `&location=${location}`;
+            url += `&locationName=${location}`;
         }
         if (partTime) {
             if (partTime != "true" && partTime != "false") {
