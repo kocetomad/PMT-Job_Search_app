@@ -171,8 +171,20 @@ app.get(
 
     check("distance").optional().toInt(),
 
+    check("minimumSalary").optional().toInt(),
+
+    check("maximumSalary").optional().toInt(),
+
     (req, res) => {
-        let { search, location, partTime, fullTime, distance } = req.query;
+        let {
+            search,
+            location,
+            partTime,
+            fullTime,
+            distance,
+            minimumSalary,
+            maximumSalary,
+        } = req.query;
         let url = `https://www.reed.co.uk/api/1.0/search?keywords=${search}&resultsToTake=15`;
         if (location) {
             url += `&locationName=${location}`;
@@ -193,6 +205,12 @@ app.get(
         }
         if (distance) {
             url += `&distanceFromLocation=${distance}`;
+        }
+        if (minimumSalary) {
+            url += `&minimumSalary=${minimumSalary}`;
+        }
+        if (maximumSalary) {
+            url += `&maximumSalary=${maximumSalary}`;
         }
 
         let thisCache = cache.getKey(url);
