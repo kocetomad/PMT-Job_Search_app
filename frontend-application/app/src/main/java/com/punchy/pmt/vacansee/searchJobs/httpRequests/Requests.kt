@@ -318,5 +318,29 @@ fun unpinJob(jobID: String): Array<String?> {
         "JSONObject(responseJSON).get(",
         ""
     )
+}
 
+fun getProfile(): List<String> {
+    val request = Request.Builder()
+        .url("$route/api/profile")
+        .addHeader("Cookie", sessionCookie)
+        .build()
+
+    client.newCall(request).execute().use { response ->
+        if (!response.isSuccessful) {
+            Log.e("Requests - getProfile", response.toString())
+            return listOf(response.code.toString(), Profile().toString())
+        }
+
+        Log.d("Requests - getProfile", response.toString())
+//            throw IOException("Unexpected code $response")
+
+        val responseJSON = response.body!!.string()
+        Log.d("Requests - getProfile", responseJSON)
+
+        return listOf(
+            JSONObject(responseJSON).get("success").toString(),
+            JSONObject(responseJSON).get("profile").toString()
+        )
+    }
 }

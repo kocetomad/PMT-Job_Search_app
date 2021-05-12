@@ -1,5 +1,6 @@
 package com.punchy.pmt.vacansee
 
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Rect
@@ -17,15 +18,17 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.punchy.pmt.vacansee.searchJobs.*
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.*
-import com.punchy.pmt.vacansee.searchJobs.httpRequests.saveJob
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import org.json.JSONObject
-import java.lang.Exception
+import java.io.FileNotFoundException
+import java.net.MalformedURLException
+import java.net.URL
 
 //import com.punchy.pmt.vacansee.searchJobs.httpRequests.getSavedJobs
 
@@ -65,6 +68,8 @@ class ProfileFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        var userProfile: Profile
+        var response: List<String>
 
         val trashBinIcon = resources.getDrawable(
             R.drawable.ic_baseline_delete_forever_24,
@@ -89,21 +94,36 @@ class ProfileFragment : Fragment() {
             false
         )
 
-
         // Inflate the layout for this fragment
 
         profileView.findViewById<Button>(R.id.goToJobsSearch).setOnClickListener {
             findNavController().navigate(R.id.action_profileFragment_to_jobsFragment)
         }
 
-        fun loadData(parentFragment: Fragment) = CoroutineScope(Dispatchers.Main).launch {
-            if(checkWIFI(context)) {
+        fun loadSavedJobs(parentFragment: Fragment) = CoroutineScope(Dispatchers.Main).launch {
+            if (checkWIFI(context)) {
                 bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
 
                 val task = async(Dispatchers.IO) {
                     getSavedJobs()
                 }
                 savedJobsList = task.await()
+
+                if (savedJobsList.isEmpty()) {
+                    // get progress bar and hide it after the jobs load.
+                    bottomSheetView.findViewById<ProgressBar>(R.id.savedJobsProgressBar).visibility =
+                        View.VISIBLE
+
+                    // get error view and make it visible if the fetching fails
+                    bottomSheetView.findViewById<TextView>(R.id.savedJobsErrorText).text =
+                        "Couldn't connect to endpoint"
+                    bottomSheetView.findViewById<LinearLayout>(R.id.savedJobsErrorView).visibility =
+                        View.VISIBLE
+                } else {
+                    // get progress bar and hide it after the jobs load.
+                    bottomSheetView.findViewById<ProgressBar>(R.id.savedJobsProgressBar).visibility =
+                        View.GONE
+                }
 
                 val rvAdapter = JobsRvAdapter(savedJobsList, parentFragment)
                 profileRecycler.adapter = rvAdapter
@@ -223,23 +243,59 @@ class ProfileFragment : Fragment() {
             } else {
                 Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
             }
-
-
         }
-        loadData(this)
+        loadSavedJobs(this)
 
-        if (savedJobsList.isEmpty()) {
-            // get progress bar and hide it after the jobs load.
-            bottomSheetView.findViewById<ProgressBar>(R.id.savedJobsProgressBar).visibility = View.VISIBLE
+        fun loadProfileData() = CoroutineScope(Dispatchers.Main).launch {
+            val task = async(Dispatchers.IO) {
+                getProfile()
+            }
+            response = task.await()
 
-            // get error view and make it visible if the fetching fails
-            bottomSheetView.findViewById<TextView>(R.id.savedJobsErrorText).text =
-                "Couldn't connect to endpoint"
-            bottomSheetView.findViewById<LinearLayout>(R.id.savedJobsErrorView).visibility = View.VISIBLE
-        } else {
-            // get progress bar and hide it after the jobs load.
-            bottomSheetView.findViewById<ProgressBar>(R.id.savedJobsProgressBar).visibility = View.GONE
+            val profileParseTemplate = object : TypeToken<Profile>() {}.type
+            val profileDataString = response[1].removePrefix("[").removeSuffix("]")
+
+            userProfile = Gson().fromJson(profileDataString, profileParseTemplate)
+            Log.d("ProfileFragment", userProfile.toString())
+
+            val userFirstName = profileView.findViewById<TextView>(R.id.userFirstName)
+            val userLastName = profileView.findViewById<TextView>(R.id.userLastName)
+            val userEmail = profileView.findViewById<TextView>(R.id.userEmail)
+            val userProfilePicture = profileView.findViewById<ImageView>(R.id.userProfilePicture)
+
+            userFirstName.text = userProfile.first_name
+            userLastName.text = userProfile.last_name
+            userEmail.text = userProfile.email
+
+            var url: URL? = null
+            try {
+                url = URL(userProfile.profile_url)
+            } catch (e: MalformedURLException) {
+                Log.d("JobsRvAdapter", "Image url is empty")
+            }
+
+//        val bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream())
+
+            fun loadImage() = CoroutineScope(Dispatchers.Main).launch {
+                val task = async(Dispatchers.IO) {
+                    try {
+                        BitmapFactory.decodeStream(url?.openConnection()?.getInputStream())
+                    } catch (e: FileNotFoundException) {
+                        Log.e("JobsRvAdapter - Icon grab", "$e for URL: ${userProfile.profile_url}")
+                        null
+                    }
+                }
+
+                val bmp = task.await()
+                if (bmp != null) {
+                    userProfilePicture.setImageBitmap(bmp)
+                } else {
+                    userProfilePicture.setImageResource(R.drawable.ic_baseline_android_24)
+                }
+            }
+            loadImage()
         }
+        loadProfileData()
 
         val backdropTitle = bottomSheetView.findViewById<TextView>(R.id.savedJobsBackdropTitle)
         backdropTitle.text = "Saved jobs found (${savedJobsList.size})"
