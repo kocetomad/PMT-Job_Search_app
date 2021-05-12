@@ -13,132 +13,160 @@
         android:layout_height="match_parent"
         android:background="@drawable/faded_bg">
 
-        <LinearLayout
-            android:id="@+id/jobsBackgroundView"
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="14dp">
-
-            <EditText
-                android:id="@+id/searchJobsBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/rounded_search_bar"
-                android:drawableEnd="@drawable/ic_baseline_search_24"
-                android:drawableTint="?attr/colorOnPrimary"
-                android:ems="10"
-                android:hint="Search for a job"
-                android:inputType="textPersonName"
-                android:singleLine="true"
-                android:submitBackground="@drawable/rounded_search_bar"
-                android:textColor="?attr/colorOnPrimary"
-                android:textColorHint="?attr/colorOnPrimary" />
-
-            <EditText
-                android:id="@+id/locationSearchBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/rounded_search_bar"
-                android:ems="10"
-                android:hint="Location"
-                android:inputType="textPersonName"
-                android:singleLine="true"
-                android:submitBackground="@drawable/rounded_search_bar"
-                android:textColor="?attr/colorOnPrimary"
-                android:textColorHint="?attr/colorOnPrimary" />
+            android:layout_height="match_parent">
 
             <LinearLayout
-                android:id="@+id/distanceFromLocation"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:paddingTop="16dp">
-
-                <TextView
-                    android:id="@+id/distanceFromLocationText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Distance from location: +10 miles"
-                    android:textColor="?attr/colorOnPrimary" />
-
-                <SeekBar
-                    android:id="@+id/distanceFromLocationSlider"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:indeterminate="false"
-                    android:max="200"
-                    android:progress="1" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/minimumSalary"
+                android:id="@+id/jobsBackgroundView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingTop="16dp">
+                android:padding="14dp">
+
+                <EditText
+                    android:id="@+id/searchJobsBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/rounded_search_bar"
+                    android:drawableEnd="@drawable/ic_baseline_search_24"
+                    android:drawableTint="?attr/colorOnPrimary"
+                    android:ems="10"
+                    android:hint="Search for a job"
+                    android:inputType="textPersonName"
+                    android:singleLine="true"
+                    android:submitBackground="@drawable/rounded_search_bar"
+                    android:textColor="?attr/colorOnPrimary"
+                    android:textColorHint="?attr/colorOnPrimary" />
+
+                <EditText
+                    android:id="@+id/locationSearchBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/rounded_search_bar"
+                    android:drawableEnd="@drawable/ic_baseline_location_city_24"
+                    android:drawableTint="?attr/colorOnPrimary"
+                    android:ems="10"
+                    android:hint="Location"
+                    android:inputType="textPersonName"
+                    android:singleLine="true"
+                    android:submitBackground="@drawable/rounded_search_bar"
+                    android:textColor="?attr/colorOnPrimary"
+                    android:textColorHint="?attr/colorOnPrimary" />
+
+                <LinearLayout
+                    android:id="@+id/distanceFromLocation"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:paddingVertical="8dp">
+
+                    <TextView
+                        android:id="@+id/distanceFromLocationText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Distance from location: +10 miles"
+                        android:textColor="?attr/colorOnPrimary" />
+
+                    <SeekBar
+                        android:id="@+id/distanceFromLocationSlider"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:indeterminate="false"
+                        android:max="20"
+                        android:min="1"
+                        android:progress="1" />
+                </LinearLayout>
 
                 <TextView
-                    android:id="@+id/minimumSalaryText"
+                    android:id="@+id/textView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Minimum Salary: £100,000"
-                    android:textColor="?attr/colorOnPrimary" />
+                    android:text="Salary"
+                    android:textColor="?attr/colorOnPrimary"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
 
-                <SeekBar
-                    android:id="@+id/minimumSalarySlider"
+                <LinearLayout
+                    android:id="@+id/minimumSalary"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:indeterminate="false"
-                    android:max="1000000"
-                    android:progress="100" />
-            </LinearLayout>
+                    android:orientation="vertical"
+                    android:paddingBottom="8dp">
 
-            <LinearLayout
-                android:id="@+id/maximumSalary"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingTop="16dp">
+                    <TextView
+                        android:id="@+id/minimumSalaryText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Minimum Salary: £50"
+                        android:textColor="?attr/colorOnPrimary" />
+
+                    <SeekBar
+                        android:id="@+id/minimumSalarySlider"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:indeterminate="false"
+                        android:max="2000"
+                        android:min="1"
+                        android:progress="1" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/maximumSalary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingBottom="8dp">
+
+                    <TextView
+                        android:id="@+id/maximumSalaryText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Maximum Salary: £1000"
+                        android:textColor="?attr/colorOnPrimary" />
+
+                    <SeekBar
+                        android:id="@+id/maximumSalarySlider"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:indeterminate="false"
+                        android:max="2000"
+                        android:min="1"
+                        android:progress="20" />
+                </LinearLayout>
 
                 <TextView
-                    android:id="@+id/maximumSalaryText"
+                    android:id="@+id/textView5"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Maximum Salary: £125,000"
+                    android:text="Job type"
+                    android:textColor="?attr/colorOnPrimary"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <CheckBox
+                    android:id="@+id/partTimeCheckbox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:buttonTint="?attr/colorSecondary"
+                    android:checked="false"
+                    android:text="Part-time"
                     android:textColor="?attr/colorOnPrimary" />
 
-                <SeekBar
-                    android:id="@+id/maximumSalarySlider"
-                    android:layout_width="match_parent"
+                <CheckBox
+                    android:id="@+id/fullTimeCheckbox"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:indeterminate="false"
-                    android:max="1000000"
-                    android:progress="100" />
+                    android:layout_weight="1"
+                    android:buttonTint="?attr/colorSecondary"
+                    android:checked="false"
+                    android:text="Full-time"
+                    android:textColor="?attr/colorOnPrimary" />
+
             </LinearLayout>
-
-            <CheckBox
-                android:id="@+id/partTimeCheckbox"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:buttonTint="?attr/colorSecondary"
-                android:checked="false"
-                android:text="Part-time"
-                android:textColor="?attr/colorOnPrimary" />
-
-            <CheckBox
-                android:id="@+id/fullTimeCheckbox"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:buttonTint="?attr/colorSecondary"
-                android:checked="false"
-                android:text="Full-time"
-                android:textColor="?attr/colorOnPrimary" />
-
-        </LinearLayout>
+        </ScrollView>
 
         <LinearLayout
             android:id="@+id/jobsForegroundView"
@@ -169,7 +197,7 @@
                     android:paddingStart="14dp"
                     android:paddingTop="14dp"
                     android:paddingEnd="14dp"
-                    android:text="Jobs found (x)"
+                    android:text="Jobs found (-)"
                     android:textStyle="bold" />
 
                 <ProgressBar

@@ -15,12 +15,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.punchy.pmt.vacansee.R
-import com.punchy.pmt.vacansee.searchJobs.detailedJob.FinanceGraph
-import com.punchy.pmt.vacansee.searchJobs.detailedJob.ReviewsRvAdapter
-import com.punchy.pmt.vacansee.searchJobs.detailedJob.financeData
-import com.punchy.pmt.vacansee.searchJobs.detailedJob.fullJob
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.Job
-import com.punchy.pmt.vacansee.searchJobs.httpRequests.getJobDetails
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -94,7 +89,9 @@ class JobsRvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment
             val bmp = task.await()
             if (bmp != null) {
                 view.image.setImageBitmap(bmp)
-                }
+            } else {
+                view.image.setImageResource(R.drawable.ic_baseline_android_24)
+            }
         }
         loadImage()
 

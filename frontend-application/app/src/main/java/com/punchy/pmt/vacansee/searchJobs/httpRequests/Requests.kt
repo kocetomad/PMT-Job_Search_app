@@ -115,11 +115,19 @@ fun registerAccount(
 
 
 fun getJobs(
-    searchParam: String,
+    searchParam: String?,
     locationParam: String?,
     partTime: Boolean?,
-    fullTime: Boolean?
+    fullTime: Boolean?,
+    locationDistance: Int,
+    minSalary: Int,
+    maxSalary: Int
 ): List<String> {
+    var searchParamEnd = "job" // uses "job" as placeholder
+    if (searchParam != null) {
+        searchParamEnd = searchParam
+    }
+
     var jobsList: MutableList<Job>
 
     var locationText = ""
@@ -140,7 +148,15 @@ fun getJobs(
 
 
     val request = Request.Builder()
-        .url("$route/api/jobs?search=$searchParam$locationText$partTimeText$fullTimeText")
+        .url(
+            "$route/api/jobs?search=$searchParamEnd" +
+                    locationText +
+                    partTimeText +
+                    fullTimeText +
+                    "&distance=$locationDistance" +
+                    "&minimumSalary=$minSalary" +
+                    "&maximumSalary=$maxSalary"
+        )
         .addHeader("Cookie", sessionCookie)
         .build()
 

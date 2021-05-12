@@ -36,11 +36,15 @@ var savedItems: MutableList<Int> = mutableListOf()
 var touchDown = true
 var jobsList = mutableListOf<Job>()
 
-var searchParam = "job" // uses "job" as placeholder
+var searchParam: String? = null
 
 var locationParam: String? = null
 var partTimeParam: Boolean? = null
 var fullTimeParam: Boolean? = null
+
+var locationDistanceParam = 10
+var minSalaryParam = 50
+var maxSalaryParam = 1000
 
 /**
  * A simple [Fragment] subclass.
@@ -55,7 +59,7 @@ class JobsFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        super.onCreate(savedInstanceState);
+        super.onCreate(savedInstanceState)
         retainInstance = true;
 
 
@@ -107,6 +111,7 @@ class JobsFragment : Fragment() {
 
         val bottomSheetView = jobsView.findViewById<LinearLayout>(R.id.jobsForegroundView)
         val bottomSheetBehavior = BottomSheetBehavior.from(bottomSheetView)
+        val backdropTitle = bottomSheetView.findViewById<TextView>(R.id.jobsBackdropTitle)
 
         // set bottom sheet state as expanded by default
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
@@ -122,26 +127,51 @@ class JobsFragment : Fragment() {
         )
 
 
-        fun loadData(
-            searchParam: String,
-            locationParam: String?,
-            partTimeParam: Boolean?,
-            fullTimeParam: Boolean?,
-            parentFragment: Fragment
-        ) =
+        fun loadData(parentFragment: Fragment) =
             CoroutineScope(Dispatchers.Main).launch {
                 if (checkWIFI(context)) {
-
                     val task = async(Dispatchers.IO) {
-                        getJobs(searchParam, locationParam, partTimeParam, fullTimeParam)
+                        getJobs(
+                            searchParam,
+                            locationParam,
+                            partTimeParam,
+                            fullTimeParam,
+                            locationDistanceParam,
+                            minSalaryParam,
+                            maxSalaryParam
+                        )
                     }
                     val response = task.await()
 
-                    if(response[0] == "200") {
+                    if (response[0] == "200") {
                         val gson = Gson()
                         val parseTemplate = object : TypeToken<MutableList<Job>>() {}.type
 
                         jobsList = gson.fromJson(response[1], parseTemplate)
+
+                        if (jobsList.isEmpty()) {
+                            // get progress bar and hide it after the jobs load.
+                            bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility =
+                                View.INVISIBLE
+
+                            // get error view and make it visible if the fetching fails
+                            bottomSheetView.findViewById<TextView>(R.id.errorText).text =
+                                "No jobs found with given filters."
+
+                            backdropTitle.text = "Jobs found (${jobsList.size})"
+
+                            bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility =
+                                View.VISIBLE
+                        } else {
+                            // get progress bar and hide it after the jobs load.
+                            bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility =
+                                View.GONE
+
+                            backdropTitle.text = "Jobs found (${jobsList.size})"
+
+                            bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility =
+                                View.GONE
+                        }
                     } else {
                         // get progress bar and hide it after the jobs load.
                         bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility =
@@ -150,16 +180,13 @@ class JobsFragment : Fragment() {
                         // get error view and make it visible if the fetching fails
                         bottomSheetView.findViewById<TextView>(R.id.errorText).text =
                             "Error loading jobs."
-                        bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility = View.VISIBLE
+                        bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility =
+                            View.VISIBLE
                     }
-
-
 
                     val rvAdapter = JobsRvAdapter(jobsList, parentFragment)
                     jobsRecyclerView.adapter = rvAdapter
 
-                    val backdropTitle =
-                        bottomSheetView.findViewById<TextView>(R.id.jobsBackdropTitle)
                     backdropTitle.text = "Jobs found (${jobsList.size})"
 
                     bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility =
@@ -188,16 +215,16 @@ class JobsFragment : Fragment() {
 
                                 fun assSave() = CoroutineScope(Dispatchers.Main).launch {
                                     val save = async(Dispatchers.IO) {
-                                        saveJob(jobsList.get(viewHolder.adapterPosition).jobId.toString())
+                                        saveJob(jobsList[viewHolder.adapterPosition].jobId.toString())
                                     }
                                     val aSave = save.await()
                                     if (aSave != null) {
-                                        jobsList.get(viewHolder.adapterPosition).setSaved()
+                                        jobsList[viewHolder.adapterPosition].setSaved()
                                     }
                                 }
                                 assSave()
 
-                                if (jobsList.get(viewHolder.adapterPosition).saved == false) {
+                                if (!jobsList[viewHolder.adapterPosition].saved) {
                                     Toast.makeText(context, "Job saved", Toast.LENGTH_SHORT).show()
                                 }
                                 return
@@ -245,17 +272,17 @@ class JobsFragment : Fragment() {
                                     if (touchDown) {
                                         fun assSave() = CoroutineScope(Dispatchers.Main).launch {
                                             val save = async(Dispatchers.IO) {
-                                                saveJob(jobsList.get(viewHolder.adapterPosition).jobId.toString())
+                                                saveJob(jobsList[viewHolder.adapterPosition].jobId.toString())
                                             }
                                             val aSave = save.await()
                                             if (aSave != null) {
-                                                jobsList.get(viewHolder.adapterPosition).setSaved()
+                                                jobsList[viewHolder.adapterPosition].setSaved()
                                             }
                                         }
                                         assSave()
 
                                         println("limit hit")
-                                        if (jobsList.get(viewHolder.adapterPosition).saved == false) {
+                                        if (!jobsList[viewHolder.adapterPosition].saved) {
                                             Toast.makeText(context, "Job saved", Toast.LENGTH_SHORT)
                                                 .show()
                                         }
@@ -284,7 +311,8 @@ class JobsFragment : Fragment() {
                     // get error view and make it visible if the fetching fails
                     bottomSheetView.findViewById<TextView>(R.id.errorText).text =
                         "Couldn't connect to endpoint"
-                    bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility = View.VISIBLE
+                    bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility =
+                        View.VISIBLE
 
                     Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
                 }
@@ -293,14 +321,13 @@ class JobsFragment : Fragment() {
 
         bottomSheetView.findViewById<TextView>(R.id.errorText).text =
             "Loading jobs..."
-        loadData(searchParam, locationParam, partTimeParam, fullTimeParam, this)
+        loadData(this)
 
 
         if (jobsList.isNotEmpty()) {
             // get progress bar and hide it after the jobs load.
             bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility = View.GONE
 
-            val backdropTitle = bottomSheetView.findViewById<TextView>(R.id.jobsBackdropTitle)
             backdropTitle.text = "Jobs found (${jobsList.size})"
 
             bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility =
@@ -310,7 +337,7 @@ class JobsFragment : Fragment() {
         val rvAdapter = JobsRvAdapter(jobsList, this)
         jobsRecyclerView.adapter = rvAdapter
 
-        jobsRecyclerView.setOnTouchListener({ v, event ->
+        jobsRecyclerView.setOnTouchListener { _, event ->
             if (MotionEvent.ACTION_UP == event.action) {
                 touchDown = false
             }
@@ -318,7 +345,7 @@ class JobsFragment : Fragment() {
                 touchDown = true
             }
             false // return is important...
-        })
+        }
 
         val searchBox = jobsView.findViewById<EditText>(R.id.searchJobsBox)
         val locationBox = jobsView.findViewById<EditText>(R.id.locationSearchBox)
@@ -334,13 +361,9 @@ class JobsFragment : Fragment() {
             fullTimeParam = fullTimeCheckbox.isChecked
         }
 
-        searchBox.setOnKeyListener(View.OnKeyListener { v, keyCode, event ->
+        searchBox.setOnKeyListener(View.OnKeyListener { _, keyCode, event ->
             if (keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_UP) {
                 searchParam = searchBox.text.toString()
-
-                if (locationBox.text.isNotBlank()) {
-                    locationParam = locationBox.text.toString()
-                }
 
                 jobsList = mutableListOf()
                 rvAdapter.notifyDataSetChanged()
@@ -355,32 +378,12 @@ class JobsFragment : Fragment() {
 
                 bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
 
-                loadData(searchParam, locationParam, partTimeParam, fullTimeParam, this)
-
-                if (jobsList.isEmpty()) {
-                    // get progress bar and hide it after the jobs load.
-                    bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility =
-                        View.INVISIBLE
-
-                    // get error view and make it visible if the fetching fails
-                    bottomSheetView.findViewById<TextView>(R.id.errorText).text =
-                        "Error loading jobs."
-                    bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility = View.VISIBLE
-                } else {
-                    // get progress bar and hide it after the jobs load.
-                    bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility = View.GONE
-
-                    val backdropTitle = bottomSheetView.findViewById<TextView>(R.id.jobsBackdropTitle)
-                    backdropTitle.text = "Jobs found (${jobsList.size})"
-
-                    bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility =
-                        View.GONE
-                }
+                loadData(this)
                 return@OnKeyListener true
             }
             false
         })
-        searchBox.setOnTouchListener(OnTouchListener { v, event ->
+        searchBox.setOnTouchListener(OnTouchListener { _, event ->
             if (event.action == MotionEvent.ACTION_UP) {
                 if (event.rawX >= (searchBox.right - searchBox.compoundDrawables[2].bounds.width())) {
                     // your action for drawable click event
@@ -401,34 +404,14 @@ class JobsFragment : Fragment() {
 
                     bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
 
-                    loadData(searchParam, locationParam, partTimeParam, fullTimeParam, this)
-
-                    if (jobsList.isEmpty()) {
-                        // get progress bar and hide it after the jobs load.
-                        bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility =
-                            View.INVISIBLE
-
-                        // get error view and make it visible if the fetching fails
-                        bottomSheetView.findViewById<TextView>(R.id.errorText).text =
-                            "Error loading jobs."
-                        bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility = View.VISIBLE
-                    } else {
-                        // get progress bar and hide it after the jobs load.
-                        bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility = View.GONE
-
-                        val backdropTitle = bottomSheetView.findViewById<TextView>(R.id.jobsBackdropTitle)
-                        backdropTitle.text = "Jobs found (${jobsList.size})"
-
-                        bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility =
-                            View.GONE
-                    }
+                    loadData(this)
                     return@OnTouchListener true
                 }
             }
             false
         })
 
-        locationBox.setOnKeyListener(View.OnKeyListener { v, keyCode, event ->
+        locationBox.setOnKeyListener(View.OnKeyListener { _, keyCode, event ->
             if (keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_UP) {
                 locationParam = locationBox.text.toString()
 
@@ -445,30 +428,71 @@ class JobsFragment : Fragment() {
 
                 bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
 
-                loadData(searchParam, locationParam, partTimeParam, fullTimeParam, this)
-
-                if (jobsList.isEmpty()) {
-                    // get progress bar and hide it after the jobs load.
-                    bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility =
-                        View.INVISIBLE
-
-                    // get error view and make it visible if the fetching fails
-                    bottomSheetView.findViewById<TextView>(R.id.errorText).text =
-                        "Error loading jobs."
-                    bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility = View.VISIBLE
-                } else {
-                    // get progress bar and hide it after the jobs load.
-                    bottomSheetView.findViewById<ProgressBar>(R.id.jobsProgressBar).visibility = View.GONE
-
-                    val backdropTitle = bottomSheetView.findViewById<TextView>(R.id.jobsBackdropTitle)
-                    backdropTitle.text = "Jobs found (${jobsList.size})"
-
-                    bottomSheetView.findViewById<LinearLayout>(R.id.errorView).visibility =
-                        View.GONE
-                }
+                loadData(this)
                 return@OnKeyListener true
             }
             false
+        })
+
+        val distanceSlider = jobsView.findViewById<SeekBar>(R.id.distanceFromLocationSlider)
+        val distanceSliderText = jobsView.findViewById<TextView>(R.id.distanceFromLocationText)
+
+        distanceSlider.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar, i: Int, b: Boolean) {
+                // Display the current progress of SeekBar
+                distanceSliderText.text = "Distance from location: +${i * 10} miles"
+                locationDistanceParam = i * 10
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar) {
+                // Do something
+                // Toast.makeText(applicationContext,"start tracking",Toast.LENGTH_SHORT).show()
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar) {
+                // Do something
+                // Toast.makeText(applicationContext,"stop tracking",Toast.LENGTH_SHORT).show()
+            }
+        })
+
+        val minSalarySlider = jobsView.findViewById<SeekBar>(R.id.minimumSalarySlider)
+        val minSalarySliderText = jobsView.findViewById<TextView>(R.id.minimumSalaryText)
+        minSalarySlider.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar, i: Int, b: Boolean) {
+                // Display the current progress of SeekBar
+                minSalarySliderText.text = "Minimum salary: £${i * 50}"
+                minSalaryParam = i * 50
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar) {
+                // Do something
+//                Toast.makeText(applicationContext,"start tracking",Toast.LENGTH_SHORT).show()
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar) {
+                // Do something
+//                Toast.makeText(applicationContext,"stop tracking",Toast.LENGTH_SHORT).show()
+            }
+        })
+
+        val maxSalarySlider = jobsView.findViewById<SeekBar>(R.id.maximumSalarySlider)
+        val maxSalarySliderText = jobsView.findViewById<TextView>(R.id.maximumSalaryText)
+        maxSalarySlider.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar, i: Int, b: Boolean) {
+                // Display the current progress of SeekBar
+                maxSalarySliderText.text = "Maximum salary: £${i * 50}"
+                maxSalaryParam = i * 50
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar) {
+                // Do something
+//                Toast.makeText(applicationContext,"start tracking",Toast.LENGTH_SHORT).show()
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar) {
+                // Do something
+//                Toast.makeText(applicationContext,"stop tracking",Toast.LENGTH_SHORT).show()
+            }
         })
 
         return jobsView
