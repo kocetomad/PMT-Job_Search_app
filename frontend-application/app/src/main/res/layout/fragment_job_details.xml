@@ -196,6 +196,46 @@
                 android:layout_height="wrap_content"
                 android:text="Write a review for this company:" />
 
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/imageView2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    app:srcCompat="@drawable/ic_baseline_star_24"
+                    app:tint="#FFEB3B" />
+
+                <TextView
+                    android:id="@+id/reviewRatingText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="1.0 stars" />
+            </LinearLayout>
+
+            <SeekBar
+                android:id="@+id/jobReviewRating"
+                style="@style/Widget.AppCompat.SeekBar.Discrete"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="10"
+                android:min="0"
+                android:progress="1" />
+
+            <EditText
+                android:id="@+id/jobReviewTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:gravity="start|top"
+                android:hint="Title"
+                android:inputType="textMultiLine" />
+
             <EditText
                 android:id="@+id/jobReviewComment"
                 android:layout_width="match_parent"
@@ -207,7 +247,7 @@
                 android:minHeight="125dp" />
 
             <Button
-                android:id="@+id/button"
+                android:id="@+id/sendReviewButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Send Review" />

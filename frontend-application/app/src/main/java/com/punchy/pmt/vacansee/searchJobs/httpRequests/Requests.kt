@@ -231,20 +231,22 @@ fun getSavedJobs(): MutableList<Job> {
         .build()
 
     client.newCall(request).execute().use { response ->
-        if (!response.isSuccessful) throw IOException("Unexpected code $response")
+        if (!response.isSuccessful) {
+            Log.e("Requests - getSavedJobs", "Unexpected code $response")
+            return savedList
+        }
 
         Log.d("Requests", "Request \"getSavedJobs\" begin:")
 
         val gson = Gson()
         val jobsJSON = response.body!!.string()
         val parseTemplate = object : TypeToken<MutableList<Job>>() {}.type
-        Log.d("SavedRequests", "job" + JSONObject(jobsJSON).get("jobs").toString())
 
         try {
             savedList = gson.fromJson(JSONObject(jobsJSON).get("jobs").toString(), parseTemplate)
 
         } catch (e: Exception) {
-            Log.d("SavedRequests", "exception $e")
+            Log.d("SavedRequests", "can't get jobs: $e")
         }
         Log.d("SavedRequests", "count" + savedList.size)
 
@@ -343,4 +345,51 @@ fun getProfile(): List<String> {
             JSONObject(responseJSON).get("profile").toString()
         )
     }
+}
+
+fun postReview(
+    employerID: Int,
+    reviewTitle: String,
+    reviewRating: Float,
+    reviewDescription: String
+): Int {
+    val formBody = FormBody.Builder()
+        .add("empID", employerID.toString())
+        .add("rating", reviewRating.toString()) // may throw errors if it's float
+        .add("title", reviewTitle)
+        .add("desc", reviewDescription)
+        .build()
+
+    val request = Request.Builder()
+        .url("$route/api/review")
+        .addHeader("Cookie", sessionCookie)
+        .post(formBody)
+        .build()
+
+    client.newCall(request).execute().use { response ->
+        if (!response.isSuccessful) {
+            Log.e("Requests - postReview", response.toString())
+            return response.code
+        }
+
+        Log.d("Requests - postReview", response.body.toString())
+        return 200
+    }
+}
+
+fun getReview(employerID: Int): ReviewData {
+    val request = Request.Builder()
+        .url("$route/api/review")
+        .addHeader("Cookie", sessionCookie)
+        .build()
+
+    client.newCall(request).execute().use { response ->
+        if (!response.isSuccessful) {
+            Log.e("Requests - postReview", response.toString())
+        }
+
+        Log.d("Requests - postReview", response.body.toString())
+    }
+
+    return ReviewData()
 }

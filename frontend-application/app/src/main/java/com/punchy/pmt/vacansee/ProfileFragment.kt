@@ -127,7 +127,6 @@ class ProfileFragment : Fragment() {
 
                 val rvAdapter = JobsRvAdapter(savedJobsList, parentFragment)
                 profileRecycler.adapter = rvAdapter
-                Log.d("savedJobsList", "jobs" + savedJobsList[0].employerName)
 
                 val backdropTitle =
                     bottomSheetView.findViewById<TextView>(R.id.savedJobsBackdropTitle)

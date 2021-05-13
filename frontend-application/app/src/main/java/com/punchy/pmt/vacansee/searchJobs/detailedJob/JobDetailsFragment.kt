@@ -6,25 +6,26 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.punchy.pmt.vacansee.R
 import com.punchy.pmt.vacansee.checkWIFI
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.*
+import com.punchy.pmt.vacansee.searchJobs.locationDistanceParam
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import org.w3c.dom.Text
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 
 var fullJob = DetailedJob(Job(), mutableListOf(), mutableListOf())
 var financeData = listOf<FinanceData>()
+
 /**
  * A simple [Fragment] subclass.
  * Use the [JobDetailsFragment.newInstance] factory method to
@@ -179,6 +180,64 @@ class JobDetailsFragment : Fragment() {
         }
 
         loadData()
+
+        val sendReviewButton = detailedJobsView.findViewById<Button>(R.id.sendReviewButton)
+        val sendReviewTitle = detailedJobsView.findViewById<EditText>(R.id.jobReviewTitle)
+        val sendReviewDescription = detailedJobsView.findViewById<EditText>(R.id.jobReviewComment)
+
+        var responseCode = 0
+        var rating = 0f
+
+        fun sendReview(
+            employerID: Int,
+            reviewTitle: String,
+            reviewRating: Float,
+            reviewDescription: String
+        ) = CoroutineScope(Dispatchers.Main).launch {
+            if (checkWIFI(context)) {
+                responseCode = postReview(employerID, reviewTitle, reviewRating, reviewDescription)
+            } else {
+                Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
+            }
+
+            if (responseCode == 200) {
+                Toast.makeText(context, "Review posted. Refresh to show.", Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(context, "Failed to post review. $responseCode", Toast.LENGTH_LONG)
+                    .show()
+            }
+        }
+
+        val jobReviewSlider = detailedJobsView.findViewById<SeekBar>(R.id.jobReviewRating)
+        val reviewRatingText = detailedJobsView.findViewById<TextView>(R.id.reviewRatingText)
+
+        jobReviewSlider.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar, i: Int, b: Boolean) {
+                // Display the current progress of SeekBar
+                reviewRatingText.text = "${(i/2f)} stars"
+                rating = i/2f
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar) {
+                // Do something
+                // Toast.makeText(applicationContext,"start tracking",Toast.LENGTH_SHORT).show()
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar) {
+                // Do something
+                // Toast.makeText(applicationContext,"stop tracking",Toast.LENGTH_SHORT).show()
+            }
+        })
+
+        sendReviewButton.setOnClickListener {
+            if(sendReviewTitle.text.toString().isNotEmpty() && sendReviewDescription.text.toString().isNotEmpty())
+            sendReview(
+                fullJob.jobDetails.employerId,
+                sendReviewTitle.text.toString(),
+                rating,
+                sendReviewDescription.text.toString()
+            )
+        }
 
         return detailedJobsView
     }
