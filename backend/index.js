@@ -54,7 +54,7 @@ app.use(passport.session());
 // Caching
 const lessThanOneHourAgo = (date) => {
     const now = moment();
-    return moment(date).isAfter(now.subtract(2, "h")); // temp increased to 2
+    return moment(date).isAfter(now.subtract(7, "d")); // temp increased to 2
 };
 
 // Auth check helper functions
