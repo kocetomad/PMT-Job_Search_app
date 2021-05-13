@@ -318,6 +318,28 @@ class ProfileFragment : Fragment() {
         }
 
 
+        val deleteProfileButton = profileView.findViewById<Button>(R.id.deleteAccountButton)
+        deleteProfileButton.setOnClickListener {
+            Log.d("ProfileFragment", "Clicked on DELETE ACCOUNT")
+            if (checkWIFI(context)) {
+                val delAccResponse = deleteAccount()
+
+                if (delAccResponse == 200) {
+                    Toast.makeText(context, "Account deleted. Restart app.", Toast.LENGTH_LONG)
+                } else {
+                    Toast.makeText(
+                        context,
+                        "Failed to delete account. $delAccResponse",
+                        Toast.LENGTH_LONG
+                    )
+                }
+            } else {
+                Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
+            }
+
+        }
+
+
         return profileView
     }
 

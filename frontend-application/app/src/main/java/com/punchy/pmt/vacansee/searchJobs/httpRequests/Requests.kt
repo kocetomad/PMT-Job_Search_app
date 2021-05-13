@@ -114,6 +114,19 @@ fun registerAccount(
 }
 
 
+fun deleteAccount(): Int {
+    val request = Request.Builder()
+        .url("$route/api/profile")
+        .addHeader("Cookie", sessionCookie)
+        .delete()
+        .build()
+
+    client.newCall(request).execute().use { response ->
+        return response.code
+    }
+}
+
+
 fun getJobs(
     searchParam: String?,
     locationParam: String?,
@@ -283,6 +296,7 @@ fun saveJob(jobID: String): Array<String?> {
     }
 }
 
+
 fun unpinJob(jobID: String): Array<String?> {
     Log.d("unpin", "IN")
 
@@ -322,6 +336,7 @@ fun unpinJob(jobID: String): Array<String?> {
     )
 }
 
+
 fun getProfile(): List<String> {
     val request = Request.Builder()
         .url("$route/api/profile")
@@ -346,6 +361,7 @@ fun getProfile(): List<String> {
         )
     }
 }
+
 
 fun postReview(
     employerID: Int,
