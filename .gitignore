@@ -4,6 +4,8 @@ backend/build
 backend/npm-debug.log
 backend/.env
 backend/.DS_Store
+backend/.cache
+backend/todo.js
 
 frontend-application/.gradle
 frontend-application/.idea
