@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_height="match_parent"
-    android:layout_width="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="vertical">
 
     <TextView
@@ -28,48 +28,48 @@
 
         <ImageView
             android:id="@+id/reviewStar1"
-            app:srcCompat="@drawable/ic_baseline_star_outline_24"
-            app:tint="#FFEB3B"
-            tools:ignore="ContentDescription"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_baseline_star_outline_24"
+            app:tint="#FFEB3B"
+            tools:ignore="ContentDescription" />
 
         <ImageView
             android:id="@+id/reviewStar2"
-            app:srcCompat="@drawable/ic_baseline_star_outline_24"
-            app:tint="#FFEB3B"
-            tools:ignore="ContentDescription"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_baseline_star_outline_24"
+            app:tint="#FFEB3B"
+            tools:ignore="ContentDescription" />
 
         <ImageView
             android:id="@+id/reviewStar3"
-            app:srcCompat="@drawable/ic_baseline_star_outline_24"
-            app:tint="#FFEB3B"
-            tools:ignore="ContentDescription"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_baseline_star_outline_24"
+            app:tint="#FFEB3B"
+            tools:ignore="ContentDescription" />
 
         <ImageView
             android:id="@+id/reviewStar4"
-            app:srcCompat="@drawable/ic_baseline_star_outline_24"
-            app:tint="#FFEB3B"
-            tools:ignore="ContentDescription"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_baseline_star_outline_24"
+            app:tint="#FFEB3B"
+            tools:ignore="ContentDescription" />
 
         <ImageView
             android:id="@+id/reviewStar5"
-            app:srcCompat="@drawable/ic_baseline_star_outline_24"
-            app:tint="#FFEB3B"
-            tools:ignore="ContentDescription"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_baseline_star_outline_24"
+            app:tint="#FFEB3B"
+            tools:ignore="ContentDescription" />
 
         <TextView
             android:id="@+id/reviewScore"

@@ -1,9 +1,11 @@
 package com.punchy.pmt.vacansee.searchJobs
 
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.os.StrictMode
 import android.text.Html
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,6 +16,12 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.punchy.pmt.vacansee.R
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.Job
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import java.io.FileNotFoundException
+import java.net.MalformedURLException
 import java.net.URL
 
 
@@ -58,15 +66,44 @@ class JobsRvAdapter(val jobsList: MutableList<Job>, val parentFragment: Fragment
             Html.fromHtml(jobsList[index].jobDescription, Html.FROM_HTML_MODE_COMPACT)
         view.jobID = jobsList[index].jobId
 
-        val url = URL(jobsList[index].logoUrl)
-        val bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream())
-        view.image.setImageBitmap(bmp)
+        var url: URL? = null
+        try {
+            url = URL(jobsList[index].logoUrl)
+        } catch (e: MalformedURLException) {
+            Log.d("JobsRvAdapter", "Image url is empty")
+        }
+
+
+//        val bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream())
+
+        fun loadImage() = CoroutineScope(Dispatchers.Main).launch {
+            val task = async(Dispatchers.IO) {
+                try {
+                    BitmapFactory.decodeStream(url?.openConnection()?.getInputStream())
+                } catch (e: FileNotFoundException) {
+                    Log.e("JobsRvAdapter - Icon grab", "$e for URL: ${jobsList[index].jobUrl}")
+                    null
+                }
+            }
+
+            val bmp = task.await()
+            if (bmp != null) {
+                view.image.setImageBitmap(bmp)
+            } else {
+                view.image.setImageResource(R.drawable.ic_baseline_android_24)
+            }
+        }
+        loadImage()
 
         if (jobsList[index].minimumSalary == -1f && jobsList[index].maximumSalary == -1f) {
             view.jobSalaryMin?.text = "TBD"
             view.jobSalaryMax?.visibility = View.GONE
         } else {
-            view.jobSalaryText?.text = "Salary -${jobsList[index].salaryType}:"
+            if (jobsList[index].salaryType.isEmpty())
+                view.jobSalaryText?.text = "Salary type: UNKNWN"
+            else
+                view.jobSalaryText?.text = "Salary type: ${jobsList[index].salaryType}:"
+
             view.jobSalaryMin?.text = "Min: £${jobsList[index].minimumSalary}"
             view.jobSalaryMax?.text = "Max: £${jobsList[index].maximumSalary}"
         }

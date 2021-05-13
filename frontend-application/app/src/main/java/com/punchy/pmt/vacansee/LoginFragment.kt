@@ -25,7 +25,7 @@ import java.lang.Exception
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
 var sessionCookie = ""
-var userID = ""
+
 /**
  * A simple [Fragment] subclass.
  * Use the [LoginFragment.newInstance] factory method to
@@ -58,21 +58,23 @@ class LoginFragment : Fragment() {
             var loginResponse = arrayOf<String?>()
             fun asyncLogin(email: String, password: String) =
                 CoroutineScope(Dispatchers.Main).launch {
-                    val task = async(Dispatchers.IO) {
-                        login(email, password)
+                    if (checkWIFI(context)) {
+                        val task = async(Dispatchers.IO) {
+                            login(email, password)
+                        }
+
+                        loginResponse=task.await()
+                        if(loginResponse[0].equals("true")){
+                            sessionCookie = loginResponse[1].toString()
+
+                            Log.d("login", "cookie post login:"+ sessionCookie)
+                            findNavController().navigate(R.id.action_loginFragment_to_jobsFragment)
+                        }else{
+                            Toast.makeText(context, "Bad credentials", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
                     }
-
-                    loginResponse=task.await()
-                    if(loginResponse[0].equals("true")){
-                        sessionCookie = loginResponse[1].toString()
-                        userID = loginResponse[2].toString()
-                        Log.d("login", "cookie post login:"+ sessionCookie)
-                        findNavController().navigate(R.id.action_loginFragment_to_jobsFragment)
-                    }else{
-                        Toast.makeText(context, "Bad credentials", Toast.LENGTH_SHORT).show()
-                    }
-
-
                 }
 
             try {
@@ -80,7 +82,6 @@ class LoginFragment : Fragment() {
             }catch (e: Exception){
                 Toast.makeText(context, "Error", Toast.LENGTH_SHORT).show()
             }
-
         }
 
         loginView.findViewById<Button>(R.id.registerButton).setOnClickListener {

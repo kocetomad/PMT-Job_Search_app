@@ -1,5 +1,6 @@
 package com.punchy.pmt.vacansee
 
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Rect
@@ -17,15 +18,17 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.punchy.pmt.vacansee.searchJobs.*
 import com.punchy.pmt.vacansee.searchJobs.httpRequests.*
-import com.punchy.pmt.vacansee.searchJobs.httpRequests.saveJob
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import org.json.JSONObject
-import java.lang.Exception
+import java.io.FileNotFoundException
+import java.net.MalformedURLException
+import java.net.URL
 
 //import com.punchy.pmt.vacansee.searchJobs.httpRequests.getSavedJobs
 
@@ -65,6 +68,8 @@ class ProfileFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        var userProfile: Profile
+        var response: List<String>
 
         val trashBinIcon = resources.getDrawable(
             R.drawable.ic_baseline_delete_forever_24,
@@ -89,24 +94,39 @@ class ProfileFragment : Fragment() {
             false
         )
 
-
         // Inflate the layout for this fragment
 
         profileView.findViewById<Button>(R.id.goToJobsSearch).setOnClickListener {
             findNavController().navigate(R.id.action_profileFragment_to_jobsFragment)
         }
 
-        fun loadData(parentFragment: Fragment) = CoroutineScope(Dispatchers.Main).launch {
-            bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+        fun loadSavedJobs(parentFragment: Fragment) = CoroutineScope(Dispatchers.Main).launch {
+            if (checkWIFI(context)) {
+                bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
 
-            val task = async(Dispatchers.IO) {
-                getSavedJobs()
-            }
-            savedJobsList = task.await()
+                val task = async(Dispatchers.IO) {
+                    getSavedJobs()
+                }
+                savedJobsList = task.await()
+
+                if (savedJobsList.isEmpty()) {
+                    // get progress bar and hide it after the jobs load.
+                    bottomSheetView.findViewById<ProgressBar>(R.id.savedJobsProgressBar).visibility =
+                        View.VISIBLE
+
+                    // get error view and make it visible if the fetching fails
+                    bottomSheetView.findViewById<TextView>(R.id.savedJobsErrorText).text =
+                        "Couldn't connect to endpoint"
+                    bottomSheetView.findViewById<LinearLayout>(R.id.savedJobsErrorView).visibility =
+                        View.VISIBLE
+                } else {
+                    // get progress bar and hide it after the jobs load.
+                    bottomSheetView.findViewById<ProgressBar>(R.id.savedJobsProgressBar).visibility =
+                        View.GONE
+                }
 
                 val rvAdapter = JobsRvAdapter(savedJobsList, parentFragment)
                 profileRecycler.adapter = rvAdapter
-                Log.d("savedJobsList", "jobs" + savedJobsList[0].employerName)
 
                 val backdropTitle =
                     bottomSheetView.findViewById<TextView>(R.id.savedJobsBackdropTitle)
@@ -133,14 +153,14 @@ class ProfileFragment : Fragment() {
 
                         fun assSave() = CoroutineScope(Dispatchers.Main).launch {
                             val save = async(Dispatchers.IO) {
-                                unpinJob(savedJobsList.get(viewHolder.adapterPosition).jobId.toString())
+                                unpinJob(savedJobsList[viewHolder.adapterPosition].jobId.toString())
                             }
                             val aSave = save.await()
                             //rvAdapter?.notifyItemRemoved(viewHolder.adapterPosition)
 
                         }
                         assSave()
-                        rvAdapter?.notifyItemChanged(viewHolder.adapterPosition)
+                        rvAdapter.notifyItemChanged(viewHolder.adapterPosition)
                         savedJobsList.removeAt(viewHolder.adapterPosition)
                         val rvAdapter = JobsRvAdapter(savedJobsList, parentFragment)
                         profileRecycler.adapter = rvAdapter
@@ -163,51 +183,51 @@ class ProfileFragment : Fragment() {
                         if (touchDown) {
                             touchDown = false
                         }
-                            c.clipRect(
-                                15f, viewHolder.itemView.top.toFloat() + 20f,
-                                dX + 50f, viewHolder.itemView.bottom.toFloat() - 20f
-                            )
+                        c.clipRect(
+                            15f, viewHolder.itemView.top.toFloat() + 20f,
+                            dX + 50f, viewHolder.itemView.bottom.toFloat() - 20f
+                        )
 
-                            //making the save thingy change color
+                        //making the save thingy change color
 
-                            c.drawColor(saveColor)
-                            val textMargin = 100
-                            trashBinIcon.bounds = Rect(
-                                textMargin,
-                                viewHolder.itemView.top + (dX * 1.5).toInt() + textMargin,
-                                textMargin + trashBinIcon.intrinsicWidth,
-                                viewHolder.itemView.top + (dX * 1.5).toInt() + trashBinIcon.intrinsicHeight
-                                        + textMargin
-                            )
-                            trashBinIcon.draw(c)
-                            if (dX >= 214) {//SAVE THRESHOLD
-                                if (pinnedTouchDown) {
-                                    fun assSave() = CoroutineScope(Dispatchers.Main).launch {
-                                        val save = async(Dispatchers.IO) {
-                                            unpinJob(savedJobsList.get(viewHolder.adapterPosition).jobId.toString())
-                                        }
-                                        val aSave = save.await()
+                        c.drawColor(saveColor)
+                        val textMargin = 100
+                        trashBinIcon.bounds = Rect(
+                            textMargin,
+                            viewHolder.itemView.top + (dX * 1.5).toInt() + textMargin,
+                            textMargin + trashBinIcon.intrinsicWidth,
+                            viewHolder.itemView.top + (dX * 1.5).toInt() + trashBinIcon.intrinsicHeight
+                                    + textMargin
+                        )
+                        trashBinIcon.draw(c)
+                        if (dX >= 214) {//SAVE THRESHOLD
+                            if (pinnedTouchDown) {
+                                fun assSave() = CoroutineScope(Dispatchers.Main).launch {
+                                    val save = async(Dispatchers.IO) {
+                                        unpinJob(savedJobsList[viewHolder.adapterPosition].jobId.toString())
                                     }
-                                    assSave()
-                                    rvAdapter?.notifyItemChanged(viewHolder.adapterPosition)
-                                    savedJobsList.removeAt(viewHolder.adapterPosition)
-                                    val rvAdapter = JobsRvAdapter(savedJobsList, parentFragment)
-                                    profileRecycler.adapter = rvAdapter
-
-
-
-                                    println("limit hit")
-                                    Toast.makeText(context, "Job saved", Toast.LENGTH_SHORT).show()
-                                    pinnedTouchDown = false
-
+                                    val aSave = save.await()
                                 }
-                                return
+                                assSave()
+                                rvAdapter.notifyItemChanged(viewHolder.adapterPosition)
+                                savedJobsList.removeAt(viewHolder.adapterPosition)
+                                val rvAdapter = JobsRvAdapter(savedJobsList, parentFragment)
+                                profileRecycler.adapter = rvAdapter
+
+
+
+                                println("limit hit")
+                                Toast.makeText(context, "Job saved", Toast.LENGTH_SHORT).show()
+                                pinnedTouchDown = false
 
                             }
-                            super.onChildDraw(
-                                c, recyclerView, viewHolder,
-                                dX, dY, actionState, isCurrentlyActive
-                            )
+                            return
+
+                        }
+                        super.onChildDraw(
+                            c, recyclerView, viewHolder,
+                            dX, dY, actionState, isCurrentlyActive
+                        )
 
                     }
 
@@ -219,22 +239,62 @@ class ProfileFragment : Fragment() {
 
                 bottomSheetView.findViewById<LinearLayout>(R.id.savedJobsErrorView).visibility =
                     View.GONE
-
+            } else {
+                Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
+            }
         }
-        loadData(this)
+        loadSavedJobs(this)
 
-        if (savedJobsList.isEmpty()) {
-            // get progress bar and hide it after the jobs load.
-            bottomSheetView.findViewById<ProgressBar>(R.id.savedJobsProgressBar).visibility = View.VISIBLE
+        fun loadProfileData() = CoroutineScope(Dispatchers.Main).launch {
+            val task = async(Dispatchers.IO) {
+                getProfile()
+            }
+            response = task.await()
 
-            // get error view and make it visible if the fetching fails
-            bottomSheetView.findViewById<TextView>(R.id.savedJobsErrorText).text =
-                "Couldn't connect to endpoint"
-            bottomSheetView.findViewById<LinearLayout>(R.id.savedJobsErrorView).visibility = View.VISIBLE
-        } else {
-            // get progress bar and hide it after the jobs load.
-            bottomSheetView.findViewById<ProgressBar>(R.id.savedJobsProgressBar).visibility = View.GONE
+            val profileParseTemplate = object : TypeToken<Profile>() {}.type
+            val profileDataString = response[1].removePrefix("[").removeSuffix("]")
+
+            userProfile = Gson().fromJson(profileDataString, profileParseTemplate)
+            Log.d("ProfileFragment", userProfile.toString())
+
+            val userFirstName = profileView.findViewById<TextView>(R.id.userFirstName)
+            val userLastName = profileView.findViewById<TextView>(R.id.userLastName)
+            val userEmail = profileView.findViewById<TextView>(R.id.userEmail)
+            val userProfilePicture = profileView.findViewById<ImageView>(R.id.userProfilePicture)
+
+            userFirstName.text = userProfile.first_name
+            userLastName.text = userProfile.last_name
+            userEmail.text = userProfile.email
+
+            var url: URL? = null
+            try {
+                url = URL(userProfile.profile_url)
+            } catch (e: MalformedURLException) {
+                Log.d("JobsRvAdapter", "Image url is empty")
+            }
+
+//        val bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream())
+
+            fun loadImage() = CoroutineScope(Dispatchers.Main).launch {
+                val task = async(Dispatchers.IO) {
+                    try {
+                        BitmapFactory.decodeStream(url?.openConnection()?.getInputStream())
+                    } catch (e: FileNotFoundException) {
+                        Log.e("JobsRvAdapter - Icon grab", "$e for URL: ${userProfile.profile_url}")
+                        null
+                    }
+                }
+
+                val bmp = task.await()
+                if (bmp != null) {
+                    userProfilePicture.setImageBitmap(bmp)
+                } else {
+                    userProfilePicture.setImageResource(R.drawable.ic_baseline_android_24)
+                }
+            }
+            loadImage()
         }
+        loadProfileData()
 
         val backdropTitle = bottomSheetView.findViewById<TextView>(R.id.savedJobsBackdropTitle)
         backdropTitle.text = "Saved jobs found (${savedJobsList.size})"
@@ -245,7 +305,7 @@ class ProfileFragment : Fragment() {
 //        set the recyclerView to the adapter
         profileRecycler.adapter = rvAdapter
 
-        profileRecycler.setOnTouchListener({ v, event ->
+        profileRecycler.setOnTouchListener { _, event ->
             if (MotionEvent.ACTION_UP == event.action) {
                 println("Up")
                 pinnedTouchDown = false
@@ -255,7 +315,29 @@ class ProfileFragment : Fragment() {
                 pinnedTouchDown = true
             }
             false // return is important...
-        })
+        }
+
+
+        val deleteProfileButton = profileView.findViewById<Button>(R.id.deleteAccountButton)
+        deleteProfileButton.setOnClickListener {
+            Log.d("ProfileFragment", "Clicked on DELETE ACCOUNT")
+            if (checkWIFI(context)) {
+                val delAccResponse = deleteAccount()
+
+                if (delAccResponse == 200) {
+                    Toast.makeText(context, "Account deleted. Restart app.", Toast.LENGTH_LONG)
+                } else {
+                    Toast.makeText(
+                        context,
+                        "Failed to delete account. $delAccResponse",
+                        Toast.LENGTH_LONG
+                    )
+                }
+            } else {
+                Toast.makeText(context, "No internet connection", Toast.LENGTH_SHORT).show()
+            }
+
+        }
 
 
         return profileView

@@ -10,3 +10,8 @@ backend/todo.js
 frontend-application/.gradle
 frontend-application/.idea
 frontend-application/local.properties
+frontend-application/build
+frontend-application/app/release
+frontend-application/app/debug
+
+frontend-application/signing-keystore.jks
