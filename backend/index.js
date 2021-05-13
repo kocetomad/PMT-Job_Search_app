@@ -857,7 +857,7 @@ app.post(
 
     check("empID").toInt(),
 
-    check("rating").toInt(),
+    check("rating").toFloat(),
 
     check("title")
         .customSanitizer((value) => removeHTML(value))
